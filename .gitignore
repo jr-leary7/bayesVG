@@ -8,6 +8,7 @@
 
 # User-specific files
 .Ruserdata
+.Rbuildignore
 
 # Example code in package build process
 *-Ex.R
@@ -38,6 +39,7 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
+bayesVG.Rproj
 
 # pkgdown site
 docs/
