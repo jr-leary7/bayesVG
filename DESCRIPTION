@@ -29,6 +29,7 @@ Imports:
 Suggests: 
     testthat (>= 3.0.0)
 Additional_repositories: https://mc-stan.org/r-packages/
+SystemRequirements: CmdStan (https://mc-stan.org/users/interfaces/cmdstan)
 URL: https://github.com/jr-leary7/bayesVG
 BugReports: https://github.com/jr-leary7/bayesVG/issues
 VignetteBuilder: knitr
