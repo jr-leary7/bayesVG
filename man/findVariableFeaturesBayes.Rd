@@ -29,13 +29,13 @@ findVariableFeaturesBayes(
 
 \item{n.cells.subsample}{An integer specifying the number of cells per-gene (and per-subject if \code{subject.id} is not NULL) to subsample to when performing estimation. Defaults to 500.}
 
-\item{iter.per.chain}{An integer specifying the number of iterations per chain. Defaults to 1000L.}
+\item{iter.per.chain}{An integer specifying the number of iterations per chain. Defaults to 1000.}
 
 \item{warmup.per.chain}{An integer specifying the number of warmup (burn-in) iterations per chain. Defaults to 250.}
 
-\item{n.chains}{(Optional) An integer specifying the number of chains used when performing variational inference. Defaults to 1.}
+\item{n.chains}{(Optional) An integer specifying the number of chains used when fitting the model via sampling instead of VI or the Laplace approximation. Defaults to 1.}
 
-\item{thin.rate}{(Optional) An integer specifying the thinning rate of the VI algorithm. Defaults to 5.}
+\item{thin.rate}{(Optional) An integer specifying the thinning rate of the MCMC NUTS algorithm when sampling is being used instead of VI or the Laplace approximation. Defaults to 5.}
 
 \item{n.cores.chain}{An integer specifying the number of cores to be used when fitting the Bayesian hierarchical model. Defaults to 1.}
 
@@ -61,7 +61,7 @@ This function implements HVG estimation using Bayesian variational inference to 
 }
 \details{
 \itemize{
-\item Throughout the package, we make an important distrinction between overdispersion (the parameter \eqn{\phi} of the Negative-binomial distribution) and dispersion, which is estimated as \eqn{d = \frac{\sigma^2}{\mu}}.
+\item Throughout the package, we make an important distinction between overdispersion (the parameter \eqn{\theta} of the Negative-binomial distribution) and dispersion, which is estimated as \eqn{d = \frac{\sigma^2}{\mu}}.
 \item Our method makes use of \code{cmdstanr} to fit the model rather than \code{rstan}, as the former is generally much faster. For details, see \code{\link[cmdstanr]{cmdstan_model}}. This of course necessitates first running \code{\link[cmdstanr]{install_cmdstan}} if you haven't already. If errors occur, make sure to check that your toolchain is set up correctly by running \code{\link[cmdstanr]{check_cmdstan_toolchain}}.
 \item When using sampling instead of an approximation method, increasing \code{n.chains} will increase the model's performance at the cost of extra computational resource usage. If possible, set \code{n.cores} equal to \code{n.chains} for optimal processing speed.
 \item While we have implemented GPU acceleration via OpenCL through the argument \code{opencl.params}, OpenCL acceleration is not supported on every machine. For example, Apple M-series chips do not support double-precision floating-points, which are necessary for Stan to compile. For more information, see \href{https://discourse.mc-stan.org/t/gpus-on-mac-osx-apple-m1/23375/5}{this Stan forums thread}. In order to correctly specify the OpenCL platform and device IDs, use the \code{clinfo} command line utility.
