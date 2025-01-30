@@ -135,7 +135,7 @@ findVariableFeaturesBayes <- function(sc.obj = NULL,
   # create model formula
   if (!is.null(subject.id)) {
     model_formula <- brms::bf(count ~ 1 + (1 | gene) + (1 | subject),
-                              shape ~ 1 + (1 | gene) + (1 | subject))
+                              shape ~ 1 + (1 | gene))
   } else {
     model_formula <- brms::bf(count ~ 1 + (1 | gene),
                               shape ~ 1 + (1 | gene))
