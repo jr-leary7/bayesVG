@@ -23,13 +23,12 @@ parameters {
 }
 
 model {
-  mu_beta0 ~ normal(0, 3);
-  sigma_beta0 ~ normal(0, 2);
+  beta0 ~ std_normal();
   mu_alpha ~ normal(0, 2);
   sigma_alpha ~ normal(0, 2);
   sigma_y ~ normal(0, 2);
   mu_amplitude ~ normal(0, 2);
-  sigma_amplitude ~ normal(0, 1);
+  sigma_amplitude ~ std_normal();
   for (i in 1:G) {
     for (j in 1:k) {
       alpha[i, j] ~ normal(mu_alpha[j], sigma_alpha[j]);
