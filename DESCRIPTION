@@ -19,12 +19,15 @@ Imports:
     tidyr, 
     dplyr, 
     Seurat, 
+    forcats, 
     parallel, 
     S4Vectors, 
     posterior, 
     tidyselect, 
     BiocGenerics, 
+    SpatialExperiment, 
     sparseMatrixStats, 
+    SummarizedExperiment, 
     SingleCellExperiment
 Suggests: 
     testthat (>= 3.0.0)
