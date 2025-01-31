@@ -23,9 +23,10 @@
 #' @import magrittr
 #' @import cmdstanr
 #' @importFrom parallel detectCores
-#' @importFrom Seurat GetAssayData DefaultAssay GetTissueCoordinates
+#' @importFrom Seurat GetAssayData DefaultAssay GetTissueCoordinates VariableFeatures
 #' @importFrom dplyr relocate mutate rename select inner_join filter distinct arrange desc rowwise ungroup left_join
 #' @importFrom tidyr pivot_longer
+#' @importFrom forcats fct_drop
 #' @importFrom stats kmeans dist
 #' @importFrom withr with_output_sink
 #' @seealso \code{\link[Seurat]{FindSpatiallyVariableFeatures}}
@@ -75,7 +76,9 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
              dplyr::relocate(spot, gene) %>%
              dplyr::mutate(gene = factor(gene, levels = unique(gene)),
                            spot = factor(gene, levels = unique(spot)),
-                           expression = as.numeric(scale(expression))) %>%
+                           expression = as.numeric(scale(expression)))  %>% 
+             dplyr::filter(gene %in% Seurat::VariableFeatures(seu_brain)) %>% 
+             dplyr::mutate(gene = forcats::fct_drop(gene)) %>% 
              as.data.frame()
   # estimate global length-scale
   M <- nrow(spatial_mtx)
