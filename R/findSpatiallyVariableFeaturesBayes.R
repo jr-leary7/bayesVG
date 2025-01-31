@@ -86,22 +86,11 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   # estimate matrix of basis functions for approximate GP using desired kernel
   phi <- matrix(0, nrow = M, ncol = k)
   for (i in seq(k)) {
-    d2 <- rowSums((spatial_mtx - matrix(kmeans_centers[i, ], nrow = M, ncol = 2, byrow = TRUE))^2)
+    dist_vec <- rowSums((spatial_mtx - matrix(kmeans_centers[i, ], nrow = M, ncol = 2, byrow = TRUE))^2)
     if (kernel == "exp_quad") {
-      phi[, i] <- exp(-d2 / (2 * lscale^2))
+      phi[, i] <- expQuadKernel(dist_vec, length.scale = lscale)
     } else if (kernel == "matern") {
-      maternKernel <- function(d = NULL,
-                               length.scale = NULL,
-                               nu = NULL,
-                               sigma = 1) {
-        if (d == 0) {
-          res <- sigma^2
-        } else {
-          res <- sigma^2 * (2^(1 - nu) / gamma(nu)) * (sqrt(2 * nu) * d / length.scale)^nu * besselK(sqrt(2 * nu) * d / length.scale, nu)
-        }
-        return(res)
-      }
-      phi[, i] <- maternKernel(d2,
+      phi[, i] <- maternKernel(dist_vec,
                                length.scale = lscale,
                                nu = kernel.smoothness)
     }
