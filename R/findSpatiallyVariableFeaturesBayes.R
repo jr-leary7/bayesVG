@@ -114,6 +114,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   mod <- cmdstanr::cmdstan_model("../src/stan/approxGP.stan",
                                  stanc_options = list("O1"),
                                  cpp_options = cpp_options,
+                                 force_recompile = TRUE, 
                                  threads = 2L)
   # fit model with desired algorithm
   if (verbose) {
