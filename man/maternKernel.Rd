@@ -9,7 +9,7 @@ maternKernel(d = NULL, length.scale = NULL, nu = NULL, sigma = 1)
 \arguments{
 \item{d}{A numeric vector of distances. Defaults to NULL.}
 
-\item{length.scale}{A numeric specifying the length-scale \eqn{ell} for the approximate GP. Defaults to NULL.}
+\item{length.scale}{A numeric specifying the length-scale \eqn{\ell} for the approximate GP. Defaults to NULL.}
 
 \item{nu}{A numeric specifying the smoothness parameter \eqn{\nu} of the Matern kernel. Defaults to NULL.}
 

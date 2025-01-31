@@ -4,7 +4,7 @@
 #' @author Jack R. Leary
 #' @description This function computes the exponentiated quadratic kernel for a given vector of distances and a global length-scale.
 #' @param d A numeric vector of distances. Defaults to NULL. 
-#' @param length.scale A numeric specifying the length-scale \eqn{ell} for the approximate GP. Defaults to NULL. 
+#' @param length.scale A numeric specifying the length-scale \eqn{\ell} for the approximate GP. Defaults to NULL. 
 #' @return A vector of numeric values. 
 #' @seealso \code{\link{maternKernel}}
 

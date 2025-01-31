@@ -9,7 +9,7 @@ expQuadKernel(d = NULL, length.scale = NULL)
 \arguments{
 \item{d}{A numeric vector of distances. Defaults to NULL.}
 
-\item{length.scale}{A numeric specifying the length-scale \eqn{ell} for the approximate GP. Defaults to NULL.}
+\item{length.scale}{A numeric specifying the length-scale \eqn{\ell} for the approximate GP. Defaults to NULL.}
 }
 \value{
 A vector of numeric values.
