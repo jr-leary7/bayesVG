@@ -59,9 +59,9 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     cpp_options <- list(stan_opencl = TRUE)
   }
   # extract spatial coordinates & scale them
-  spatial_df <- GetTissueCoordinates(seu_brain) %>%
-                relocate(cell) %>%
-                rename(spot = cell)
+  spatial_df <- Seurat::GetTissueCoordinates(seu_brain) %>%
+                dplyr::relocate(cell) %>%
+                dplyr::rename(spot = cell)
   spatial_mtx <- scale(as.matrix(select(spatial_df, -spot)))
   # extract matrix of normalized gene expression
   expr_mat <- Seurat::GetAssayData(sp.obj,
