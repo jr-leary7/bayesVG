@@ -163,13 +163,6 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                           dplyr::mutate(dispersion = sd^2 / mean) %>%
                           dplyr::arrange(dplyr::desc(mean)) %>%
                           dplyr::mutate(mean_rank = dplyr::row_number()) %>%
-                          dplyr::arrange(dplyr::desc(sd)) %>%
-                          dplyr::mutate(sd_rank = dplyr::row_number()) %>%
-                          dplyr::arrange(dplyr::desc(dispersion)) %>%
-                          dplyr::mutate(dispersion_rank = dplyr::row_number()) %>%
-                          dplyr::rowwise() %>%
-                          dplyr::mutate(overall_rank = mean(c(mean_rank, sd_rank, dispersion_rank))) %>%
-                          dplyr::ungroup() %>%
                           magrittr::set_rownames(.$gene)
   if (verbose) {
     message("Posterior summarization complete!")
