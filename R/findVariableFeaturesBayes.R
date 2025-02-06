@@ -290,9 +290,9 @@ findVariableFeaturesBayes <- function(sc.obj = NULL,
   # optionally save model fit to object's unstructured metadata
   if (save.model) {
     if (inherits(sc.obj, "SingleCellExperiment")) {
-      sc.obj@metadata$brms_fit <- brms_fit
+      sc.obj@metadata$model_fit <- brms_fit
     } else if (inherits(sc.obj, "Seurat")) {
-      sc.obj@assays[[Seurat::DefaultAssay(sc.obj)]]@misc$brms_fit <- brms_fit
+      sc.obj@assays[[Seurat::DefaultAssay(sc.obj)]]@misc$model_fit <- brms_fit
     }
   }
   return(sc.obj)
