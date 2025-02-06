@@ -11,13 +11,11 @@ data {
 
 parameters {
   real beta0;  // global intercept
-  matrix[G, k] alpha;  // matrix of gene-specific coefficients for each basis function
+  matrix[k, G] alpha_t;  // transposed matrix of gene-specific coefficients for each basis function
   real<lower=0> sigma_y;  // observation noise of response variable
   vector<lower=0>[G] amplitude;  // vector of gene-specific amplitudes of the approximate GP
   real mu_amplitude;  // mean for the amplitude
   real<lower=0> sigma_amplitude;  // SD for the amplitude
-  real mu_beta0;  // mean for the gene-specific intercepts
-  real<lower=0> sigma_beta0;  // SD for the gene-specific intercepts
   vector[k] mu_alpha;  // vector of means for the basis function coefficients
   vector<lower=0>[k] sigma_alpha;  // vector of SDs for the basis function coefficients
 }
@@ -29,16 +27,15 @@ model {
   sigma_y ~ normal(0, 2);
   mu_amplitude ~ normal(0, 2);
   sigma_amplitude ~ std_normal();
+  vector[G] amplitude_sq = square(amplitude);
+  matrix[M, G] phi_alpha = phi * alpha_t;
+  vector[N] w;
+  for (i in 1:N) {
+    w[i] = phi_alpha[spot_id[i], gene_id[i]];
+  }
   for (i in 1:G) {
-    for (j in 1:k) {
-      alpha[i, j] ~ normal(mu_alpha[j], sigma_alpha[j]);
-    }
+    alpha_t[, i] ~ normal(mu_alpha, sigma_alpha);
     amplitude[i] ~ lognormal(mu_amplitude, sigma_amplitude);
   }
-  for (i in 1:N) {
-    int g = gene_id[i];
-    int p = spot_id[i];
-    real w_i = dot_product(phi[p], alpha[g]);
-    y[i] ~ normal(beta0 + square(amplitude[g]) * w_i, sigma_y);
-  }
+  y ~ normal(beta0 + amplitude_sq[gene_id] .* w, sigma_y);
 }
