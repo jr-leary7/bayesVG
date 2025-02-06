@@ -16,7 +16,7 @@
 #' @details
 #' \itemize{
 #' \item This function utilizes an approximate multivariate hierarchical Gaussian process (GP) to model spatial variation in gene expression.
-#' \item While we have implemented GPU acceleration via OpenCL through the argument \code{opencl.params}, OpenCL acceleration is not supported on every machine. For example, Apple M-series chips do not support double-precision floating-points, which are necessary for Stan to compile. For more information, see \href{https://discourse.mc-stan.org/t/gpus-on-mac-osx-apple-m1/23375/5}{this Stan forums thread}. In order to correctly specify the OpenCL platform and device IDs, use the \code{clinfo} command line utility.
+#' \item While we have implemented GPU acceleration via OpenCL through the argument \code{opencl.params}, OpenCL acceleration is not supported on every machine. For example, Apple M-series chips do not support double-precision floating-points, which are necessary for Stan to compile with OpenCL support. For more information, see \href{https://discourse.mc-stan.org/t/gpus-on-mac-osx-apple-m1/23375/5}{this Stan forums thread}. In order to correctly specify the OpenCL platform and device IDs, use the \code{clinfo} command line utility.
 #' \item The user can specify which variational inference (VI) to use to fit the model via the argument \code{algorithm}. For further details, see \href{https://www.jmlr.org/papers/volume18/16-107/16-107.pdf}{this paper} comparing the meanfield and fullrank algorithms, and \href{https://doi.org/10.48550/arXiv.2108.03782}{this preprint} that introduced the Pathfinder algorithm. For a primer on automatic differentiation variational inference (ADVI), see \href{https://doi.org/10.48550/arXiv.1506.03431}{this preprint}. Lastly, \href{https://discourse.mc-stan.org/t/issues-with-differences-between-mcmc-and-pathfinder-results-how-to-make-pathfinder-or-something-else-more-accurate/35992}{this Stan forums thread} lays out some pratical differences between the algorithms.
 #' \item If \code{save.model} is set to TRUE, the final model fit will be saved to the appropriate unstructured metadata slot of \code{sp.obj}. This allows the user to inspect the final fit and perform posterior predictive checks, but the model object takes up a lot of space. As such, it is recommended to remove it from \code{sp.obj} by setting the appropriate slot to NULL before saving it to disk.
 #' }
@@ -24,9 +24,8 @@
 #' @import cmdstanr
 #' @importFrom parallel detectCores
 #' @importFrom Seurat GetAssayData DefaultAssay GetTissueCoordinates VariableFeatures
-#' @importFrom dplyr relocate mutate rename select inner_join filter distinct arrange desc rowwise ungroup left_join
+#' @importFrom dplyr relocate mutate rename rename_with select inner_join filter distinct arrange left_join
 #' @importFrom tidyr pivot_longer
-#' @importFrom forcats fct_drop
 #' @importFrom stats kmeans dist
 #' @importFrom withr with_output_sink
 #' @seealso \code{\link[Seurat]{FindSpatiallyVariableFeatures}}
@@ -68,7 +67,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                    assay = Seurat::DefaultAssay(sp.obj),
                                    layer = "data")
   # convert expression matrix to long data.frame for modeling & postprocess
-  expr_df <- as.data.frame(expr_mat) %>%
+  expr_df <- as.data.frame(expr_mtx[Seurat::VariableFeatures(seu_brain), ]) %>%
              dplyr::mutate(gene = rownames(.), .before = 1) %>%
              tidyr::pivot_longer(cols = !gene,
                                  names_to = "spot",
@@ -76,19 +75,16 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
              dplyr::relocate(spot, gene) %>%
              dplyr::mutate(gene = factor(gene, levels = unique(gene)),
                            spot = factor(gene, levels = unique(spot)),
-                           expression = as.numeric(scale(expression)))  %>% 
-             dplyr::filter(gene %in% Seurat::VariableFeatures(seu_brain)) %>% 
-             dplyr::mutate(gene = forcats::fct_drop(gene)) %>% 
+                           expression = as.numeric(scale(expression)))  %>%
              as.data.frame()
   # estimate global length-scale
   M <- nrow(spatial_mtx)
-  k <- 20
-  kmeans_centers <- stats::kmeans(spatial_mtx, centers = k, iter.max = 20L)$centers
+  kmeans_centers <- stats::kmeans(spatial_mtx, centers = n.basis.fns, iter.max = 20L)$centers
   dists_centers <- as.matrix(stats::dist(kmeans_centers))
   lscale <- median(dists_centers[upper.tri(dists_centers)])
   # estimate matrix of basis functions for approximate GP using desired kernel
-  phi <- matrix(0, nrow = M, ncol = k)
-  for (i in seq(k)) {
+  phi <- matrix(0, nrow = M, ncol = n.basis.fns)
+  for (i in seq(n.basis.fns)) {
     dist_vec <- rowSums((spatial_mtx - matrix(kmeans_centers[i, ], nrow = M, ncol = 2, byrow = TRUE))^2)
     if (kernel == "exp_quad") {
       phi[, i] <- expQuadKernel(dist_vec, length.scale = lscale)
@@ -100,21 +96,21 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   }
   # scale basis functions
   phi <- scale(phi)
-  attributes(phi) <- NULL
+  attributes(phi)[2:3] <- NULL
   # prepare data to be passed to cmdstan
   data_list <- list(M = M,
                     N = nrow(expr_df),
                     G = length(unique(expr_df$gene)),
                     k = k,
-                    spot_id = expr_df$spot,
-                    gene_id = expr_df$gene,
+                    spot_id = as.integer(expr_df$spot),
+                    gene_id = as.integer(expr_df$gene),
                     phi = phi,
                     y = expr_df$expression)
   # compile model
   mod <- cmdstanr::cmdstan_model("../src/stan/approxGP.stan",
                                  stanc_options = list("O1"),
                                  cpp_options = cpp_options,
-                                 force_recompile = TRUE, 
+                                 force_recompile = TRUE,
                                  threads = 2L)
   # fit model with desired algorithm
   if (verbose) {
@@ -156,14 +152,18 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   gene_mapping <- data.frame(gene = as.character(expr_df$gene),
                              gene_id = as.character(as.integer(expr_df$gene))) %>%
                   dplyr::distinct()
-  amplitude_vi_summary <- fit_vi$summary(variables = "amplitude") %>%
-                          dplyr::mutate(gene_id = sub("^.*\\[(.*)\\].*$", "\\1", variable), .before = 1) %>%
-                          dplyr::inner_join(gene_mapping, by = "gene_id") %>%
-                          dplyr::relocate(gene) %>%
-                          dplyr::mutate(dispersion = sd^2 / mean) %>%
-                          dplyr::arrange(dplyr::desc(mean)) %>%
-                          dplyr::mutate(mean_rank = dplyr::row_number()) %>%
-                          magrittr::set_rownames(.$gene)
+  amplitude_summary <- fit_vi$summary(variables = "amplitude") %>%
+                       dplyr::rename_with(~paste0("amplitude_", .), .cols = -1) %>%
+                       dplyr::rename(amplitud_ci_ll = amplitude_q5,
+                                     amplitude_ci_ul = amplitude_q95) %>%
+                       dplyr::mutate(gene_id = sub("^.*\\[(.*)\\].*$", "\\1", variable), .before = 1) %>%
+                       dplyr::inner_join(gene_mapping, by = "gene_id") %>%
+                       dplyr::relocate(gene) %>%
+                       dplyr::select(-variable) %>%
+                       dplyr::mutate(amplitude_dispersion = amplitude_sd^2 / amplitude_mean) %>%
+                       dplyr::arrange(desc(amplitude_mean)) %>%
+                       dplyr::mutate(amplitude_mean_rank = row_number()) %>%
+                       magrittr::set_rownames(.$gene)
   if (verbose) {
     message("Posterior summarization complete!")
   }
@@ -180,18 +180,19 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     new_metadata <- dplyr::mutate(orig_metadata,
                                   gene = rownames(sp.obj),
                                   .before = 1) %>%
-                    dplyr::left_join(amplitude_vi_summary, by = "gene")
+                    dplyr::left_join(amplitude_summary, by = "gene")
     if (inherits(version_check, "try-error")) {
       sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]]@meta.features <- new_metadata
     } else {
       sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]]@meta.data <- new_metadata
     }
   } else {
-    amplitude_vi_summary <- amplitude_vi_summary[rownames(sp.obj), ]
+    # need to fix since not all rownames of sp.obj are in amplitude_summary
+    amplitude_summary <- amplitude_summary[rownames(sp.obj), ]
     if (inherits(version_check, "try-error")) {
-      sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]]@meta.features <- amplitude_vi_summary
+      sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]]@meta.features <- amplitude_summary
     } else {
-      sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]]@meta.data <- amplitude_vi_summary
+      sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]]@meta.data <- amplitude_summary
     }
   }
   # optionally save model fit to object's unstructured metadata

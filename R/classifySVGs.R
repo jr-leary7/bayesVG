@@ -7,7 +7,7 @@
 #' @param selection.method A string specifying what method should be used to classify genes as SVGs. Must be one of "rank", "quantile", or "cutoff". Defaults to "rank".
 #' @param n.SVG An integer specifying the number of SVGs to select (if using rank-based selection). Defaults to 1000.
 #' @param quantile.SVG A double specifying the quantile cutoff used to classify SVGs (if using quantile-based selection). Defaults to 0.75.
-#' @param cutoff A double specifying the cutoff value for spatial variation (depending on how \code{selection.variable} is defined) used to classify SVGs (if using cutoff-based selection). Defaults to 0.15.
+#' @param cutoff A double specifying the cutoff value for spatial variation (depending on how \code{selection.variable} is defined) used to classify SVGs (if using cutoff-based selection). Defaults to 0.05.
 #' @import magrittr
 #' @importFrom Seurat DefaultAssay VariableFeatures
 #' @importFrom dplyr select arrange desc slice_head pull mutate filter if_else
@@ -17,11 +17,11 @@
 #' @seealso \code{\link[SeuratObject]{SVFInfo}}
 #' @export
 
-classifySVGs <- function(sp.obj = NULL, 
-                         selection.method = "rank", 
-                         n.SVG = 1000L, 
-                         quantile.SVG = 0.75, 
-                         cutoff = 0.15) {
+classifySVGs <- function(sp.obj = NULL,
+                         selection.method = "rank",
+                         n.SVG = 1000L,
+                         quantile.SVG = 0.75,
+                         cutoff = 0.05) {
   # check inputs
   if (is.null(sp.obj)) { stop("Please provide an object to classifySVGs().") }
   selection.method <- tolower(selection.method)
