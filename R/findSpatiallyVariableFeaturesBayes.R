@@ -4,7 +4,7 @@
 #' @author Jack R. Leary
 #' @description This function implements SVG estimation using Bayesian variational inference to approximate the posterior distribution of each gene's expression while accounting for spatial trends.
 #' @param sp.obj An object of class \code{Seurat} containing spatial data. Defaults to NULL.
-#' @param iter.per.chain An integer specifying the number of iterations per chain. Defaults to 3000.
+#' @param n.iter An integer specifying the maximum number of iterations. Defaults to 3000.
 #' @param kernel A string specifying the covariance kernel to be used when fitting the GP. Must be one of "exp_quad" or "matern". Defaults to "exp_quad".
 #' @param kernel.smoothness A double specifing the smoothness parameter \eqn{\nu} used when computing the Matern kernel. Must be one of 0.5, 1.5, or 2.5. Using 0.5 corresponds to the exponential kernel. Defaults to 1.5.
 #' @param n.basis.fns An integer specifying the number of basis functions to be used when approximating the GP as a Hilbert space. Defaults to 20.
