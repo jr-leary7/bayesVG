@@ -13,9 +13,8 @@
 
 <!-- badges: start -->
 
-![release](https://img.shields.io/github/v/release/jr-leary7/scLANE?color=purple)
 ![last
-commit](https://img.shields.io/github/last-commit/jr-leary7/scLANE/main?color=darkgreen)
+commit](https://img.shields.io/github/last-commit/jr-leary7/bayesVG/main?color=darkgreen)
 [![License:
 MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 <!-- badges: end -->
