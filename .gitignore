@@ -51,4 +51,4 @@ po/*~
 rsconnect/
 
 # compiled Stan code 
-src/stan/approxGP
+inst/approxGP
