@@ -4,6 +4,9 @@
 + Updated and improved (with respect to efficiency and accuracy) the Stan code used in the SVG modeling function. 
 + Added a README. 
 + Improved function documentation. 
++ Changed structure of Stan code and compiled executable. 
++ Squashed some bugs. 
++ Added some (very) basic tests.
 
 # bayesVG v0.0.1
 
