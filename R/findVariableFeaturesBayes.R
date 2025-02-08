@@ -30,7 +30,8 @@
 #' @import cmdstanr
 #' @import magrittr
 #' @importFrom parallel detectCores
-#' @importFrom SingleCellExperiment colData rowData
+#' @importFrom SingleCellExperiment colData 
+#' @importFrom SummarizedExperiment rowData
 #' @importFrom BiocGenerics counts
 #' @importFrom Seurat GetAssayData DefaultAssay
 #' @importFrom dplyr mutate select with_groups ntile slice_sample n filter summarise arrange desc left_join inner_join pull row_number
@@ -253,12 +254,12 @@ findVariableFeaturesBayes <- function(sc.obj = NULL,
   }
   # add gene-level estimates to object metadata
   if (inherits(sc.obj, "SingleCellExperiment")) {
-    gene_summary_s4 <- SingleCellExperiment::rowData(sc.obj) %>%
+    gene_summary_s4 <- SummarizedExperiment::rowData(sc.obj) %>%
                        as.data.frame() %>%
                        dplyr::mutate(gene = rownames(.), .before = 1) %>%
                        dplyr::left_join(gene_summary, by = "gene") %>%
                        S4Vectors::DataFrame()
-    SingleCellExperiment::rowData(sc.obj) <- gene_summary_s4
+    SummarizedExperiment::rowData(sc.obj) <- gene_summary_s4
   } else if (inherits(sc.obj, "Seurat")) {
     version_check <- try({
       slot(sc.obj@assays[[Seurat::DefaultAssay(sc.obj)]], name = "meta.data")

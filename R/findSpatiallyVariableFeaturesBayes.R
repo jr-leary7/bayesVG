@@ -6,10 +6,11 @@
 #' @param sp.obj An object of class \code{Seurat} containing spatial data. Defaults to NULL.
 #' @param n.iter An integer specifying the maximum number of iterations. Defaults to 3000.
 #' @param kernel A string specifying the covariance kernel to be used when fitting the GP. Must be one of "exp_quad" or "matern". Defaults to "exp_quad".
-#' @param kernel.smoothness A double specifing the smoothness parameter \eqn{\nu} used when computing the Matern kernel. Must be one of 0.5, 1.5, or 2.5. Using 0.5 corresponds to the exponential kernel. Defaults to 1.5.
+#' @param kernel.smoothness A double specifying the smoothness parameter \eqn{\nu} used when computing the Matern kernel. Must be one of 0.5, 1.5, or 2.5. Using 0.5 corresponds to the exponential kernel. Defaults to 1.5.
 #' @param n.basis.fns An integer specifying the number of basis functions to be used when approximating the GP as a Hilbert space. Defaults to 20.
 #' @param algorithm A string specifying the variational inference (VI) approximation algorithm to be used. Must be one of "meanfield", "fullrank", or "pathfinder". Defaults to "meanfield".
 #' @param mle.init A Boolean specifying whether the the VI algorithm should be initialized using the MLE for each parameter. In general, this increases both computational speed and the accuracy of the variational approximation. Defaults to TRUE.  
+#' @param n.draws An integer specifying the number of draws to be generated from the variational posterior. Defaults to 1000. 
 #' @param opencl.params A two-element double vector specifying the platform and device IDs of the OpenCL GPU device. Most users should specify \code{c(0, 0)}. See \code{\link[brms]{opencl}} for more details. Defaults to NULL.
 #' @param n.cores An integer specifying the number of threads used in compiling and fitting the model. Defaults to 2. 
 #' @param random.seed A double specifying the random seed to be used when fitting and sampling from the model. Defaults to 312.
@@ -42,6 +43,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                                kernel.smoothness = 1.5,
                                                n.basis.fns = 20L,
                                                algorithm = "meanfield",
+                                               mle.init = TRUE, 
                                                n.draws = 1000L,
                                                opencl.params = NULL,
                                                n.cores = 2L, 
@@ -115,7 +117,8 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                     phi = phi,
                     y = expr_df$expression)
   # compile model
-  mod <- cmdstanr::cmdstan_model("../src/stan/approxGP.stan",
+  stan_file <- system.file("approxGP.stan", package = "bayesVG")
+  mod <- cmdstanr::cmdstan_model(stan_file,
                                  stanc_options = list("O1"),
                                  cpp_options = cpp_options,
                                  force_recompile = TRUE,
