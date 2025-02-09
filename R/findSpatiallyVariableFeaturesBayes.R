@@ -118,11 +118,12 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                     y = expr_df$expression)
   # compile model
   stan_file <- system.file("approxGP.stan", package = "bayesVG")
-  mod <- cmdstanr::cmdstan_model(stan_file,
-                                 stanc_options = list("O1"),
-                                 cpp_options = cpp_options,
-                                 force_recompile = TRUE,
-                                 threads = n.cores)
+  mod <- cmdstan_model(stan_file, compile = FALSE)
+  mod$compile(pedantic = TRUE, 
+              cpp_options = cpp_options, 
+              stanc_options = list("O1"), 
+              force_recompile = TRUE, 
+              threads = n.cores)
   # fit MLE model to serve as initialization for the VI model
   if (mle.init) {
     fit_mle <- mod$optimize(data_list,
@@ -184,7 +185,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                   dplyr::distinct()
   amplitude_summary <- fit_vi$summary(variables = "amplitude") %>%
                        dplyr::rename_with(~paste0("amplitude_", .), .cols = -1) %>%
-                       dplyr::rename(amplitud_ci_ll = amplitude_q5,
+                       dplyr::rename(amplitude_ci_ll = amplitude_q5,
                                      amplitude_ci_ul = amplitude_q95) %>%
                        dplyr::mutate(gene_id = sub("^.*\\[(.*)\\].*$", "\\1", variable), .before = 1) %>%
                        dplyr::inner_join(gene_mapping, by = "gene_id") %>%

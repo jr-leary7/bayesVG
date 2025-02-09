@@ -9,6 +9,7 @@ withr::with_output_sink(tempfile(), {
                                         algorithm = "meanfield", 
                                         save.model = TRUE)
   hvg_metadata <- seu_pbmc@assays$RNA@meta.data
+  hvg_fit <- extractModel(seu_pbmc)
 })
 
 test_that("HVG model", {
@@ -16,4 +17,5 @@ test_that("HVG model", {
   expect_s3_class(hvg_metadata, "data.frame")
   expect_equal(ncol(hvg_metadata), 17)
   expect_equal(nrow(hvg_metadata), 100)
+  expect_s3_class(hvg_fit, "brmsfit")
 })
