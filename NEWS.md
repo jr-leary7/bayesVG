@@ -7,6 +7,7 @@
 + Changed structure of Stan code and compiled executable. 
 + Squashed some bugs. 
 + Added some (very) basic tests.
++ Started adding GitHub Actions for CI/CD. 
 
 # bayesVG v0.0.1
 
