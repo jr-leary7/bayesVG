@@ -26,6 +26,16 @@ jobs:
         with:
           extra-packages: any::covr, any::xml2
           needs: coverage
+      
+      - name: Extra dependencies
+        id: extra-deps
+        run: |
+          install.packages("cmdstanr", repos = "https://stan-dev.r-universe.dev")
+          cmdstanr::install_cmdstan(cores = 1L, 
+                                    overwrite = TRUE, 
+                                    cpp_options = list("CXXFLAGS += -O3 -march=native -mtune=native"))
+        shell: Rscript {0}
+        working-directory: '.'
 
       - name: Test coverage
         run: |
