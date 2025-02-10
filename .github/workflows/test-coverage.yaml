@@ -24,7 +24,7 @@ jobs:
         
       - name: Repos
         run: |
-          cat("\noptions(repos=c(cmdstanr="https://stan-dev.r-universe.dev", CRAN ="https://cloud.r-project.org"))\n", 
+          cat("\noptions(repos=c(cmdstanr='https://stan-dev.r-universe.dev', CRAN ='https://cloud.r-project.org'))\n", 
               file = "~/.Rprofile", 
               append = TRUE)
         shell: Rscript {0}
