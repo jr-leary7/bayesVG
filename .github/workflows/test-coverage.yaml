@@ -22,11 +22,6 @@ jobs:
         with:
           use-public-rspm: true
 
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          extra-packages: any::covr, any::xml2
-          needs: coverage
-      
       - name: Extra dependencies
         id: extra-deps
         run: |
@@ -36,6 +31,11 @@ jobs:
                                     cpp_options = list("CXXFLAGS += -O3 -march=native -mtune=native"))
         shell: Rscript {0}
         working-directory: '.'
+      
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::covr, any::xml2
+          needs: coverage
 
       - name: Test coverage
         run: |
