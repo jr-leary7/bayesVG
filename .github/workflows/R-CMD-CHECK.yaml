@@ -51,7 +51,7 @@ jobs:
       - name: Install CmdStan
         id: cmdstan
         run: |
-          cmdstanr::check_cmdstan_toolchain()
+          cmdstanr::check_cmdstan_toolchain(fix = TRUE)
           cmdstanr::install_cmdstan(cores = 1L,
                                     overwrite = TRUE,
                                     cpp_options = list("CXXFLAGS += -O3 -march=native -mtune=native"))

@@ -4,9 +4,10 @@ genes_test <- sample(rownames(seu_pbmc), size = 100L)
 seu_pbmc <- subset(seu_pbmc, features = genes_test)
 
 withr::with_output_sink(tempfile(), {
-  seu_pbmc <- findVariableFeaturesBayes(seu_pbmc, 
+  seu_pbmc <- findVariableFeaturesBayes(seu_pbmc,
                                         n.cells.subsample = 500L,
-                                        algorithm = "meanfield", 
+                                        algorithm = "meanfield",
+                                        n.cores.per.chain = 1L,
                                         save.model = TRUE)
   hvg_metadata <- seu_pbmc@assays$RNA@meta.data
   hvg_fit <- extractModel(seu_pbmc)
