@@ -15,6 +15,7 @@
 #' @importFrom Seurat DefaultAssay VariableFeatures
 #' @importFrom dplyr select arrange desc slice_head pull mutate filter if_else
 #' @importFrom stats quantile
+#' @importFrom methods slot
 #' @importFrom S4Vectors DataFrame
 #' @return Depending on the input, either an object of class \code{Seurat} or \code{SingleCellExperiment} with HVG metadata added.
 #' @seealso \code{\link{findVariableFeaturesBayes}}
@@ -40,7 +41,7 @@ classifyHVGs <- function(sc.obj = NULL,
     gene_summary <- as.data.frame(SummarizedExperiment::rowData(sc.obj))
   } else if (inherits(sc.obj, "Seurat")) {
     version_check <- try({
-      slot(sc.obj@assays[[Seurat::DefaultAssay(sc.obj)]], name = "meta.data")
+      methods::slot(sc.obj@assays[[Seurat::DefaultAssay(sc.obj)]], name = "meta.data")
     }, silent = TRUE)
     if (inherits(version_check, "try-error")) {
       gene_summary <- sc.obj@assays[[Seurat::DefaultAssay(sc.obj)]]@meta.features

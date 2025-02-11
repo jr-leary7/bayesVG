@@ -20,6 +20,7 @@ Imports:
     dplyr, 
     Seurat,
     ggplot2, 
+    methods, 
     parallel, 
     S4Vectors, 
     grDevices, 
