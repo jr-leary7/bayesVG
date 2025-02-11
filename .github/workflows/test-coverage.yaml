@@ -17,18 +17,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
       - uses: r-lib/actions/setup-r@v2
         with:
           use-public-rspm: true
-        
       - name: Repos
         run: |
-          cat("\noptions(repos=c(cmdstanr='https://stan-dev.r-universe.dev', CRAN ='https://cloud.r-project.org'))\n", 
-              file = "~/.Rprofile", 
+          cat("\noptions(repos=c(cmdstanr='https://stan-dev.r-universe.dev', CRAN ='https://cloud.r-project.org'))\n",
+              file = "~/.Rprofile",
               append = TRUE)
         shell: Rscript {0}
-      
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::covr, any::xml2
@@ -37,13 +34,12 @@ jobs:
         id: cmdstan
         run: |
           cmdstanr::check_cmdstan_toolchain()
-          cmdstanr::install_cmdstan(cores = 1L, 
-                                    overwrite = TRUE, 
+          cmdstanr::install_cmdstan(cores = 1L,
+                                    overwrite = TRUE,
                                     cpp_options = list("CXXFLAGS += -O3 -march=native -mtune=native"))
-          
+
         shell: Rscript {0}
         working-directory: '.'
-
       - name: Test coverage
         run: |
           cov <- covr::package_coverage(
@@ -53,7 +49,6 @@ jobs:
           )
           covr::to_cobertura(cov)
         shell: Rscript {0}
-
       - uses: codecov/codecov-action@v4
         with:
           # Fail if error if not on PR, or if on PR and token is given
@@ -63,14 +58,12 @@ jobs:
           disable_search: true
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: jr-leary7/bayesVG
-
       - name: Show testthat output
         if: always()
         run: |
           ## --------------------------------------------------------------------
           find '${{ runner.temp }}/package' -name 'testthat.Rout*' -exec cat '{}' \; || true
         shell: bash
-
       - name: Upload test results
         if: failure()
         uses: actions/upload-artifact@v4
