@@ -6,6 +6,7 @@
 \usage{
 findSpatiallyVariableFeaturesBayes(
   sp.obj = NULL,
+  naive.hvgs = NULL,
   n.iter = 3000L,
   kernel = "exp_quad",
   kernel.smoothness = 1.5,
@@ -22,6 +23,8 @@ findSpatiallyVariableFeaturesBayes(
 }
 \arguments{
 \item{sp.obj}{An object of class \code{Seurat} containing spatial data. Defaults to NULL.}
+
+\item{naive.hvgs}{A vector containing genes that have been classified as naive HVGs from which SVGs will be detected. Defaults to NULL.}
 
 \item{n.iter}{An integer specifying the maximum number of iterations. Defaults to 3000.}
 
@@ -52,9 +55,9 @@ This function implements SVG estimation using Bayesian variational inference to 
 }
 \details{
 \itemize{
-\item Prior to running this function, it is necessary to identify a naive set of highly variable genes (HVGs). Use e.g., \code{\link[Seurat]{FindVariableFeatures}}. 
+\item Prior to running this function, it is necessary to identify a naive set of highly variable genes (HVGs). Use e.g., \code{\link[Seurat]{FindVariableFeatures}} or \code{\link[scran]{modelGeneVar}} depending on the class of \code{sp.obj}.
 \item This function utilizes an approximate multivariate hierarchical Gaussian process (GP) to model spatial variation in gene expression. The primary parameter of interest is the per-gene amplitude (marginal standard deviation) \eqn{\tau_g} of the GP, which can be interpreted as a scaling factor for how much spatial location contributes to mean expression.
-\item The term "approximate" in reference to the GP means that the the full GP is instead represented as a Hilbert space using basis functions. The basis function computation requires a kernel, here either the exponentiated quadratic (the default) or one of the Matérn-family kernels. In short, the exponentiated quadratic kernel assumes infinite smoothness, while the Matérn-family kernels assume varying degrees of roughness depending on the value of the smoothness parameter \eqn{\nu}. 
+\item The term "approximate" in reference to the GP means that the the full GP is instead represented as a Hilbert space using basis functions. The basis function computation requires a kernel, here either the exponentiated quadratic (the default) or one of the Matérn-family kernels. In short, the exponentiated quadratic kernel assumes infinite smoothness, while the Matérn-family kernels assume varying degrees of roughness depending on the value of the smoothness parameter \eqn{\nu}.
 \item While we have implemented GPU acceleration via OpenCL through the argument \code{opencl.params}, OpenCL acceleration is not supported on every machine. For example, Apple M-series chips do not support double-precision floating-points, which are necessary for Stan to compile with OpenCL support. For more information, see \href{https://discourse.mc-stan.org/t/gpus-on-mac-osx-apple-m1/23375/5}{this Stan forums thread}. In order to correctly specify the OpenCL platform and device IDs, use the \code{clinfo} command line utility.
 \item The user can specify which VI algorithm to use to fit the model via the argument \code{algorithm}. For further details, see \href{https://www.jmlr.org/papers/volume18/16-107/16-107.pdf}{this paper} comparing the meanfield and fullrank algorithms, and \href{https://doi.org/10.48550/arXiv.2108.03782}{this preprint} that introduced the Pathfinder algorithm. For a primer on automatic differentiation variational inference (ADVI), see \href{https://doi.org/10.48550/arXiv.1506.03431}{this preprint}. Lastly, \href{https://discourse.mc-stan.org/t/issues-with-differences-between-mcmc-and-pathfinder-results-how-to-make-pathfinder-or-something-else-more-accurate/35992}{this Stan forums thread} lays out some practical differences between the algorithms.
 \item If \code{save.model} is set to TRUE, the final model fit will be saved to the appropriate unstructured metadata slot of \code{sp.obj}. This allows the user to inspect the final fit and perform posterior predictive checks, but the model object takes up a lot of space. As such, it is recommended to remove it from \code{sp.obj} by setting the appropriate slot to NULL before saving it to disk.

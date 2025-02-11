@@ -7,14 +7,14 @@
 extractModel(obj = NULL)
 }
 \arguments{
-\item{obj}{The \code{Seurat} or \code{SingleCellExperiment} whose unstructured metadata contains the fitted model. Defaults to NULL.}
+\item{obj}{The \code{Seurat}, \code{SingleCellExperiment}, or \code{SpatialExperiment} whose unstructured metadata contains the fitted model. Defaults to NULL.}
 }
 \description{
-This function extracts the fitted model from \code{brms} or \code{cmdstanr} (depending on whether you're identifying HVGs or SVGs) from the user-provided \code{Seurat} or \code{SingleCellExperiment} object to which the model has been written.
+This function extracts the fitted model from \code{brms} or \code{cmdstanr} (depending on whether you're identifying HVGs or SVGs) from the user-provided object to which the model has been written.
 }
 \details{
 \itemize{
-\item In order for the fitted model to have been saved, the modeling function must have been called with the argument \code{save.model = TRUE}. Otherwise, the fitted model is discarded from memory after the modeling function has finished running. 
+\item In order for the fitted model to have been saved, the modeling function must have been called with the argument \code{save.model = TRUE}. Otherwise, the fitted model is discarded from memory after the modeling function has finished running.
 }
 }
 \seealso{

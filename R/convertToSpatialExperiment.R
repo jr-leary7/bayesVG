@@ -8,6 +8,7 @@
 #' @param scale.coords A Boolean specifying whether the spatial coordinates matrix should be scaled. Defaults to FALSE.
 #' @importFrom Seurat as.SingleCellExperiment GetTissueCoordinates
 #' @importFrom S4Vectors DataFrame metadata
+#' @importFrom grDevices as.raster
 #' @importFrom SpatialExperiment SpatialImage SpatialExperiment
 #' @importFrom SummarizedExperiment assays rowData colData
 #' @importFrom SingleCellExperiment reducedDims altExps
@@ -28,20 +29,21 @@ convertToSpatialExperiment <- function(seu.obj = NULL,
   # extract image data
   img_data <- S4Vectors::DataFrame(sample_id = sample.id,
                                    image_id = sample.id,
-                                   data = I(list(SpatialExperiment::SpatialImage(as.raster(seu.obj@images[[sample.id]]@image)))),
+                                   data = I(list(SpatialExperiment::SpatialImage(grDevices::as.raster(seu.obj@images[[sample.id]]@image)))),
                                    scaleFactor = seu.obj@images[[sample.id]]@scale.factors$lowres)
   # extract spatial coordinates and optionally scale them
   spatial_coords <- as.matrix(dplyr::select(Seurat::GetTissueCoordinates(seu.obj), -cell))
   if (scale.coords) {
     spatial_coords <- scale(spatial_coords)
+    attributes(spatial_coords)[2:3] <- NULL
   }
   # create spatialexperiment object
-  spe <- SpatialExperiment::SpatialExperiment(assays = SummarizedExperiment::assays(sce_brain),
-                                              rowData = SummarizedExperiment::rowData(sce_brain),
-                                              colData = SummarizedExperiment::colData(sce_brain),
-                                              metadata = S4vectors::metadata(sce_brain),
-                                              reducedDims = SingleCellExperiment::reducedDims(sce_brain),
-                                              altExps = SingleCellExperiment::altExps(sce_brain),
+  spe <- SpatialExperiment::SpatialExperiment(assays = SummarizedExperiment::assays(sce),
+                                              rowData = SummarizedExperiment::rowData(sce),
+                                              colData = SummarizedExperiment::colData(sce),
+                                              metadata = S4Vectors::metadata(sce),
+                                              reducedDims = SingleCellExperiment::reducedDims(sce),
+                                              altExps = SingleCellExperiment::altExps(sce),
                                               sample_id = sample.id,
                                               spatialCoords = spatial_coords,
                                               imgData = img_data)

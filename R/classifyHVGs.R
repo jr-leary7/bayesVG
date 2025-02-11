@@ -11,7 +11,7 @@
 #' @param cutoff A double specifying the cutoff value for dispersion or variance (depending on how \code{selection.variable} is defined) used to classify HVGs (if using cutoff-based selection). Defaults to 3.
 #' @import magrittr
 #' @importFrom rlang sym
-#' @importFrom SingleCellExperiment rowData
+#' @importFrom SummarizedExperiment rowData
 #' @importFrom Seurat DefaultAssay VariableFeatures
 #' @importFrom dplyr select arrange desc slice_head pull mutate filter if_else
 #' @importFrom stats quantile
@@ -37,7 +37,7 @@ classifyHVGs <- function(sc.obj = NULL,
   ranker_var <- rlang::sym(paste0(selection.variable, "_mean"))
   # extract gene mean & dispersion statistics
   if (inherits(sc.obj, "SingleCellExperiment")) {
-    gene_summary <- as.data.frame(SingleCellExperiment::rowData(sc.obj))
+    gene_summary <- as.data.frame(SummarizedExperiment::rowData(sc.obj))
   } else if (inherits(sc.obj, "Seurat")) {
     version_check <- try({
       slot(sc.obj@assays[[Seurat::DefaultAssay(sc.obj)]], name = "meta.data")
@@ -66,7 +66,7 @@ classifyHVGs <- function(sc.obj = NULL,
   # add HVG classification back to object metadata
   gene_summary <- dplyr::mutate(gene_summary, hvg = dplyr::if_else(gene %in% hvgs, TRUE, FALSE))
   if (inherits(sc.obj, "SingleCellExperiment")) {
-    SingleCellExperiment::rowData(sc.obj) <- S4Vectors::DataFrame(gene_summary)
+    SummarizedExperiment::rowData(sc.obj) <- S4Vectors::DataFrame(gene_summary)
   } else if (inherits(sc.obj, "Seurat")) {
     if (inherits(version_check, "try-error")) {
       sc.obj@assays[[Seurat::DefaultAssay(sc.obj)]]@meta.features <- gene_summary
