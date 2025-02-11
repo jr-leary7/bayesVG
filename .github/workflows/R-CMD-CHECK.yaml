@@ -83,7 +83,7 @@ jobs:
           name: ${{ runner.os }}-r${{ matrix.config.r }}-results
           path: ${{ steps.rcmdcheck.outputs.check-dir-path }}
       - name: Upload snapshots
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ runner.os }}-r${{ matrix.config.r }}-testthat-snapshots
           path: ${{ steps.rcmdcheck.outputs.check-dir-path }}/**/tests*/testthat/_snaps
