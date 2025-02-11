@@ -22,6 +22,7 @@ Imports:
     ggplot2, 
     parallel, 
     S4Vectors, 
+    grDevices, 
     posterior, 
     tidyselect, 
     BiocGenerics, 

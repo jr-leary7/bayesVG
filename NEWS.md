@@ -8,6 +8,7 @@
 + Squashed some bugs. 
 + Added some (very) basic tests.
 + Started adding GitHub Actions for CI/CD. 
++ Added support for `SpatialExperiment` objects to SVG modeling function.
 
 # bayesVG v0.0.1
 
