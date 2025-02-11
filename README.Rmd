@@ -25,6 +25,7 @@ knitr::opts_chunk$set(warning = FALSE,
 # `bayesVG`
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/jr-leary7/scLANE/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jr-leary7/scLANE/actions/workflows/R-CMD-check.yaml)
 ![last commit](https://img.shields.io/github/last-commit/jr-leary7/bayesVG/main?color=darkgreen)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Coverage](https://codecov.io/gh/jr-leary7/bayesVG/graph/badge.svg)](https://app.codecov.io/gh/jr-leary7/bayesVG)

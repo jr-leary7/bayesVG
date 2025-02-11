@@ -13,6 +13,7 @@
 
 <!-- badges: start -->
 
+[![R-CMD-check](https://github.com/jr-leary7/scLANE/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jr-leary7/scLANE/actions/workflows/R-CMD-check.yaml)
 ![last
 commit](https://img.shields.io/github/last-commit/jr-leary7/bayesVG/main?color=darkgreen)
 [![License:
