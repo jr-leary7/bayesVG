@@ -7,7 +7,7 @@
 #' @param selection.method A string specifying what method should be used to classify genes as SVGs. Must be one of "rank", "quantile", or "cutoff". Defaults to "rank".
 #' @param n.SVG An integer specifying the number of SVGs to select (if using rank-based selection). Defaults to 1000.
 #' @param quantile.SVG A double specifying the quantile cutoff used to classify SVGs (if using quantile-based selection). Defaults to 0.75.
-#' @param cutoff A double specifying the cutoff value for spatial variation (depending on how \code{selection.variable} is defined) used to classify SVGs (if using cutoff-based selection). Defaults to 0.1.
+#' @param cutoff A double specifying the cutoff value for the spatial variation parameter \eqn{\tau_g} used to classify SVGs (if using cutoff-based selection). Defaults to 0.1.
 #' @import magrittr
 #' @importFrom methods slot 
 #' @importFrom Seurat DefaultAssay VariableFeatures

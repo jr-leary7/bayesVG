@@ -21,7 +21,7 @@ classifySVGs(
 
 \item{quantile.SVG}{A double specifying the quantile cutoff used to classify SVGs (if using quantile-based selection). Defaults to 0.75.}
 
-\item{cutoff}{A double specifying the cutoff value for spatial variation (depending on how \code{selection.variable} is defined) used to classify SVGs (if using cutoff-based selection). Defaults to 0.1.}
+\item{cutoff}{A double specifying the cutoff value for the spatial variation parameter \eqn{\tau_g} used to classify SVGs (if using cutoff-based selection). Defaults to 0.1.}
 }
 \value{
 An object of class \code{Seurat} with SVG metadata added.
