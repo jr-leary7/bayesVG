@@ -49,7 +49,7 @@ test_that("HVG model", {
 test_that("SVG model", {
   expect_s4_class(seu_brain, "Seurat")
   expect_s3_class(svg_metadata, "data.frame")
-  expect_equal(ncol(svg_metadata), 12)
+  expect_equal(ncol(svg_metadata), 10)
   expect_equal(nrow(svg_metadata), 11464)
   expect_s3_class(svg_fit, "CmdStanVB")
 })

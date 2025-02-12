@@ -35,7 +35,7 @@
 #' @importFrom SummarizedExperiment rowData
 #' @importFrom dplyr relocate mutate rename rename_with select inner_join desc filter distinct arrange left_join bind_rows
 #' @importFrom tidyr pivot_longer
-#' @importFrom stats kmeans dist
+#' @importFrom stats kmeans dist median
 #' @importFrom withr with_output_sink
 #' @importFrom S4Vectors DataFrame
 #' @seealso \code{\link[Seurat]{FindSpatiallyVariableFeatures}}
@@ -109,7 +109,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   M <- nrow(spatial_mtx)
   kmeans_centers <- stats::kmeans(spatial_mtx, centers = n.basis.fns, iter.max = 20L)$centers
   dists_centers <- as.matrix(stats::dist(kmeans_centers))
-  lscale <- median(dists_centers[upper.tri(dists_centers)])
+  lscale <- stats::median(dists_centers[upper.tri(dists_centers)])
   # estimate matrix of basis functions used to approximate GP with desired kernel
   phi <- matrix(0, nrow = M, ncol = n.basis.fns)
   for (i in seq(n.basis.fns)) {

@@ -37,7 +37,7 @@
 #' @importFrom dplyr mutate select with_groups ntile slice_sample n filter summarise arrange desc left_join inner_join pull row_number
 #' @importFrom tidyr pivot_longer
 #' @importFrom tidyselect matches all_of everything
-#' @importFrom stats quantile
+#' @importFrom stats quantile var
 #' @importFrom withr with_output_sink
 #' @importFrom brms set_prior brm bf negbinomial
 #' @importFrom posterior as_draws_df
@@ -204,7 +204,7 @@ findVariableFeaturesBayes <- function(sc.obj = NULL,
                                    gene,
                                    dplyr::summarise,
                                    mu_mean = mean(mu),
-                                   mu_var = var(mu),
+                                   mu_var = stats::var(mu),
                                    mu_ci_ll = stats::quantile(mu, 0.025),
                                    mu_ci_ul = stats::quantile(mu, 0.975))
   # estimate posterior gene overdispersions
@@ -225,7 +225,7 @@ findVariableFeaturesBayes <- function(sc.obj = NULL,
                                       gene,
                                       dplyr::summarise,
                                       theta_mean = mean(theta),
-                                      theta_var = var(theta),
+                                      theta_var = stats::var(theta),
                                       theta_ci_ll = stats::quantile(theta, 0.025),
                                       theta_ci_ul = stats::quantile(theta, 0.975))
   # estimate posterior gene variances & dispersions
@@ -238,7 +238,7 @@ findVariableFeaturesBayes <- function(sc.obj = NULL,
                                        gene,
                                        dplyr::summarise,
                                        sigma2_mean = mean(sigma2),
-                                       sigma2_var = var(sigma2),
+                                       sigma2_var = stats::var(sigma2),
                                        sigma2_ci_ll = stats::quantile(sigma2, 0.025),
                                        sigma2_ci_ul = stats::quantile(sigma2, 0.975),
                                        dispersion_mean = mean(dispersion),
