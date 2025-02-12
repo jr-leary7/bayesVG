@@ -7,7 +7,7 @@
 #' @param naive.hvgs A vector containing genes that have been classified as naive HVGs from which SVGs will be detected. Defaults to NULL.
 #' @param n.iter An integer specifying the maximum number of iterations. Defaults to 3000.
 #' @param kernel A string specifying the covariance kernel to be used when fitting the GP. Must be one of "exp_quad" or "matern". Defaults to "exp_quad".
-#' @param kernel.smoothness A double specifying the smoothness parameter \eqn{\nu} used when computing the Matern kernel. Must be one of 0.5, 1.5, or 2.5. Using 0.5 corresponds to the exponential kernel. Defaults to 1.5.
+#' @param kernel.smoothness A double specifying the smoothness parameter \eqn{\nu} used when computing the Matérn kernel. Must be one of 0.5, 1.5, or 2.5. Using 0.5 corresponds to the exponential kernel. Defaults to 1.5.
 #' @param n.basis.fns An integer specifying the number of basis functions to be used when approximating the GP as a Hilbert space. Defaults to 20.
 #' @param algorithm A string specifying the variational inference (VI) approximation algorithm to be used. Must be one of "meanfield", "fullrank", or "pathfinder". Defaults to "meanfield".
 #' @param mle.init A Boolean specifying whether the the VI algorithm should be initialized using the MLE for each parameter. In general, this increases both computational speed and the accuracy of the variational approximation. Defaults to TRUE.
@@ -68,10 +68,18 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   if (!is.null(opencl.params) && (!is.double(opencl.params) || !length(opencl.params) == 2)) { stop("Argument opencl.params must be a double vector of length 2 if non-NULL.") }
   if (is.null(opencl.params)) {
     opencl_IDs <- NULL
-    cpp_options <- list(stan_opencl = FALSE)
+    if (algorithm == "pathfinder") {
+      cpp_options <- list(stan_opencl = FALSE, stan_threads = TRUE)
+    } else {
+      cpp_options <- list(stan_opencl = FALSE, stan_threads = TRUE)
+    }
   } else {
     opencl_IDs <- opencl.params
-    cpp_options <- list(stan_opencl = TRUE)
+    if (algorithm == "pathfinder") {
+      cpp_options <- list(stan_opencl = TRUE, stan_threads = TRUE)
+    } else {
+      cpp_options <- list(stan_opencl = TRUE, stan_threads = TRUE)
+    }
   }
   if (n.cores > parallel::detectCores()) { stop("The number of requested cores is greater than the number of available cores.") }
   # extract spatial coordinates & scale them
@@ -137,8 +145,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   # compile model
   stan_file <- system.file("approxGP.stan", package = "bayesVG")
   mod <- cmdstan_model(stan_file, compile = FALSE)
-  mod$compile(pedantic = TRUE,
-              cpp_options = cpp_options,
+  mod$compile(cpp_options = cpp_options,
               stanc_options = list("O1"),
               force_recompile = TRUE,
               threads = n.cores)

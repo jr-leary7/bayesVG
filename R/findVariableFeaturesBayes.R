@@ -107,10 +107,10 @@ findVariableFeaturesBayes <- function(sc.obj = NULL,
                              .before = 2) %>%
                tidyr::pivot_longer(cols = !c(gene, subject),
                                    names_to = "cell",
-                                   values_to = "count") %>%
+                                   values_to = "gene_expression") %>%
                dplyr::with_groups(c(gene, subject),
                                   dplyr::mutate,
-                                  quintile = dplyr::ntile(count, 5)) %>%
+                                  quintile = dplyr::ntile(gene_expression, 5)) %>%
                dplyr::with_groups(c(gene, subject, quintile),
                                   dplyr::slice_sample,
                                   n = sampled_cells_per_quintile) %>%
@@ -120,25 +120,25 @@ findVariableFeaturesBayes <- function(sc.obj = NULL,
     expr_df <- tidyr::pivot_longer(expr_df,
                                    cols = !gene,
                                    names_to = "cell",
-                                   values_to = "count") %>%
+                                   values_to = "gene_expression") %>%
                dplyr::with_groups(gene,
                                   dplyr::mutate,
-                                  quintile = dplyr::ntile(count, 5)) %>%
+                                  quintile = dplyr::ntile(gene_expression, 5)) %>%
                dplyr::with_groups(c(gene, quintile),
                                   dplyr::slice_sample,
                                   n = sampled_cells_per_quintile) %>%
                dplyr::mutate(gene = factor(gene, levels = unique(gene)))
   }
-  # convert from tibble to data.frame & convert count to integer to save space
+  # convert from tibble to data.frame & convert gene expression to integer to save space
   expr_df <- as.data.frame(expr_df) %>%
-             dplyr::mutate(count = as.integer(count)) %>%
+             dplyr::mutate(gene_expression = as.integer(gene_expression)) %>%
              dplyr::select(-c(cell, quintile))
   # create model formula
   if (!is.null(subject.id)) {
-    model_formula <- brms::bf(count ~ 1 + (1 | gene) + (1 | subject),
+    model_formula <- brms::bf(gene_expression ~ 1 + (1 | gene) + (1 | subject),
                               shape ~ 1 + (1 | gene))
   } else {
-    model_formula <- brms::bf(count ~ 1 + (1 | gene),
+    model_formula <- brms::bf(gene_expression ~ 1 + (1 | gene),
                               shape ~ 1 + (1 | gene))
   }
   # fit negative-binomial hierarchical bayesian model

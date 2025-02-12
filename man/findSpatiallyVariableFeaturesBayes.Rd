@@ -30,7 +30,7 @@ findSpatiallyVariableFeaturesBayes(
 
 \item{kernel}{A string specifying the covariance kernel to be used when fitting the GP. Must be one of "exp_quad" or "matern". Defaults to "exp_quad".}
 
-\item{kernel.smoothness}{A double specifying the smoothness parameter \eqn{\nu} used when computing the Matern kernel. Must be one of 0.5, 1.5, or 2.5. Using 0.5 corresponds to the exponential kernel. Defaults to 1.5.}
+\item{kernel.smoothness}{A double specifying the smoothness parameter \eqn{\nu} used when computing the Matérn kernel. Must be one of 0.5, 1.5, or 2.5. Using 0.5 corresponds to the exponential kernel. Defaults to 1.5.}
 
 \item{n.basis.fns}{An integer specifying the number of basis functions to be used when approximating the GP as a Hilbert space. Defaults to 20.}
 
