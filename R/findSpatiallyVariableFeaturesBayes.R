@@ -71,14 +71,14 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     if (algorithm == "pathfinder") {
       cpp_options <- list(stan_opencl = FALSE, stan_threads = TRUE)
     } else {
-      cpp_options <- list(stan_opencl = FALSE, stan_threads = TRUE)
+      cpp_options <- list(stan_opencl = FALSE, stan_threads = FALSE)
     }
   } else {
     opencl_IDs <- opencl.params
     if (algorithm == "pathfinder") {
       cpp_options <- list(stan_opencl = TRUE, stan_threads = TRUE)
     } else {
-      cpp_options <- list(stan_opencl = TRUE, stan_threads = TRUE)
+      cpp_options <- list(stan_opencl = TRUE, stan_threads = FALSE)
     }
   }
   if (n.cores > parallel::detectCores()) { stop("The number of requested cores is greater than the number of available cores.") }
