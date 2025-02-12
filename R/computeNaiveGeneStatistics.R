@@ -9,6 +9,7 @@
 #' @importFrom SingleCellExperiment logcounts
 #' @importFrom BiocGenerics counts
 #' @importFrom Seurat GetAssayData DefaultAssay
+#' @importFrom methods as 
 #' @importFrom sparseMatrixStats rowMeans2 rowVars
 #' @return A \code{data.frame} containing the per-gene naive mean, variance, and dispersion.
 #' @export
@@ -29,7 +30,7 @@ computeNaiveGeneStatistics <- function(sc.obj = NULL, use.norm = FALSE) {
                                      assay = Seurat::DefaultAssay(sc.obj))
   }
   if (!inherits(expr_mat, "dgCMatrix")) {
-    expr_mat <- as(expr_mat, "dgCMatrix")
+    expr_mat <- methods::as(expr_mat, "dgCMatrix")
   }
   # compute per-gene means
   gene_mu <- unname(sparseMatrixStats::rowMeans2(expr_mat))

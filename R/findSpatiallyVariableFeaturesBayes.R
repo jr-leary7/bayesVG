@@ -58,7 +58,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                                save.model = FALSE) {
   # check & parse inputs
   if (is.null(sp.obj)) { stop("Please provide a spatial data object to findSpatiallyVariableFeaturesBayes().") }
-  if(!(inherits(sp.obj, "Seurat") || inherits(sp.obj, "SpatialExperiment"))) { stop("Please provide an object of class Seurat or SpatialExperiment.") }
+  if (!(inherits(sp.obj, "Seurat") || inherits(sp.obj, "SpatialExperiment"))) { stop("Please provide an object of class Seurat or SpatialExperiment.") }
   if (is.null(naive.hvgs)) { stop("Please identify a set of naive HVGs prior to running findSpatiallyVariableFeaturesBayes().") }
   kernel <- tolower(kernel)
   if (!kernel %in% c("exp_quad", "matern")) { stop("Please provide a valid covariance kernel.") }
@@ -68,10 +68,10 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   if (!is.null(opencl.params) && (!is.double(opencl.params) || !length(opencl.params) == 2)) { stop("Argument opencl.params must be a double vector of length 2 if non-NULL.") }
   if (is.null(opencl.params)) {
     opencl_IDs <- NULL
-    cpp_options <- list(stan_opencl = FALSE, stan_threads = TRUE)
+    cpp_options <- list(stan_opencl = FALSE)
   } else {
     opencl_IDs <- opencl.params
-    cpp_options <- list(stan_opencl = TRUE, stan_threads = TRUE)
+    cpp_options <- list(stan_opencl = TRUE)
   }
   if (n.cores > parallel::detectCores()) { stop("The number of requested cores is greater than the number of available cores.") }
   # extract spatial coordinates & scale them
@@ -87,11 +87,11 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   spatial_mtx <- scale(as.matrix(dplyr::select(spatial_df, -spot)))
   # extract matrix of normalized gene expression
   if (inherits(sp.obj, "Seurat")) {
-    expr_mat <- Seurat::GetAssayData(sp.obj,
+    expr_mtx <- Seurat::GetAssayData(sp.obj,
                                      assay = Seurat::DefaultAssay(sp.obj),
                                      layer = "data")
   } else {
-    expr_mat <- SingleCellExperiment::logcounts(sp.obj)
+    expr_mtx <- SingleCellExperiment::logcounts(sp.obj)
   }
 
   # convert expression matrix to long data.frame for modeling & postprocess
@@ -102,7 +102,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                  values_to = "expression") %>%
              dplyr::relocate(spot, gene) %>%
              dplyr::mutate(gene = factor(gene, levels = unique(gene)),
-                           spot = factor(gene, levels = unique(spot)),
+                           spot = factor(spot, levels = unique(spot)),
                            expression = as.numeric(scale(expression)))  %>%
              as.data.frame()
   # estimate global length-scale
@@ -129,7 +129,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   data_list <- list(M = M,
                     N = nrow(expr_df),
                     G = length(unique(expr_df$gene)),
-                    k = k,
+                    k = n.basis.fns,
                     spot_id = as.integer(expr_df$spot),
                     gene_id = as.integer(expr_df$gene),
                     phi = phi,
@@ -144,12 +144,21 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
               threads = n.cores)
   # fit MLE model to serve as initialization for the VI model
   if (mle.init) {
-    fit_mle <- mod$optimize(data_list,
-                            seed = random.seed,
-                            init = 0,
-                            jacobian = FALSE,
-                            threads = n.cores,
-                            iter = 1000L)
+    if (verbose) {
+      fit_mle <- mod$optimize(data_list,
+                              seed = random.seed,
+                              init = 0,
+                              jacobian = FALSE,
+                              iter = 1000L)
+    } else {
+      withr::with_output_sink(tempfile(), {
+        fit_mle <- mod$optimize(data_list,
+                                seed = random.seed,
+                                init = 0,
+                                jacobian = FALSE,
+                                iter = 1000L)
+      })
+    }
   } else {
     fit_mle <- NULL
   }
@@ -159,7 +168,6 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
       fit_vi <- mod$variational(data_list,
                                 seed = random.seed,
                                 init = fit_mle,
-                                threads = n.cores,
                                 algorithm = algorithm,
                                 iter =  n.iter,
                                 draws = n.draws,
@@ -178,7 +186,6 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
         fit_vi <- mod$variational(data_list,
                                   seed = random.seed,
                                   init = fit_mle,
-                                  threads = n.cores,
                                   algorithm = algorithm,
                                   iter =  n.iter,
                                   draws = n.draws,
@@ -244,8 +251,8 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                             amplitude_median = NA_real_,
                             amplitude_sd = NA_real_,
                             amplitude_mad = NA_real_,
-                            amplitud_ci_ll = NA_real_,
-                            amplitud_ci_ul = NA_real_,
+                            amplitude_ci_ll = NA_real_,
+                            amplitude_ci_ul = NA_real_,
                             amplitude_dispersion = NA_real_,
                             amplitude_mean_rank = NA_integer_) %>%
                  magrittr::set_rownames(.$gene)

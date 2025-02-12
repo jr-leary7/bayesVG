@@ -9,11 +9,11 @@ classifySVGs(
   selection.method = "rank",
   n.SVG = 1000L,
   quantile.SVG = 0.75,
-  cutoff = 0.05
+  cutoff = 0.1
 )
 }
 \arguments{
-\item{sp.obj}{An object of class \code{Seurat} containing spatial data. Defaults to NULL.}
+\item{sp.obj}{An object of class \code{Seurat} or \code{SpatialExperiment} containing spatial data. Defaults to NULL.}
 
 \item{selection.method}{A string specifying what method should be used to classify genes as SVGs. Must be one of "rank", "quantile", or "cutoff". Defaults to "rank".}
 
@@ -21,7 +21,7 @@ classifySVGs(
 
 \item{quantile.SVG}{A double specifying the quantile cutoff used to classify SVGs (if using quantile-based selection). Defaults to 0.75.}
 
-\item{cutoff}{A double specifying the cutoff value for spatial variation (depending on how \code{selection.variable} is defined) used to classify SVGs (if using cutoff-based selection). Defaults to 0.05.}
+\item{cutoff}{A double specifying the cutoff value for spatial variation (depending on how \code{selection.variable} is defined) used to classify SVGs (if using cutoff-based selection). Defaults to 0.1.}
 }
 \value{
 An object of class \code{Seurat} with SVG metadata added.
