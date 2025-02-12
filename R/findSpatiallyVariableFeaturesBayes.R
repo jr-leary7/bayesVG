@@ -65,6 +65,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   if (kernel == "matern" && !kernel.smoothness %in% c(0.5, 1.5, 2.5)) { stop("When utilizing the Matern kernel you must provide a valid smoothness parameter value.") }
   algorithm <- tolower(algorithm)
   if (!algorithm %in% c("meanfield", "fullrank", "pathfinder")) { stop("Please provide a valid variational inference approximation algorithm.") }
+  if (algorithm == "pathfinder" && mle.init) { warning("Using MLE initialization for the Pathfinder algorithm is risky.") }
   if (!is.null(opencl.params) && (!is.double(opencl.params) || !length(opencl.params) == 2)) { stop("Argument opencl.params must be a double vector of length 2 if non-NULL.") }
   if (is.null(opencl.params)) {
     opencl_IDs <- NULL
@@ -155,6 +156,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
       fit_mle <- mod$optimize(data_list,
                               seed = random.seed,
                               init = 0,
+                              opencl_ids = opencl_IDs, 
                               jacobian = FALSE,
                               iter = 1000L)
     } else {
@@ -178,14 +180,16 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                 algorithm = algorithm,
                                 iter =  n.iter,
                                 draws = n.draws,
-                                opencl_ids = opencl_IDs)
+                                opencl_ids = opencl_IDs, 
+                                elbo_samples = 100L)
     } else {
       fit_vi <- mod$pathfinder(data_list,
                                seed = random.seed,
                                init = fit_mle,
                                num_threads = n.cores,
                                draws = n.draws,
-                               opencl_ids = opencl_IDs)
+                               opencl_ids = opencl_IDs, 
+                               num_elbo_draws = 25L)
     }
   } else {
     withr::with_output_sink(tempfile(), {
@@ -196,14 +200,16 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                   algorithm = algorithm,
                                   iter =  n.iter,
                                   draws = n.draws,
-                                  opencl_ids = opencl_IDs)
+                                  opencl_ids = opencl_IDs, 
+                                  elbo_samples = 100L)
       } else {
         fit_vi <- mod$pathfinder(data_list,
                                  seed = random.seed,
                                  init = fit_mle,
                                  num_threads = n.cores,
                                  draws = n.draws,
-                                 opencl_ids = opencl_IDs)
+                                 opencl_ids = opencl_IDs, 
+                                 num_elbo_draws = 25L)
       }
     })
   }
