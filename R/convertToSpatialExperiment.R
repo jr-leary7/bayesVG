@@ -32,7 +32,7 @@ convertToSpatialExperiment <- function(seu.obj = NULL,
                                    data = I(list(SpatialExperiment::SpatialImage(grDevices::as.raster(seu.obj@images[[sample.id]]@image)))),
                                    scaleFactor = seu.obj@images[[sample.id]]@scale.factors$lowres)
   # extract spatial coordinates and optionally scale them
-  spatial_coords <- as.matrix(dplyr::select(Seurat::GetTissueCoordinates(seu.obj), -cell))
+  spatial_coords <- as.matrix(dplyr::select(Seurat::GetTissueCoordinates(seu.obj), 1:2))
   if (scale.coords) {
     spatial_coords <- scale(spatial_coords)
     attributes(spatial_coords)[2:3] <- NULL
