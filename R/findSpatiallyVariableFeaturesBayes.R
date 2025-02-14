@@ -86,14 +86,12 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   # extract spatial coordinates & scale them
   if (inherits(sp.obj, "Seurat")) {
     spatial_df <- Seurat::GetTissueCoordinates(sp.obj) %>%
-                  dplyr::relocate(cell) %>%
-                  dplyr::rename(spot = cell)
+                  dplyr::select(1:2)
   } else {
    spatial_df <- SpatialExperiment::spatialCoords(sp.obj) %>%
-                 as.data.frame() %>%
-                 dplyr::mutate(spot = rownames(.), .before = 1)
+                 as.data.frame()
   }
-  spatial_mtx <- scale(as.matrix(dplyr::select(spatial_df, -spot)))
+  spatial_mtx <- scale(as.matrix(spatial_df))
   # extract matrix of normalized gene expression
   if (inherits(sp.obj, "Seurat")) {
     expr_mtx <- Seurat::GetAssayData(sp.obj,
@@ -156,7 +154,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
       fit_mle <- mod$optimize(data_list,
                               seed = random.seed,
                               init = 0,
-                              opencl_ids = opencl_IDs, 
+                              opencl_ids = opencl_IDs,
                               jacobian = FALSE,
                               iter = 1000L)
     } else {
@@ -180,7 +178,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                 algorithm = algorithm,
                                 iter =  n.iter,
                                 draws = n.draws,
-                                opencl_ids = opencl_IDs, 
+                                opencl_ids = opencl_IDs,
                                 elbo_samples = 100L)
     } else {
       fit_vi <- mod$pathfinder(data_list,
@@ -188,7 +186,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                init = fit_mle,
                                num_threads = n.cores,
                                draws = n.draws,
-                               opencl_ids = opencl_IDs, 
+                               opencl_ids = opencl_IDs,
                                num_elbo_draws = 25L)
     }
   } else {
@@ -200,7 +198,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                   algorithm = algorithm,
                                   iter =  n.iter,
                                   draws = n.draws,
-                                  opencl_ids = opencl_IDs, 
+                                  opencl_ids = opencl_IDs,
                                   elbo_samples = 100L)
       } else {
         fit_vi <- mod$pathfinder(data_list,
@@ -208,7 +206,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                  init = fit_mle,
                                  num_threads = n.cores,
                                  draws = n.draws,
-                                 opencl_ids = opencl_IDs, 
+                                 opencl_ids = opencl_IDs,
                                  num_elbo_draws = 25L)
       }
     })
