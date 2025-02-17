@@ -21,6 +21,13 @@
 #' @seealso \code{\link{findVariableFeaturesBayes}}
 #' @seealso \code{\link[SeuratObject]{HVFInfo}}
 #' @export
+#' @examples
+#' data(seu_pbmc)
+#' seu_pbmc <- findVariableFeaturesBayes(seu_pbmc, 
+#'                                       n.cells.subsample = 1000L, 
+#'                                       algorithm = "meanfield", 
+#'                                       save.model = TRUE) %>% 
+#'             classifyHVGs(n.HVG = 3000L)
 
 classifyHVGs <- function(sc.obj = NULL,
                          selection.variable = "dispersion",

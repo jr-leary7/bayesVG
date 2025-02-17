@@ -32,6 +32,14 @@ Depending on the input, either an object of class \code{Seurat} or \code{SingleC
 \description{
 After estimating per-gene statistics, classify genes as highly variable or not in a variety of ways.
 }
+\examples{
+data(seu_pbmc)
+seu_pbmc <- findVariableFeaturesBayes(seu_pbmc, 
+                                      n.cells.subsample = 1000L, 
+                                      algorithm = "meanfield", 
+                                      save.model = TRUE) \%>\% 
+            classifyHVGs(n.HVG = 3000L)
+}
 \seealso{
 \code{\link{findVariableFeaturesBayes}}
 
