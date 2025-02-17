@@ -36,7 +36,7 @@ findSpatiallyVariableFeaturesBayes(
 
 \item{algorithm}{A string specifying the variational inference (VI) approximation algorithm to be used. Must be one of "meanfield", "fullrank", or "pathfinder". Defaults to "meanfield".}
 
-\item{mle.init}{A Boolean specifying whether the the VI algorithm should be initialized using the MLE for each parameter. In general, this increases both computational speed and the accuracy of the variational approximation. Defaults to TRUE.}
+\item{mle.init}{A Boolean specifying whether the the VI algorithm should be initialized using the MLE for each parameter. In general, this increases both computational speed and the accuracy of the variational approximation. Cannot be used when the Pathfinder algorithm is specified. Defaults to TRUE.}
 
 \item{n.draws}{An integer specifying the number of draws to be generated from the variational posterior. Defaults to 1000.}
 

@@ -10,7 +10,7 @@
 #' @param kernel.smoothness A double specifying the smoothness parameter \eqn{\nu} used when computing the Matérn kernel. Must be one of 0.5, 1.5, or 2.5. Using 0.5 corresponds to the exponential kernel. Defaults to 1.5.
 #' @param n.basis.fns An integer specifying the number of basis functions to be used when approximating the GP as a Hilbert space. Defaults to 20.
 #' @param algorithm A string specifying the variational inference (VI) approximation algorithm to be used. Must be one of "meanfield", "fullrank", or "pathfinder". Defaults to "meanfield".
-#' @param mle.init A Boolean specifying whether the the VI algorithm should be initialized using the MLE for each parameter. In general, this increases both computational speed and the accuracy of the variational approximation. Defaults to TRUE.
+#' @param mle.init A Boolean specifying whether the the VI algorithm should be initialized using the MLE for each parameter. In general, this increases both computational speed and the accuracy of the variational approximation. Cannot be used when the Pathfinder algorithm is specified. Defaults to TRUE.
 #' @param n.draws An integer specifying the number of draws to be generated from the variational posterior. Defaults to 1000.
 #' @param opencl.params A two-element double vector specifying the platform and device IDs of the OpenCL GPU device. Most users should specify \code{c(0, 0)}. See \code{\link[brms]{opencl}} for more details. Defaults to NULL.
 #' @param n.cores An integer specifying the number of threads used in compiling and fitting the model. Defaults to 2.
@@ -65,7 +65,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   if (kernel == "matern" && !kernel.smoothness %in% c(0.5, 1.5, 2.5)) { stop("When utilizing the Matern kernel you must provide a valid smoothness parameter value.") }
   algorithm <- tolower(algorithm)
   if (!algorithm %in% c("meanfield", "fullrank", "pathfinder")) { stop("Please provide a valid variational inference approximation algorithm.") }
-  if (algorithm == "pathfinder" && mle.init) { warning("Using MLE initialization for the Pathfinder algorithm is risky.") }
+  if (mle.init && algorithm == "pathfinder") { warning("Initialization at the MLE is not supported when using the Pathfinder algorithm.") }
   if (!is.null(opencl.params) && (!is.double(opencl.params) || !length(opencl.params) == 2)) { stop("Argument opencl.params must be a double vector of length 2 if non-NULL.") }
   if (is.null(opencl.params)) {
     opencl_IDs <- NULL
@@ -148,30 +148,19 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
               stanc_options = list("O1"),
               force_recompile = TRUE,
               threads = n.cores)
-  # fit MLE model to serve as initialization for the VI model
-  if (mle.init) {
-    if (verbose) {
-      fit_mle <- mod$optimize(data_list,
-                              seed = random.seed,
-                              init = 0,
-                              opencl_ids = opencl_IDs,
-                              jacobian = FALSE,
-                              iter = 1000L)
-    } else {
-      withr::with_output_sink(tempfile(), {
-        fit_mle <- mod$optimize(data_list,
-                                seed = random.seed,
-                                init = 0,
-                                jacobian = FALSE,
-                                iter = 1000L)
-      })
-    }
-  } else {
-    fit_mle <- NULL
-  }
   # fit model with desired algorithm
   if (verbose) {
     if (algorithm %in% c("meanfield", "fullrank")) {
+      if (mle.init) {
+        fit_mle <- mod$optimize(data_list,
+                                seed = random.seed,
+                                init = 0,
+                                opencl_ids = opencl_IDs,
+                                jacobian = FALSE,
+                                iter = 1000L)
+      } else {
+        fit_mle <- NULL
+      }
       fit_vi <- mod$variational(data_list,
                                 seed = random.seed,
                                 init = fit_mle,
@@ -183,7 +172,6 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     } else {
       fit_vi <- mod$pathfinder(data_list,
                                seed = random.seed,
-                               init = fit_mle,
                                num_threads = n.cores,
                                draws = n.draws,
                                opencl_ids = opencl_IDs,
@@ -192,6 +180,16 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   } else {
     withr::with_output_sink(tempfile(), {
       if (algorithm %in% c("meanfield", "fullrank")) {
+        if (mle.init) {
+          fit_mle <- mod$optimize(data_list,
+                                  seed = random.seed,
+                                  init = 0,
+                                  opencl_ids = opencl_IDs,
+                                  jacobian = FALSE,
+                                  iter = 1000L)
+        } else {
+          fit_mle <- NULL
+        }
         fit_vi <- mod$variational(data_list,
                                   seed = random.seed,
                                   init = fit_mle,
@@ -203,7 +201,6 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
       } else {
         fit_vi <- mod$pathfinder(data_list,
                                  seed = random.seed,
-                                 init = fit_mle,
                                  num_threads = n.cores,
                                  draws = n.draws,
                                  opencl_ids = opencl_IDs,
