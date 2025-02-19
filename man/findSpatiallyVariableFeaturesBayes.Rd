@@ -13,7 +13,9 @@ findSpatiallyVariableFeaturesBayes(
   n.basis.fns = 20L,
   algorithm = "meanfield",
   mle.init = TRUE,
+  gene.adjust = FALSE,
   n.draws = 1000L,
+  elbo.samples = NULL,
   opencl.params = NULL,
   n.cores = 2L,
   random.seed = 312,
@@ -38,7 +40,11 @@ findSpatiallyVariableFeaturesBayes(
 
 \item{mle.init}{A Boolean specifying whether the the VI algorithm should be initialized using the MLE for each parameter. In general, this increases both computational speed and the accuracy of the variational approximation. Cannot be used when the Pathfinder algorithm is specified. Defaults to TRUE.}
 
+\item{gene.adjust}{A Boolean specifying whether the model should include a fixed effect term for total gene expression. Defaults to FALSE.}
+
 \item{n.draws}{An integer specifying the number of draws to be generated from the variational posterior. Defaults to 1000.}
+
+\item{elbo.samples}{An integer specifying the number of samples to be used to estimate the ELBO at every 100th iteration. Higher values will provide a more accurate estimate at the cost of computational complexity. Defaults to 150 when \code{algorithm} is one of "meanfield" or "fullrank", 50 when \code{algorithm} is "pathfinder".}
 
 \item{opencl.params}{A two-element double vector specifying the platform and device IDs of the OpenCL GPU device. Most users should specify \code{c(0, 0)}. See \code{\link[brms]{opencl}} for more details. Defaults to NULL.}
 

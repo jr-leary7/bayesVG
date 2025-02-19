@@ -19,6 +19,7 @@ Imports:
     tidyr, 
     dplyr, 
     Seurat,
+    Matrix, 
     ggplot2, 
     methods, 
     parallel, 

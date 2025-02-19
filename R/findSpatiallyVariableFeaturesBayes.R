@@ -11,7 +11,9 @@
 #' @param n.basis.fns An integer specifying the number of basis functions to be used when approximating the GP as a Hilbert space. Defaults to 20.
 #' @param algorithm A string specifying the variational inference (VI) approximation algorithm to be used. Must be one of "meanfield", "fullrank", or "pathfinder". Defaults to "meanfield".
 #' @param mle.init A Boolean specifying whether the the VI algorithm should be initialized using the MLE for each parameter. In general, this increases both computational speed and the accuracy of the variational approximation. Cannot be used when the Pathfinder algorithm is specified. Defaults to TRUE.
+#' @param gene.adjust A Boolean specifying whether the model should include a fixed effect term for total gene expression. Defaults to FALSE. 
 #' @param n.draws An integer specifying the number of draws to be generated from the variational posterior. Defaults to 1000.
+#' @param elbo.samples An integer specifying the number of samples to be used to estimate the ELBO at every 100th iteration. Higher values will provide a more accurate estimate at the cost of computational complexity. Defaults to 150 when \code{algorithm} is one of "meanfield" or "fullrank", 50 when \code{algorithm} is "pathfinder".  
 #' @param opencl.params A two-element double vector specifying the platform and device IDs of the OpenCL GPU device. Most users should specify \code{c(0, 0)}. See \code{\link[brms]{opencl}} for more details. Defaults to NULL.
 #' @param n.cores An integer specifying the number of threads used in compiling and fitting the model. Defaults to 2.
 #' @param random.seed A double specifying the random seed to be used when fitting and sampling from the model. Defaults to 312.
@@ -32,6 +34,8 @@
 #' @importFrom Seurat GetAssayData DefaultAssay GetTissueCoordinates
 #' @importFrom SpatialExperiment spatialCoords
 #' @importFrom SingleCellExperiment logcounts
+#' @importFrom BiocGenerics counts
+#' @importFrom Matrix rowSums 
 #' @importFrom SummarizedExperiment rowData
 #' @importFrom dplyr relocate mutate rename rename_with select inner_join desc filter distinct arrange left_join bind_rows
 #' @importFrom tidyr pivot_longer
@@ -50,7 +54,9 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                                n.basis.fns = 20L,
                                                algorithm = "meanfield",
                                                mle.init = TRUE,
+                                               gene.adjust = FALSE, 
                                                n.draws = 1000L,
+                                               elbo.samples = NULL, 
                                                opencl.params = NULL,
                                                n.cores = 2L,
                                                random.seed = 312,
@@ -66,6 +72,13 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   algorithm <- tolower(algorithm)
   if (!algorithm %in% c("meanfield", "fullrank", "pathfinder")) { stop("Please provide a valid variational inference approximation algorithm.") }
   if (mle.init && algorithm == "pathfinder") { warning("Initialization at the MLE is not supported when using the Pathfinder algorithm.") }
+  if (is.null(elbo.samples)) {
+    if (algorithm == "pathfinder") {
+      elbo.samples <- 50L
+    } else {
+      elbo.samples <- 150L
+    }
+  }
   if (!is.null(opencl.params) && (!is.double(opencl.params) || !length(opencl.params) == 2)) { stop("Argument opencl.params must be a double vector of length 2 if non-NULL.") }
   if (is.null(opencl.params)) {
     opencl_IDs <- NULL
@@ -83,6 +96,8 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     }
   }
   if (n.cores > parallel::detectCores()) { stop("The number of requested cores is greater than the number of available cores.") }
+  # start time tracking 
+  time_start <- Sys.time()
   # extract spatial coordinates & scale them
   if (inherits(sp.obj, "Seurat")) {
     spatial_df <- Seurat::GetTissueCoordinates(sp.obj) %>%
@@ -133,16 +148,38 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   phi <- scale(phi)
   attributes(phi)[2:3] <- NULL
   # prepare data to be passed to cmdstan
-  data_list <- list(M = M,
-                    N = nrow(expr_df),
-                    G = length(unique(expr_df$gene)),
-                    k = n.basis.fns,
-                    spot_id = as.integer(expr_df$spot),
-                    gene_id = as.integer(expr_df$gene),
-                    phi = phi,
-                    y = expr_df$expression)
+  if (gene.adjust) {
+    data_list <- list(M = M,
+                      N = nrow(expr_df),
+                      G = length(unique(expr_df$gene)),
+                      k = n.basis.fns,
+                      spot_id = as.integer(expr_df$spot),
+                      gene_id = as.integer(expr_df$gene),
+                      phi = phi,
+                      y = expr_df$expression)
+    stan_file <- system.file("approxGP.stan", package = "bayesVG")
+  } else {
+    if (inherits(sp.obj, "Seurat")) {
+      expr_tmp <- Seurat::GetAssayData(sp.obj,
+                                       assay = Seurat::DefaultAssay(sp.obj),
+                                       layer = "counts")
+    } else {
+      expr_tmp <- BiocGenerics::counts(sp.obj)
+    }
+    expr_tmp <- expr_tmp[naive.hvgs, ]
+    lib_size <- Matrix::rowSums(expr_tmp)
+    data_list <- list(M = M,
+                      N = nrow(expr_df),
+                      G = length(unique(expr_df$gene)),
+                      k = n.basis.fns,
+                      spot_id = as.integer(expr_df$spot),
+                      gene_id = as.integer(expr_df$gene),
+                      phi = phi,
+                      lib_size = lib_size, 
+                      y = expr_df$expression)
+    stan_file <- system.file("approxGP2.stan", package = "bayesVG")
+  }
   # compile model
-  stan_file <- system.file("approxGP.stan", package = "bayesVG")
   mod <- cmdstan_model(stan_file, compile = FALSE)
   mod$compile(cpp_options = cpp_options,
               stanc_options = list("O1"),
@@ -168,14 +205,14 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                 iter =  n.iter,
                                 draws = n.draws,
                                 opencl_ids = opencl_IDs,
-                                elbo_samples = 100L)
+                                elbo_samples = elbo.samples)
     } else {
       fit_vi <- mod$pathfinder(data_list,
                                seed = random.seed,
                                num_threads = n.cores,
                                draws = n.draws,
                                opencl_ids = opencl_IDs,
-                               num_elbo_draws = 25L)
+                               num_elbo_draws = elbo.samples)
     }
   } else {
     withr::with_output_sink(tempfile(), {
@@ -197,14 +234,14 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                   iter =  n.iter,
                                   draws = n.draws,
                                   opencl_ids = opencl_IDs,
-                                  elbo_samples = 100L)
+                                  elbo_samples = elbo.samples)
       } else {
         fit_vi <- mod$pathfinder(data_list,
                                  seed = random.seed,
                                  num_threads = n.cores,
                                  draws = n.draws,
                                  opencl_ids = opencl_IDs,
-                                 num_elbo_draws = 25L)
+                                 num_elbo_draws = elbo.samples)
       }
     })
   }
@@ -287,6 +324,23 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     } else {
       sp.obj@metadata$model_fit <- fit_vi
     }
+  }
+  # finish time tracking 
+  time_diff <- Sys.time() - time_start
+  time_units <- ifelse(attributes(time_diff)$units == "secs", 
+                       "seconds", 
+                       ifelse(attributes(time_diff)$units == "mins", 
+                              "minutes", 
+                              "hours"))
+  if (verbose) {
+    time_message <- paste0("bayesVG modeling of ", 
+                           length(naive.hvgs), 
+                           " genes completed in ", 
+                           as.numeric(round(time_diff, 3)), 
+                           " ", 
+                           time_units, 
+                           ".")
+    message(time_message)
   }
   return(sp.obj)
 }
