@@ -13,7 +13,7 @@ findSpatiallyVariableFeaturesBayes(
   n.basis.fns = 20L,
   algorithm = "meanfield",
   mle.init = TRUE,
-  gene.depth.adjust = FALSE,
+  gene.depth.adjust = TRUE,
   n.draws = 1000L,
   elbo.samples = NULL,
   opencl.params = NULL,
@@ -40,7 +40,7 @@ findSpatiallyVariableFeaturesBayes(
 
 \item{mle.init}{A Boolean specifying whether the the VI algorithm should be initialized using the MLE for each parameter. In general, this increases both computational speed and the accuracy of the variational approximation. Cannot be used when the Pathfinder algorithm is specified. Defaults to TRUE.}
 
-\item{gene.depth.adjust}{A Boolean specifying whether the model should include a fixed effect term for total gene expression. Defaults to FALSE.}
+\item{gene.depth.adjust}{A Boolean specifying whether the model should include a fixed effect term for total gene expression. Defaults to TRUE.}
 
 \item{n.draws}{An integer specifying the number of draws to be generated from the variational posterior. Defaults to 1000.}
 

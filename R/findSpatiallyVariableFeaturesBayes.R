@@ -11,7 +11,7 @@
 #' @param n.basis.fns An integer specifying the number of basis functions to be used when approximating the GP as a Hilbert space. Defaults to 20.
 #' @param algorithm A string specifying the variational inference (VI) approximation algorithm to be used. Must be one of "meanfield", "fullrank", or "pathfinder". Defaults to "meanfield".
 #' @param mle.init A Boolean specifying whether the the VI algorithm should be initialized using the MLE for each parameter. In general, this increases both computational speed and the accuracy of the variational approximation. Cannot be used when the Pathfinder algorithm is specified. Defaults to TRUE.
-#' @param gene.depth.adjust A Boolean specifying whether the model should include a fixed effect term for total gene expression. Defaults to FALSE. 
+#' @param gene.depth.adjust A Boolean specifying whether the model should include a fixed effect term for total gene expression. Defaults to TRUE.  
 #' @param n.draws An integer specifying the number of draws to be generated from the variational posterior. Defaults to 1000.
 #' @param elbo.samples An integer specifying the number of samples to be used to estimate the ELBO at every 100th iteration. Higher values will provide a more accurate estimate at the cost of computational complexity. Defaults to 150 when \code{algorithm} is one of "meanfield" or "fullrank", 50 when \code{algorithm} is "pathfinder".  
 #' @param opencl.params A two-element double vector specifying the platform and device IDs of the OpenCL GPU device. Most users should specify \code{c(0, 0)}. See \code{\link[brms]{opencl}} for more details. Defaults to NULL.
@@ -54,7 +54,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                                n.basis.fns = 20L,
                                                algorithm = "meanfield",
                                                mle.init = TRUE,
-                                               gene.depth.adjust = FALSE, 
+                                               gene.depth.adjust = TRUE, 
                                                n.draws = 1000L,
                                                elbo.samples = NULL, 
                                                opencl.params = NULL,
