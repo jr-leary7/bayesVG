@@ -6,7 +6,7 @@ data {
   array[N] int<lower=1, upper=M> spot_id;  // unique ID for each spot
   array[N] int<lower=1, upper=G> gene_id;  // unique ID for each gene
   matrix[M, k] phi;  // matrix of basis functions used to approximate GP
-  vector[G] lib_size;  // vector of library sizes to adjust for in the model 
+  vector[G] gene_depths;  // vector of logged gene-level sequencing depths to adjust for in the model 
   vector[N] y;  // vector of normalized, scaled gene expression used as response variable
 }
 
@@ -40,5 +40,5 @@ model {
     alpha_t[, i] ~ normal(mu_alpha, sigma_alpha);
     amplitude[i] ~ lognormal(mu_amplitude, sigma_amplitude);
   }
-  y ~ normal(beta0 + beta1 * lib_size[gene_id] + amplitude_sq[gene_id] .* w, sigma_y);
+  y ~ normal(beta0 + beta1 * gene_depths[gene_id] + amplitude_sq[gene_id] .* w, sigma_y);
 }
