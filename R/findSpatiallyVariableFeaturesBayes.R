@@ -45,6 +45,21 @@
 #' @seealso \code{\link[Seurat]{FindSpatiallyVariableFeatures}}
 #' @seealso \code{\link{findVariableFeaturesBayes}}
 #' @export
+#' @examples
+#' data(seu_brain)
+#' seu_brain <- SCTransform(seu_brain,
+#'                          assay = "Spatial",
+#'                          variable.features.n = 3000L,
+#'                          vst.flavor = "v2",
+#'                          return.only.var.genes = FALSE,
+#'                          seed.use = 312,
+#'                          verbose = FALSE)
+#' seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain, 
+#'                                                 naive.hvgs = VariableFeatures(seu_brain), 
+#'                                                 kernel = "matern", 
+#'                                                 kernel.smoothness = 1.5, 
+#'                                                 algorithm = "meanfield", 
+#'                                                 save.model = TRUE)
 
 findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                                naive.hvgs = NULL,
@@ -83,9 +98,9 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   if (is.null(opencl.params)) {
     opencl_IDs <- NULL
     if (algorithm == "pathfinder") {
-      cpp_options <- list(stan_opencl = FALSE, stan_threads = TRUE)
+      cpp_options <- list(stan_threads = TRUE)
     } else {
-      cpp_options <- list(stan_opencl = FALSE, stan_threads = FALSE)
+      cpp_options <- list(stan_threads = FALSE)
     }
   } else {
     opencl_IDs <- opencl.params
