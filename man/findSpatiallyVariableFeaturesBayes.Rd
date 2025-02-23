@@ -83,6 +83,7 @@ seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
                                                 kernel = "matern", 
                                                 kernel.smoothness = 1.5, 
                                                 algorithm = "meanfield", 
+                                                n.cores = 1L, 
                                                 save.model = TRUE)
 }
 \seealso{

@@ -59,6 +59,7 @@
 #'                                                 kernel = "matern", 
 #'                                                 kernel.smoothness = 1.5, 
 #'                                                 algorithm = "meanfield", 
+#'                                                 n.cores = 1L, 
 #'                                                 save.model = TRUE)
 
 findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
@@ -144,7 +145,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
              as.data.frame()
   # estimate global length-scale
   M <- nrow(spatial_mtx)
-  kmeans_centers <- stats::kmeans(spatial_mtx, centers = n.basis.fns, iter.max = 20L)$centers
+  kmeans_centers <- stats::kmeans(spatial_mtx, centers = n.basis.fns, iter.max = 100L)$centers
   dists_centers <- as.matrix(stats::dist(kmeans_centers))
   lscale <- stats::median(dists_centers[upper.tri(dists_centers)])
   # estimate matrix of basis functions used to approximate GP with desired kernel
@@ -172,7 +173,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
       expr_tmp <- BiocGenerics::counts(sp.obj)
     }
     expr_tmp <- expr_tmp[naive.hvgs, ]
-    gene_depths <- log(Matrix::rowSums(expr_tmp))
+    gene_depths <- unname(log(Matrix::rowSums(expr_tmp)))
     data_list <- list(M = M,
                       N = nrow(expr_df),
                       G = length(unique(expr_df$gene)),

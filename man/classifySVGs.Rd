@@ -29,6 +29,24 @@ An object of class \code{Seurat} with SVG metadata added.
 \description{
 After estimating per-gene spatial variation statistics, classify genes as spatially variable or not in a variety of ways.
 }
+\examples{
+data(seu_brain)
+seu_brain <- SCTransform(seu_brain,
+                         assay = "Spatial",
+                         variable.features.n = 3000L,
+                         vst.flavor = "v2",
+                         return.only.var.genes = FALSE,
+                         seed.use = 312,
+                         verbose = FALSE)
+seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain, 
+                                                naive.hvgs = VariableFeatures(seu_brain), 
+                                                kernel = "matern", 
+                                                kernel.smoothness = 1.5, 
+                                                algorithm = "meanfield", 
+                                                n.cores = 1L, 
+                                                save.model = TRUE) \%>\% 
+             classifySVGs(n.SVG = 1000L)
+}
 \seealso{
 \code{\link{findSpatiallyVariableFeaturesBayes}}
 
