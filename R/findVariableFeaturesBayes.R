@@ -6,10 +6,9 @@
 #' @param sc.obj An object of class \code{Seurat} or \code{SingleCellExperiment}. Defaults to NULL.
 #' @param subject.id A string specifying the metadata column in \code{sc.obj} that contains subject IDs. Defaults to NULL.
 #' @param n.cells.subsample An integer specifying the number of cells per-gene (and per-subject if \code{subject.id} is not NULL) to subsample to when performing estimation. Defaults to 500.
-#' @param iter.per.chain An integer specifying the number of iterations per chain. Defaults to 1000.
+#' @param iter.per.chain An integer specifying the number of iterations per chain. Defaults to 3000.
 #' @param warmup.per.chain An integer specifying the number of warmup (burn-in) iterations per chain. Defaults to 250.
 #' @param n.chains An integer specifying the number of chains used when fitting the model via sampling instead of VI or the Laplace approximation. Defaults to 1.
-#' @param thin.rate An integer specifying the thinning rate of the MCMC NUTS algorithm when sampling is being used instead of VI or the Laplace approximation. Defaults to 5.
 #' @param n.cores.chain An integer specifying the number of cores to be used when fitting the Bayesian hierarchical model. Defaults to 1.
 #' @param n.cores.per.chain An integer specifying the number of cores to be used within each chain when fitting the Bayesian hierarchical model. Defaults to 4.
 #' @param model.priors A vector containing priors to be used in model fitting. If left NULL, intelligent priors will be set internally. See \code{\link[brms]{set_prior}} for details. Defaults to NULL.
@@ -30,7 +29,7 @@
 #' @import cmdstanr
 #' @import magrittr
 #' @importFrom parallel detectCores
-#' @importFrom SingleCellExperiment colData 
+#' @importFrom SingleCellExperiment colData logcounts
 #' @importFrom SummarizedExperiment rowData
 #' @importFrom BiocGenerics counts
 #' @importFrom Seurat GetAssayData DefaultAssay
@@ -47,6 +46,13 @@
 #' @seealso \code{\link[scran]{modelGeneVar}}
 #' @seealso \code{\link[brms]{brm}}
 #' @export
+#' @examples
+#' data(seu_pbmc)
+#' seu_pbmc <- findVariableFeaturesBayes(seu_pbmc, 
+#'                                       n.cells.subsample = 1000L, 
+#'                                       algorithm = "meanfield", 
+#'                                       n.cores.per.chain = 1L, 
+#'                                       save.model = TRUE)
 
 findVariableFeaturesBayes <- function(sc.obj = NULL,
                                       subject.id = NULL,
@@ -273,7 +279,7 @@ findVariableFeaturesBayes <- function(sc.obj = NULL,
       new_metadata <- dplyr::mutate(orig_metadata,
                                     gene = rownames(sc.obj),
                                     .before = 1) %>%
-                      dplyr::left_join(gene_summary, by = "gene")
+        dplyr::left_join(gene_summary, by = "gene")
       if (inherits(version_check, "try-error")) {
         sc.obj@assays[[Seurat::DefaultAssay(sc.obj)]]@meta.features <- new_metadata
       } else {

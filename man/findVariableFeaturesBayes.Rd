@@ -29,13 +29,11 @@ findVariableFeaturesBayes(
 
 \item{n.cells.subsample}{An integer specifying the number of cells per-gene (and per-subject if \code{subject.id} is not NULL) to subsample to when performing estimation. Defaults to 500.}
 
-\item{iter.per.chain}{An integer specifying the number of iterations per chain. Defaults to 1000.}
+\item{iter.per.chain}{An integer specifying the number of iterations per chain. Defaults to 3000.}
 
 \item{warmup.per.chain}{An integer specifying the number of warmup (burn-in) iterations per chain. Defaults to 250.}
 
 \item{n.chains}{An integer specifying the number of chains used when fitting the model via sampling instead of VI or the Laplace approximation. Defaults to 1.}
-
-\item{thin.rate}{An integer specifying the thinning rate of the MCMC NUTS algorithm when sampling is being used instead of VI or the Laplace approximation. Defaults to 5.}
 
 \item{n.cores.chain}{An integer specifying the number of cores to be used when fitting the Bayesian hierarchical model. Defaults to 1.}
 
@@ -68,6 +66,14 @@ This function implements HVG estimation using Bayesian variational inference to 
 \item The user can specify which variational inference (VI) or sampling algorithm to use to fit the model via the argument \code{algorithm}. For further details, see \href{https://www.jmlr.org/papers/volume18/16-107/16-107.pdf}{this paper} comparing the meanfield and fullrank algorithms, and \href{https://doi.org/10.48550/arXiv.2108.03782}{this preprint} that introduced the Pathfinder algorithm. For a primer on automatic differentiation variational inference (ADVI), see \href{https://doi.org/10.48550/arXiv.1506.03431}{this preprint}. Lastly, \href{https://discourse.mc-stan.org/t/issues-with-differences-between-mcmc-and-pathfinder-results-how-to-make-pathfinder-or-something-else-more-accurate/35992}{this Stan forums thread} lays out some pratical differences between the algorithms.
 \item If \code{save.model} is set to TRUE, the final model fit will be saved to the appropriate unstructured metadata slot of \code{sc.obj}. This allows the user to inspect the final fit and perform posterior predictive checks, but the model object takes up a lot of space. As such, it is recommended to remove it from \code{sc.obj} by setting the appropriate slot to NULL before saving it to disk.
 }
+}
+\examples{
+data(seu_pbmc)
+seu_pbmc <- findVariableFeaturesBayes(seu_pbmc, 
+                                      n.cells.subsample = 1000L, 
+                                      algorithm = "meanfield", 
+                                      n.cores.per.chain = 1L, 
+                                      save.model = TRUE)
 }
 \seealso{
 \code{\link[Seurat]{FindVariableFeatures}}
