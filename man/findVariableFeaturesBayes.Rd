@@ -70,7 +70,7 @@ This function implements HVG estimation using Bayesian variational inference to 
 \examples{
 data(seu_pbmc)
 seu_pbmc <- findVariableFeaturesBayes(seu_pbmc, 
-                                      n.cells.subsample = 1000L, 
+                                      n.cells.subsample = 500L, 
                                       algorithm = "meanfield", 
                                       n.cores.per.chain = 1L, 
                                       save.model = TRUE)
