@@ -39,7 +39,7 @@ seu_brain <- Seurat::SCTransform(seu_brain,
                                  seed.use = 312,
                                  verbose = FALSE)
 seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain, 
-                                                naive.hvgs = VariableFeatures(seu_brain), 
+                                                naive.hvgs = Seurat::VariableFeatures(seu_brain), 
                                                 kernel = "matern", 
                                                 kernel.smoothness = 1.5, 
                                                 algorithm = "meanfield", 
