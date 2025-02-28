@@ -8,7 +8,6 @@
 
 # User-specific files
 .Ruserdata
-.Rbuildignore
 
 # Example code in package build process
 *-Ex.R

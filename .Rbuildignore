@@ -1,0 +1,8 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^README\.Rmd$
+^\.github$
+inst/approxGP$
+inst/approxGP2$
+^CODE_OF_CONDUCT\.md$
+^data-raw$
