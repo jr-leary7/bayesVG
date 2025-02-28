@@ -11,7 +11,6 @@ findVariableFeaturesBayes(
   iter.per.chain = 1000L,
   warmup.per.chain = 250L,
   n.chains = 1L,
-  thin.rate = 5L,
   n.cores.chain = 1L,
   n.cores.per.chain = 4L,
   model.priors = NULL,

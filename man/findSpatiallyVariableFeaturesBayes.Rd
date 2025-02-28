@@ -71,13 +71,13 @@ This function implements SVG estimation using Bayesian variational inference to 
 }
 \examples{
 data(seu_brain)
-seu_brain <- SCTransform(seu_brain,
-                         assay = "Spatial",
-                         variable.features.n = 3000L,
-                         vst.flavor = "v2",
-                         return.only.var.genes = FALSE,
-                         seed.use = 312,
-                         verbose = FALSE)
+seu_brain <- Seurat::SCTransform(seu_brain,
+                                 assay = "Spatial",
+                                 variable.features.n = 3000L,
+                                 vst.flavor = "v2",
+                                 return.only.var.genes = FALSE,
+                                 seed.use = 312,
+                                 verbose = FALSE)
 seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain, 
                                                 naive.hvgs = VariableFeatures(seu_brain), 
                                                 kernel = "matern", 

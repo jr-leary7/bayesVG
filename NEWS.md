@@ -1,3 +1,10 @@
+# bayesVG v0.0.3 
+
++ Added function to plot HVG results. 
++ Fixed bugs throughout. 
++ Expanded test suite. 
++ Added option (and corresponding Stan code) to SVG modeling function to adjust for total gene sequencing depth. 
+
 # bayesVG v0.0.2 
 
 + Finished primary development of the HVG and SVG modeling functions. 
