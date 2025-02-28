@@ -4,6 +4,7 @@
 + Fixed bugs throughout. 
 + Expanded test suite. 
 + Added option (and corresponding Stan code) to SVG modeling function to adjust for total gene sequencing depth. 
++ Switched to usage of the `cli` R package for verbose messages instead of the default `message()` function. 
 
 # bayesVG v0.0.2 
 
