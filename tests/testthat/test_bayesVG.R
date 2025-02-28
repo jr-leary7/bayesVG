@@ -13,6 +13,7 @@ seu_pbmc <- findVariableFeaturesBayes(seu_pbmc,
             classifyHVGs(n.HVG = 50L)
 hvg_metadata <- seu_pbmc@assays$RNA@meta.data
 hvg_fit <- extractModel(seu_pbmc)
+hvg_plot <- plotHVGs(seu_pbmc)
 
 # load spatial data & preprocess 
 load(system.file("data/seu_brain.rda", package = "bayesVG"))
@@ -49,6 +50,7 @@ test_that("HVG model", {
   expect_equal(ncol(hvg_metadata), 20)
   expect_equal(nrow(hvg_metadata), 100)
   expect_s3_class(hvg_fit, "brmsfit")
+  expect_s3_class(hvg_plot, "ggplot")
 })
 
 # run SVG model tests
