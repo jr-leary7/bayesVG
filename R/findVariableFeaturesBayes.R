@@ -41,6 +41,7 @@
 #' @importFrom brms set_prior brm bf negbinomial
 #' @importFrom posterior as_draws_df
 #' @importFrom S4Vectors DataFrame
+#' @importFrom cli cli_alert_success
 #' @return Depending on the input, either an object of class \code{Seurat} or \code{SingleCellExperiment} with gene-level statistics added to the appropriate metadata slot.
 #' @seealso \code{\link[Seurat]{FindVariableFeatures}}
 #' @seealso \code{\link[scran]{modelGeneVar}}
@@ -184,9 +185,6 @@ findVariableFeaturesBayes <- function(sc.obj = NULL,
                             seed = random.seed)
     })
   }
-  if (verbose) {
-    message("Drawing from the posterior and summarizing ...")
-  }
   # draw samples from approximate posterior
   posterior_samples <- as.data.frame(posterior::as_draws_df(brms_fit))
   # estimate posterior gene means
@@ -253,7 +251,7 @@ findVariableFeaturesBayes <- function(sc.obj = NULL,
                   dplyr::inner_join(sigma2_summary, by = "gene") %>%
                   magrittr::set_rownames(.$gene)
   if (verbose) {
-    message("Posterior summarization complete!")
+    cli::cli_alert_success("Posterior summarization complete.")
   }
   # add gene-level estimates to object metadata
   if (inherits(sc.obj, "SingleCellExperiment")) {

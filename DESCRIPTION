@@ -12,6 +12,7 @@ Depends:
   magrittr, 
   R (>= 3.5.0)
 Imports: 
+    cli, 
     brms, 
     withr, 
     rlang, 

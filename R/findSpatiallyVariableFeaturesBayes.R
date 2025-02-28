@@ -42,6 +42,7 @@
 #' @importFrom stats kmeans dist median
 #' @importFrom withr with_output_sink
 #' @importFrom S4Vectors DataFrame
+#' @importFrom cli cli_alert_success
 #' @seealso \code{\link[Seurat]{FindSpatiallyVariableFeatures}}
 #' @seealso \code{\link{findVariableFeaturesBayes}}
 #' @export
@@ -283,7 +284,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                        as.data.frame() %>%
                        magrittr::set_rownames(.$gene)
   if (verbose) {
-    message("Posterior summarization complete!")
+    cli::cli_alert_success("Posterior summarization complete.")
   }
   # add gene-level estimates to object metadata
   if (inherits(sp.obj, "Seurat")) {
@@ -356,7 +357,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                            " ", 
                            time_units, 
                            ".")
-    message(time_message)
+    cli::cli_alert_success(time_message)
   }
   return(sp.obj)
 }

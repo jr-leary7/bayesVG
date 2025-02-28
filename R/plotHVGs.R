@@ -39,6 +39,7 @@ plotHVGs <- function(sc.obj = NULL,
                      label.text.size = 3) {
   # check inputs 
   if (is.null(sc.obj)) { stop("Please provide a Seurat or SingleCellExperiment object to plotHVGs().") }
+  if (!(inherits(sc.obj, "Seurat") || inherits(sc.obj, "SingleCellExperiment"))) { stop("Argument sc.obj must be of class Seurat or SingleCellExperiment.") }
   # extract gene-level summary data.frame 
   if (inherits(sc.obj, "SingleCellExperiment")) {
     gene_summary <- as.data.frame(SummarizedExperiment::rowData(sc.obj))
