@@ -4,10 +4,10 @@
 \alias{computeNaiveGeneStatistics}
 \title{Compute the naive mean, variance, and dispersion of gene expression.}
 \usage{
-computeNaiveGeneStatistics(sc.obj = NULL, use.norm = FALSE)
+computeNaiveGeneStatistics(obj = NULL, use.norm = FALSE)
 }
 \arguments{
-\item{sc.obj}{An object of class \code{Seurat} or \code{SingleCellExperiment}. Defaults to NULL.}
+\item{obj}{An object of class \code{Seurat}, \code{SingleCellExperiment}, or \code{SpatialExperiment}. Defaults to NULL.}
 
 \item{use.norm}{A Boolean specifying whether the normalized counts should be used instead of raw counts. Defaults to FALSE.}
 }
