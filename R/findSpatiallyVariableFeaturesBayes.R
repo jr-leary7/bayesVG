@@ -8,6 +8,7 @@
 #' @param n.iter An integer specifying the maximum number of iterations. Defaults to 3000.
 #' @param kernel A string specifying the covariance kernel to be used when fitting the GP. Must be one of "exp_quad" or "matern". Defaults to "exp_quad".
 #' @param kernel.smoothness A double specifying the smoothness parameter \eqn{\nu} used when computing the Matérn kernel. Must be one of 0.5, 1.5, or 2.5. Using 0.5 corresponds to the exponential kernel. Defaults to 1.5.
+#' @param kernel.period An integer specifying the period parameter \eqn{p} used when computing the periodic kernel. Defaults to 100. 
 #' @param n.basis.fns An integer specifying the number of basis functions to be used when approximating the GP as a Hilbert space. Defaults to 20.
 #' @param algorithm A string specifying the variational inference (VI) approximation algorithm to be used. Must be one of "meanfield", "fullrank", or "pathfinder". Defaults to "meanfield".
 #' @param mle.init A Boolean specifying whether the the VI algorithm should be initialized using the MLE for each parameter. In general, this increases both computational speed and the accuracy of the variational approximation. Cannot be used when the Pathfinder algorithm is specified. Defaults to TRUE.
@@ -26,6 +27,7 @@
 #' \item The term "approximate" in reference to the GP means that the the full GP is instead represented as a Hilbert space using basis functions. The basis function computation requires a kernel, here either the exponentiated quadratic (the default) or one of the Matérn-family kernels. In short, the exponentiated quadratic kernel assumes infinite smoothness, while the Matérn-family kernels assume varying degrees of roughness depending on the value of the smoothness parameter \eqn{\nu}.
 #' \item While we have implemented GPU acceleration via OpenCL through the argument \code{opencl.params}, OpenCL acceleration is not supported on every machine. For example, Apple M-series chips do not support double-precision floating-points, which are necessary for Stan to compile with OpenCL support. For more information, see \href{https://discourse.mc-stan.org/t/gpus-on-mac-osx-apple-m1/23375/5}{this Stan forums thread}. In order to correctly specify the OpenCL platform and device IDs, use the \code{clinfo} command line utility.
 #' \item The user can specify which VI algorithm to use to fit the model via the argument \code{algorithm}. For further details, see \href{https://www.jmlr.org/papers/volume18/16-107/16-107.pdf}{this paper} comparing the meanfield and fullrank algorithms, and \href{https://doi.org/10.48550/arXiv.2108.03782}{this preprint} that introduced the Pathfinder algorithm. For a primer on automatic differentiation variational inference (ADVI), see \href{https://doi.org/10.48550/arXiv.1506.03431}{this preprint}. Lastly, \href{https://discourse.mc-stan.org/t/issues-with-differences-between-mcmc-and-pathfinder-results-how-to-make-pathfinder-or-something-else-more-accurate/35992}{this Stan forums thread} lays out some practical differences between the algorithms.
+#' \item If using the periodic kernel, the user should ideally provide their own value of \code{kernel.period} based on the resolution of the spatial dataset at hand. Typical values should be roughly equivalent to the typical inter-spot distance or perhaps a small multiple of it. 
 #' \item If \code{save.model} is set to TRUE, the final model fit will be saved to the appropriate unstructured metadata slot of \code{sp.obj}. This allows the user to inspect the final fit and perform posterior predictive checks, but the model object takes up a lot of space. As such, it is recommended to remove it from \code{sp.obj} by setting the appropriate slot to NULL before saving it to disk.
 #' }
 #' @import magrittr
@@ -68,6 +70,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                                n.iter = 3000L,
                                                kernel = "exp_quad",
                                                kernel.smoothness = 1.5,
+                                               kernel.period = 100L, 
                                                n.basis.fns = 20L,
                                                algorithm = "meanfield",
                                                mle.init = TRUE,
@@ -84,7 +87,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   if (!(inherits(sp.obj, "Seurat") || inherits(sp.obj, "SpatialExperiment"))) { stop("Please provide an object of class Seurat or SpatialExperiment.") }
   if (is.null(naive.hvgs)) { stop("Please identify a set of naive HVGs prior to running findSpatiallyVariableFeaturesBayes().") }
   kernel <- tolower(kernel)
-  if (!kernel %in% c("exp_quad", "matern")) { stop("Please provide a valid covariance kernel.") }
+  if (!kernel %in% c("exp_quad", "matern", "periodic")) { stop("Please provide a valid covariance kernel.") }
   if (kernel == "matern" && !kernel.smoothness %in% c(0.5, 1.5, 2.5)) { stop("When utilizing the Matern kernel you must provide a valid smoothness parameter value.") }
   algorithm <- tolower(algorithm)
   if (!algorithm %in% c("meanfield", "fullrank", "pathfinder")) { stop("Please provide a valid variational inference approximation algorithm.") }
@@ -159,6 +162,10 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
       phi[, i] <- maternKernel(dist_vec,
                                length.scale = lscale,
                                nu = kernel.smoothness)
+    } else if (kernel == "periodic") {
+      phi[, i] <- periodicKernel(dist_vec,
+                                 length.scale = lscale,
+                                 period = kernel.period)
     }
   }
   # scale basis functions

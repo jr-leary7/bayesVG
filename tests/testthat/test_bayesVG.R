@@ -33,9 +33,10 @@ seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
                                                 kernel.smoothness = 1.5, 
                                                 n.cores = 1L, 
                                                 save.model = TRUE) %>% 
-              classifySVGs(n.SVG = 100L)
+             classifySVGs(n.SVG = 100L)
 svg_metadata <- seu_brain@assays$SCT@meta.features
 svg_fit <- extractModel(seu_brain)
+svg_plot <- plotSVGs(seu_brain)
 
 # compute naive gene statistics
 gene_stats_naive <- computeNaiveGeneStatistics(seu_pbmc, use.norm = TRUE)
@@ -60,6 +61,7 @@ test_that("SVG model", {
   expect_equal(ncol(svg_metadata), 10)
   expect_equal(nrow(svg_metadata), 11464)
   expect_s3_class(svg_fit, "CmdStanVB")
+  expect_s3_class(svg_plot, "ggplot")
 })
 
 # run naive gene statistics tests 

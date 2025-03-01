@@ -23,6 +23,8 @@ This function computes the Matern kernel for a given vector of distances and a g
 }
 \seealso{
 \code{\link{expQuadKernel}}
+
+\code{\link{periodicKernel}}
 }
 \author{
 Jack R. Leary

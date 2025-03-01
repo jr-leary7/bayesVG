@@ -9,6 +9,7 @@
 #' @param sigma A numeric specifying the variance of the Matern kernel. Defaults to 1. 
 #' @return A vector of numeric values. 
 #' @seealso \code{\link{expQuadKernel}}
+#' @seealso \code{\link{periodicKernel}}
 
 maternKernel <- function(d = NULL,
                          length.scale = NULL,
