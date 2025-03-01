@@ -19,6 +19,7 @@ commit](https://img.shields.io/github/last-commit/jr-leary7/bayesVG/main?color=d
 [![License:
 MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Coverage](https://codecov.io/gh/jr-leary7/bayesVG/graph/badge.svg)](https://app.codecov.io/gh/jr-leary7/bayesVG)
+[![CodeFactor](https://www.codefactor.io/repository/github/jr-leary7/bayesvg/badge/main)](https://www.codefactor.io/repository/github/jr-leary7/bayesvg/overview/main)
 <!-- badges: end -->
 
 # Installation
@@ -34,6 +35,7 @@ remotes::install_github("jr-leary7/bayesVG")
 ## Libraries
 
 ``` r
+library(dplyr)
 library(Seurat)
 library(bayesVG)
 ```
@@ -57,10 +59,19 @@ most-variable genes as HVGs.
 
 ``` r
 seu_pbmc <- findVariableFeaturesBayes(seu_pbmc, 
-                                      n.cells.subsample = 1000L, 
+                                      n.cells.subsample = 500L, 
                                       algorithm = "meanfield",
                                       save.model = TRUE) %>% 
             classifyHVGs(n.HVG = 3000L)
+```
+
+We can extract the summary table and classify the top 3,000 genes as
+HVGs like so. These genes can then be used as the basis for downstream
+analyses such as PCA, clustering, UMAP visualization, etc.
+
+``` r
+summary_hvg <- arrange(seu_pbmc@assays$Spatial@meta.features, desc(dispersion_mean))
+top3k_hvgs <- summary_hvg$gene[1:3000]
 ```
 
 ## SVG detection
@@ -88,18 +99,29 @@ seu_brain <- SCTransform(seu_brain,
 
 ### Modeling
 
-Now we can model gene expression with an approximate Gaussian process,
-summarize the spatial component of variance for each gene, and classify
-the top 1000 most spatially variable genes as SVGs.
+Now we can model gene expression with an approximate multivariate
+hierarchical Gaussian process (GP), summarize the spatial component of
+variance for each gene, and classify the top 1000 most spatially
+variable genes as SVGs.
 
 ``` r
 seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain, 
+                                                naive.hvgs = VariableFeatures(seu_brain), 
                                                 kernel = "matern", 
                                                 kernel.smoothness = 1.5, 
                                                 algorithm = "meanfield", 
                                                 n.cores = 4L, 
                                                 save.model = TRUE) %>% 
              classifySVGs(n.SVG = 1000L)
+```
+
+We can extract the summary table and classify the top 1,000 genes as
+SVGs like so. These genes can then be used as the basis for downstream
+analyses such as PCA, clustering, UMAP visualization, etc.
+
+``` r
+summary_svg <- arrange(seu_brain@assays$SCT@meta.features, amplitude_mean_rank)
+top1k_svgs <- summary_svg$gene[1:1000]
 ```
 
 # Contact information
