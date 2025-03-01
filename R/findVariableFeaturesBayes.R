@@ -28,7 +28,7 @@
 #' }
 #' @import cmdstanr
 #' @import magrittr
-#' @importFrom parallel detectCores
+#' @importFrom parallelly availableCores
 #' @importFrom SingleCellExperiment colData logcounts
 #' @importFrom SummarizedExperiment rowData
 #' @importFrom BiocGenerics counts
@@ -72,7 +72,7 @@ findVariableFeaturesBayes <- function(sc.obj = NULL,
   # check & parse inputs
   if (is.null(sc.obj)) { stop("Please provide all inputs to findVariableFeaturesBayes().") }
   n_cores_total <- n.cores.chain * n.cores.per.chain
-  if (n_cores_total > parallel::detectCores()) { stop("The total number of requested cores is greater than the number of available cores on your machine.") }
+  if (n_cores_total > unname(parallelly::availableCores())) { stop("The total number of requested cores is greater than the number of available cores on your machine.") }
   if (n.cores.chain != n.chains) { warning("In general, the number of cores should equal the number of chains for optimal performance.") }
   algorithm <- tolower(algorithm)
   if (!algorithm %in% c("meanfield", "fullrank", "pathfinder", "laplace", "sampling")) { stop("Please provide a valid sampling or approximation algorithm.") }

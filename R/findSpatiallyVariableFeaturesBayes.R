@@ -30,7 +30,7 @@
 #' }
 #' @import magrittr
 #' @import cmdstanr
-#' @importFrom parallel detectCores
+#' @importFrom parallelly availableCores
 #' @importFrom Seurat GetAssayData DefaultAssay GetTissueCoordinates
 #' @importFrom SpatialExperiment spatialCoords
 #' @importFrom SingleCellExperiment logcounts
@@ -112,7 +112,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
       cpp_options <- list(stan_opencl = TRUE, stan_threads = FALSE)
     }
   }
-  if (n.cores > parallel::detectCores()) { stop("The number of requested cores is greater than the number of available cores.") }
+  if (n.cores > unname(parallelly::availableCores())) { stop("The number of requested cores is greater than the number of available cores.") }
   # start time tracking 
   time_start <- Sys.time()
   # extract spatial coordinates & scale them
