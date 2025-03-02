@@ -75,7 +75,7 @@ seu_pbmc <- findVariableFeaturesBayes(seu_pbmc,
 We can extract the summary table and classify the top 3,000 genes as HVGs like so. These genes can then be used as the basis for downstream analyses such as PCA, clustering, UMAP visualization, etc. 
 
 ```{r, eval=FALSE}
-summary_hvg <- arrange(seu_pbmc@assays$Spatial@meta.features, desc(dispersion_mean))
+summary_hvg <- arrange(seu_pbmc@assays$RNA@meta.data, desc(dispersion_mean))
 top3k_hvgs <- summary_hvg$gene[1:3000]
 ```
 

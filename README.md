@@ -70,7 +70,7 @@ HVGs like so. These genes can then be used as the basis for downstream
 analyses such as PCA, clustering, UMAP visualization, etc.
 
 ``` r
-summary_hvg <- arrange(seu_pbmc@assays$Spatial@meta.features, desc(dispersion_mean))
+summary_hvg <- arrange(seu_pbmc@assays$RNA@meta.data, desc(dispersion_mean))
 top3k_hvgs <- summary_hvg$gene[1:3000]
 ```
 
