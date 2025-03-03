@@ -6,7 +6,7 @@
 #' @param sp.obj An object of class \code{Seurat} containing spatial data. Defaults to NULL.
 #' @param naive.hvgs A vector containing genes that have been classified as naive HVGs from which SVGs will be detected. Defaults to NULL.
 #' @param n.iter An integer specifying the maximum number of iterations. Defaults to 3000.
-#' @param kernel A string specifying the covariance kernel to be used when fitting the GP. Must be one of "exp_quad" or "matern". Defaults to "exp_quad".
+#' @param kernel A string specifying the covariance kernel to be used when fitting the GP. Must be one of "exp_quad", "matern", or "periodic". Defaults to "exp_quad".
 #' @param kernel.smoothness A double specifying the smoothness parameter \eqn{\nu} used when computing the Matérn kernel. Must be one of 0.5, 1.5, or 2.5. Using 0.5 corresponds to the exponential kernel. Defaults to 1.5.
 #' @param kernel.period An integer specifying the period parameter \eqn{p} used when computing the periodic kernel. Defaults to 100. 
 #' @param n.basis.fns An integer specifying the number of basis functions to be used when approximating the GP as a Hilbert space. Defaults to 20.
@@ -233,10 +233,13 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     } else {
       fit_vi <- mod$pathfinder(data_list,
                                seed = random.seed,
+                               init = 0, 
                                num_threads = n.cores,
                                draws = n.draws,
                                opencl_ids = opencl_IDs,
-                               num_elbo_draws = elbo.samples)
+                               num_elbo_draws = elbo.samples, 
+                               max_lbfgs_iters = 100L, 
+                               history_size = 25L)
     }
   } else {
     withr::with_output_sink(tempfile(), {
@@ -262,10 +265,13 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
       } else {
         fit_vi <- mod$pathfinder(data_list,
                                  seed = random.seed,
+                                 init = 0, 
                                  num_threads = n.cores,
                                  draws = n.draws,
                                  opencl_ids = opencl_IDs,
-                                 num_elbo_draws = elbo.samples)
+                                 num_elbo_draws = elbo.samples, 
+                                 max_lbfgs_iters = 100L, 
+                                 history_size = 25L)
       }
     })
   }

@@ -31,7 +31,7 @@ findSpatiallyVariableFeaturesBayes(
 
 \item{n.iter}{An integer specifying the maximum number of iterations. Defaults to 3000.}
 
-\item{kernel}{A string specifying the covariance kernel to be used when fitting the GP. Must be one of "exp_quad" or "matern". Defaults to "exp_quad".}
+\item{kernel}{A string specifying the covariance kernel to be used when fitting the GP. Must be one of "exp_quad", "matern", or "periodic". Defaults to "exp_quad".}
 
 \item{kernel.smoothness}{A double specifying the smoothness parameter \eqn{\nu} used when computing the Matérn kernel. Must be one of 0.5, 1.5, or 2.5. Using 0.5 corresponds to the exponential kernel. Defaults to 1.5.}
 
