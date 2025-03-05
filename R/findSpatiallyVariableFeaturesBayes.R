@@ -39,7 +39,7 @@
 #' @importFrom BiocGenerics counts
 #' @importFrom Matrix rowSums 
 #' @importFrom SummarizedExperiment rowData
-#' @importFrom dplyr relocate mutate rename rename_with select inner_join desc filter distinct arrange left_join bind_rows
+#' @importFrom dplyr relocate mutate rename rename_with with_groups select inner_join desc filter distinct arrange left_join bind_rows
 #' @importFrom tidyr pivot_longer
 #' @importFrom stats kmeans dist median
 #' @importFrom withr with_output_sink
@@ -141,11 +141,13 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
              dplyr::mutate(gene = rownames(.), .before = 1) %>%
              tidyr::pivot_longer(cols = !gene,
                                  names_to = "spot",
-                                 values_to = "expression") %>%
+                                 values_to = "gene_expression") %>%
              dplyr::relocate(spot, gene) %>%
              dplyr::mutate(gene = factor(gene, levels = unique(gene)),
-                           spot = factor(spot, levels = unique(spot)),
-                           expression = as.numeric(scale(expression)))  %>%
+                           spot = factor(spot, levels = unique(spot)))  %>%
+             dplyr::with_groups(gene, 
+                                dplyr::mutate, 
+                                gene_expression = as.numeric(scale(gene_expression)))
              as.data.frame()
   # estimate global length-scale
   M <- nrow(spatial_mtx)
@@ -190,7 +192,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                       gene_id = as.integer(expr_df$gene),
                       phi = phi,
                       gene_depths = gene_depths, 
-                      y = expr_df$expression)
+                      y = expr_df$gene_expression)
     stan_file <- system.file("approxGP2.stan", package = "bayesVG")
   } else {
     data_list <- list(M = M,
@@ -200,7 +202,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                       spot_id = as.integer(expr_df$spot),
                       gene_id = as.integer(expr_df$gene),
                       phi = phi,
-                      y = expr_df$expression)
+                      y = expr_df$gene_expression)
     stan_file <- system.file("approxGP.stan", package = "bayesVG")
   }
   # compile model
