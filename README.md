@@ -55,10 +55,8 @@ data("seu_pbmc")
 
 Now we’re able to model gene expression, summarize the posterior
 distribution of variance for each gene, and classify the top 3000
-most-variable genes as HVGs.
-
-\[!TIP\] The `findVariableFeaturesBayes()` function can take as input
-either a `Seurat` or a `SingleCellExperiment` object.
+most-variable genes as HVGs. The `findVariableFeaturesBayes()` function
+can take as input either a `Seurat` or a `SingleCellExperiment` object.
 
 ``` r
 seu_pbmc <- findVariableFeaturesBayes(seu_pbmc, 
@@ -105,10 +103,9 @@ seu_brain <- SCTransform(seu_brain,
 Now we can model gene expression with an approximate multivariate
 hierarchical Gaussian process (GP), summarize the spatial component of
 variance for each gene, and classify the top 1000 most spatially
-variable genes as SVGs.
-
-\[!TIP\] The `findSpatiallyVariableFeaturesBayes()` function can take as
-input either a `Seurat` or a `SpatialExperiment` object.
+variable genes as SVGs. The `findSpatiallyVariableFeaturesBayes()`
+function can take as input either a `Seurat` or a `SpatialExperiment`
+object.
 
 ``` r
 seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain, 
