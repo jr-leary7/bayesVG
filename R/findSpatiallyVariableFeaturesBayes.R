@@ -147,7 +147,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                            spot = factor(spot, levels = unique(spot)))  %>%
              dplyr::with_groups(gene, 
                                 dplyr::mutate, 
-                                gene_expression = as.numeric(scale(gene_expression)))
+                                gene_expression = as.numeric(scale(gene_expression))) %>% 
              as.data.frame()
   # estimate global length-scale
   M <- nrow(spatial_mtx)
