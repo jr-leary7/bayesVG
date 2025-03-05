@@ -136,7 +136,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     expr_mtx <- SingleCellExperiment::logcounts(sp.obj)
   }
 
-  # convert expression matrix to long data.frame for modeling & postprocess
+  # convert expression matrix to long data.frame for modeling & post-process
   expr_df <- as.data.frame(expr_mtx[naive.hvgs, ]) %>%
              dplyr::mutate(gene = rownames(.), .before = 1) %>%
              tidyr::pivot_longer(cols = !gene,
@@ -144,10 +144,8 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                  values_to = "gene_expression") %>%
              dplyr::relocate(spot, gene) %>%
              dplyr::mutate(gene = factor(gene, levels = unique(gene)),
-                           spot = factor(spot, levels = unique(spot)))  %>%
-             dplyr::with_groups(gene, 
-                                dplyr::mutate, 
-                                gene_expression = as.numeric(scale(gene_expression))) %>% 
+                           spot = factor(spot, levels = unique(spot)), 
+                           gene_expression = as.numeric(scale(gene_expression))) %>% 
              as.data.frame()
   # estimate global length-scale
   M <- nrow(spatial_mtx)
