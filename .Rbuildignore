@@ -4,5 +4,6 @@
 ^\.github$
 inst/approxGP$
 inst/approxGP2$
+inst/clusterSVGs$
 ^CODE_OF_CONDUCT\.md$
 ^data-raw$
