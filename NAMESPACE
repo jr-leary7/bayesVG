@@ -2,6 +2,7 @@
 
 export(classifyHVGs)
 export(classifySVGs)
+export(clusterSVGsBayes)
 export(computeNaiveGeneStatistics)
 export(convertToSpatialExperiment)
 export(extractModel)
