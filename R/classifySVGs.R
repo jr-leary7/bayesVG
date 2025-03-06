@@ -9,12 +9,12 @@
 #' @param quantile.SVG A double specifying the quantile cutoff used to classify SVGs (if using quantile-based selection). Defaults to 0.75.
 #' @param cutoff A double specifying the cutoff value for the spatial variation parameter \eqn{\tau_g} used to classify SVGs (if using cutoff-based selection). Defaults to 0.1.
 #' @import magrittr
-#' @importFrom methods slot 
+#' @importFrom methods slot
 #' @importFrom Seurat DefaultAssay VariableFeatures
 #' @importFrom SummarizedExperiment rowData
 #' @importFrom dplyr select arrange desc slice_head pull mutate filter if_else
 #' @importFrom stats quantile
-#' @importFrom S4Vectors DataFrame 
+#' @importFrom S4Vectors DataFrame
 #' @return An object of class \code{Seurat} with SVG metadata added.
 #' @seealso \code{\link{findSpatiallyVariableFeaturesBayes}}
 #' @seealso \code{\link[SeuratObject]{SVFInfo}}
@@ -28,13 +28,13 @@
 #'                                  return.only.var.genes = FALSE,
 #'                                  seed.use = 312,
 #'                                  verbose = FALSE)
-#' seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain, 
-#'                                                 naive.hvgs = Seurat::VariableFeatures(seu_brain), 
-#'                                                 kernel = "matern", 
-#'                                                 kernel.smoothness = 1.5, 
-#'                                                 algorithm = "meanfield", 
-#'                                                 n.cores = 1L, 
-#'                                                 save.model = TRUE) %>% 
+#' seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
+#'                                                 naive.hvgs = Seurat::VariableFeatures(seu_brain),
+#'                                                 kernel = "matern",
+#'                                                 kernel.smoothness = 1.5,
+#'                                                 algorithm = "meanfield",
+#'                                                 n.cores = 1L,
+#'                                                 save.model = TRUE) %>%
 #'              classifySVGs(n.SVG = 1000L)
 
 classifySVGs <- function(sp.obj = NULL,
@@ -77,7 +77,7 @@ classifySVGs <- function(sp.obj = NULL,
             dplyr::pull(gene)
   }
   # add HVG classification back to object metadata
-  gene_summary <- dplyr::mutate(gene_summary, svg = dplyr::if_else(gene %in% svgs, TRUE, FALSE))
+  gene_summary <- dplyr::mutate(gene_summary, svg_status = dplyr::if_else(gene %in% svgs, TRUE, FALSE))
   if (inherits(sp.obj, "Seurat")) {
     if (inherits(version_check, "try-error")) {
       sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]]@meta.features <- gene_summary
@@ -87,6 +87,7 @@ classifySVGs <- function(sp.obj = NULL,
     Seurat::VariableFeatures(sp.obj) <- svgs
   } else {
     SummarizedExperiment::rowData(sp.obj) <- S4Vectors::DataFrame(gene_summary)
+    sp.obj@metadata$svg_list <- svgs
   }
   return(sp.obj)
 }
