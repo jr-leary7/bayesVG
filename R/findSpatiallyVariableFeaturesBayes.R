@@ -135,7 +135,6 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   } else {
     expr_mtx <- SingleCellExperiment::logcounts(sp.obj)
   }
-
   # convert expression matrix to long data.frame for modeling & post-process
   expr_df <- as.data.frame(expr_mtx[naive.hvgs, ]) %>%
              dplyr::mutate(gene = rownames(.), .before = 1) %>%
@@ -218,7 +217,9 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                 init = 0,
                                 opencl_ids = opencl_IDs,
                                 jacobian = FALSE,
-                                iter = 1000L)
+                                iter = 1000L, 
+                                algorithm = "lbfgs", 
+                                history_size = 25L)
       } else {
         fit_mle <- NULL
       }
@@ -250,7 +251,9 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                   init = 0,
                                   opencl_ids = opencl_IDs,
                                   jacobian = FALSE,
-                                  iter = 1000L)
+                                  iter = 1000L, 
+                                  algorithm = "lbfgs", 
+                                  history_size = 25L)
         } else {
           fit_mle <- NULL
         }
