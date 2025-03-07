@@ -2,7 +2,7 @@ data {
   int<lower=1> N;  // number of SVGs
   int<lower=1> D;  // number of spots 
   int<lower=1> K;  // number of clusters
-  matrix[N, D] X;  // matrix of normalized counts
+  matrix[N, D] X;  // matrix of scaled, normalized counts
 }
 
 parameters {
