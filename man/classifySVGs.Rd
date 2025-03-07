@@ -38,13 +38,13 @@ seu_brain <- Seurat::SCTransform(seu_brain,
                                  return.only.var.genes = FALSE,
                                  seed.use = 312,
                                  verbose = FALSE)
-seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain, 
-                                                naive.hvgs = Seurat::VariableFeatures(seu_brain), 
-                                                kernel = "matern", 
-                                                kernel.smoothness = 1.5, 
-                                                algorithm = "meanfield", 
-                                                n.cores = 1L, 
-                                                save.model = TRUE) \%>\% 
+seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
+                                                naive.hvgs = Seurat::VariableFeatures(seu_brain),
+                                                kernel = "matern",
+                                                kernel.smoothness = 1.5,
+                                                algorithm = "meanfield",
+                                                n.cores = 1L,
+                                                save.model = TRUE) \%>\%
              classifySVGs(n.SVG = 1000L)
 }
 \seealso{

@@ -1,3 +1,8 @@
+# bayesVG v0.0.4 
+
++ Fixed bugs throughout. 
++ Added an R function and accompanying Stan code to soft-cluster SVG sets in a Bayesian manner. 
+
 # bayesVG v0.0.3 
 
 + Added function to plot HVG results. 
