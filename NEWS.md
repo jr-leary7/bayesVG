@@ -2,6 +2,8 @@
 
 + Fixed bugs throughout. 
 + Added an R function and accompanying Stan code to soft-cluster SVG sets in a Bayesian manner. 
++ Upgraded clustering function and relevant Stan code to run in parallel and provide estimates of the log-likelihood and BIC of the final clustering. 
++ Updated documentation. 
 
 # bayesVG v0.0.3 
 

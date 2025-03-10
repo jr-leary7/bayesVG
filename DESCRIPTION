@@ -14,6 +14,7 @@ Depends:
 Imports: 
     cli, 
     brms, 
+    utils, 
     withr, 
     rlang, 
     stats, 
@@ -22,10 +23,13 @@ Imports:
     irlba, 
     Seurat,
     Matrix, 
+    doSNOW, 
     ggplot2, 
     ggrepel, 
     methods, 
+    foreach, 
     mvtnorm, 
+    parallel, 
     S4Vectors, 
     grDevices, 
     posterior, 
@@ -37,6 +41,7 @@ Imports:
     SummarizedExperiment, 
     SingleCellExperiment
 Suggests: 
+    loo, 
     testthat (>= 3.0.0)
 Additional_repositories: https://mc-stan.org/r-packages/
 SystemRequirements: CmdStan (https://mc-stan.org/users/interfaces/cmdstan)
