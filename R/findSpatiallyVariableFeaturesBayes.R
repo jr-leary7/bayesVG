@@ -217,20 +217,20 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   if (verbose) {
     if (algorithm %in% c("meanfield", "fullrank")) {
       if (mle.init) {
-        fit_mle <- mod$optimize(data_list,
-                                seed = random.seed,
-                                init = 0,
-                                opencl_ids = opencl_IDs,
-                                jacobian = FALSE,
-                                iter = 1000L, 
-                                algorithm = "lbfgs", 
-                                history_size = 25L)
+        model_init <- mod$optimize(data_list,
+                                   seed = random.seed,
+                                   init = 0,
+                                   opencl_ids = opencl_IDs,
+                                   jacobian = FALSE,
+                                   iter = 1000L, 
+                                   algorithm = "lbfgs", 
+                                   history_size = 25L)
       } else {
-        fit_mle <- NULL
+        model_init <- 0
       }
       fit_vi <- mod$variational(data_list,
                                 seed = random.seed,
-                                init = fit_mle,
+                                init = model_init,
                                 algorithm = algorithm,
                                 iter =  n.iter,
                                 draws = n.draws,
@@ -251,20 +251,20 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     withr::with_output_sink(tempfile(), {
       if (algorithm %in% c("meanfield", "fullrank")) {
         if (mle.init) {
-          fit_mle <- mod$optimize(data_list,
-                                  seed = random.seed,
-                                  init = 0,
-                                  opencl_ids = opencl_IDs,
-                                  jacobian = FALSE,
-                                  iter = 1000L, 
-                                  algorithm = "lbfgs", 
-                                  history_size = 25L)
+          model_init <- mod$optimize(data_list,
+                                     seed = random.seed,
+                                     init = 0,
+                                     opencl_ids = opencl_IDs,
+                                     jacobian = FALSE,
+                                     iter = 1000L, 
+                                     algorithm = "lbfgs", 
+                                     history_size = 25L)
         } else {
-          fit_mle <- NULL
+          model_init <- 0
         }
         fit_vi <- mod$variational(data_list,
                                   seed = random.seed,
-                                  init = fit_mle,
+                                  init = model_init,
                                   algorithm = algorithm,
                                   iter =  n.iter,
                                   draws = n.draws,

@@ -21,32 +21,31 @@ parameters {
 }
 
 model {
-  beta0 ~ std_normal();
+  beta0 ~ normal(0, 2); 
   mu_alpha ~ normal(0, 2);
-  sigma_alpha ~ normal(0, 2);
-  sigma_y ~ normal(0, 2);
+  sigma_alpha ~ std_normal();
   mu_amplitude ~ normal(0, 2);
   sigma_amplitude ~ std_normal();
+  sigma_y ~ normal(0, 2);
   vector[G] amplitude_sq = square(amplitude);
-  matrix[M, G] phi_alpha = phi * alpha_t;
   vector[N] w;
   for (i in 1:N) {
     w[i] = phi_alpha[spot_id[i], gene_id[i]];
   }
   for (i in 1:G) {
     alpha_t[, i] ~ normal(mu_alpha, sigma_alpha);
-    amplitude[i] ~ lognormal(mu_amplitude, sigma_amplitude);
   }
+  amplitude ~ lognormal(mu_amplitude, sigma_amplitude);
   y ~ normal(beta0 + amplitude_sq[gene_id] .* w, sigma_y);
 }
+
 
 generated quantities {
   array[N] real log_lik;
   vector[G] amplitude_sq = square(amplitude);
-  matrix[M, G] phi_alpha = phi * alpha_t;
   for (i in 1:N) {
     real mu_i;
-    mu_i = beta0 + amplitude_sq[gene_id[i]] * phi_alpha[spot_id[i], gene_id[i]];
+    mu_i = beta0 + beta1 * gene_depths[gene_id[i]] + amplitude_sq[gene_id[i]] * phi_alpha[spot_id[i], gene_id[i]];
     log_lik[i] = normal_lpdf(y[i] | mu_i, sigma_y);
   }
 }
