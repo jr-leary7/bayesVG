@@ -8,13 +8,13 @@
 #' @param n.iter An integer specifying the maximum number of iterations. Defaults to 3000.
 #' @param kernel A string specifying the covariance kernel to be used when fitting the GP. Must be one of "exp_quad", "matern", or "periodic". Defaults to "exp_quad".
 #' @param kernel.smoothness A double specifying the smoothness parameter \eqn{\nu} used when computing the Matérn kernel. Must be one of 0.5, 1.5, or 2.5. Using 0.5 corresponds to the exponential kernel. Defaults to 1.5.
-#' @param kernel.period An integer specifying the period parameter \eqn{p} used when computing the periodic kernel. Defaults to 100. 
+#' @param kernel.period An integer specifying the period parameter \eqn{p} used when computing the periodic kernel. Defaults to 100.
 #' @param n.basis.fns An integer specifying the number of basis functions to be used when approximating the GP as a Hilbert space. Defaults to 20.
 #' @param algorithm A string specifying the variational inference (VI) approximation algorithm to be used. Must be one of "meanfield", "fullrank", or "pathfinder". Defaults to "meanfield".
-#' @param mle.init A Boolean specifying whether the the VI algorithm should be initialized using the MLE for each parameter. In general, this increases both computational speed and the accuracy of the variational approximation. Cannot be used when the Pathfinder algorithm is specified. Defaults to TRUE.
-#' @param gene.depth.adjust A Boolean specifying whether the model should include a fixed effect term for total gene expression. Defaults to TRUE.  
+#' @param mle.init A Boolean specifying whether the the VI algorithm should be initialized using the MLE for each parameter. In general, this isn't necessary but can help if the VI algorithm struggles to converge when provided with the default initialization (zero). Cannot be used when the Pathfinder algorithm is specified. Defaults to FALSE.
+#' @param gene.depth.adjust A Boolean specifying whether the model should include a fixed effect term for total gene expression. Defaults to TRUE.
 #' @param n.draws An integer specifying the number of draws to be generated from the variational posterior. Defaults to 1000.
-#' @param elbo.samples An integer specifying the number of samples to be used to estimate the ELBO at every 100th iteration. Higher values will provide a more accurate estimate at the cost of computational complexity. Defaults to 150 when \code{algorithm} is one of "meanfield" or "fullrank", 50 when \code{algorithm} is "pathfinder".  
+#' @param elbo.samples An integer specifying the number of samples to be used to estimate the ELBO at every 100th iteration. Higher values will provide a more accurate estimate at the cost of computational complexity. Defaults to 150 when \code{algorithm} is one of "meanfield" or "fullrank", 50 when \code{algorithm} is "pathfinder".
 #' @param opencl.params A two-element double vector specifying the platform and device IDs of the OpenCL GPU device. Most users should specify \code{c(0, 0)}. See \code{\link[brms]{opencl}} for more details. Defaults to NULL.
 #' @param n.cores An integer specifying the number of threads used in compiling and fitting the model. Defaults to 2.
 #' @param random.seed A double specifying the random seed to be used when fitting and sampling from the model. Defaults to 312.
@@ -27,9 +27,9 @@
 #' \item The term "approximate" in reference to the GP means that the the full GP is instead represented as a Hilbert space using basis functions. The basis function computation requires a kernel, here either the exponentiated quadratic (the default) or one of the Matérn-family kernels. In short, the exponentiated quadratic kernel assumes infinite smoothness, while the Matérn-family kernels assume varying degrees of roughness depending on the value of the smoothness parameter \eqn{\nu}.
 #' \item While we have implemented GPU acceleration via OpenCL through the argument \code{opencl.params}, OpenCL acceleration is not supported on every machine. For example, Apple M-series chips do not support double-precision floating-points, which are necessary for Stan to compile with OpenCL support. For more information, see \href{https://discourse.mc-stan.org/t/gpus-on-mac-osx-apple-m1/23375/5}{this Stan forums thread}. In order to correctly specify the OpenCL platform and device IDs, use the \code{clinfo} command line utility.
 #' \item The user can specify which VI algorithm to use to fit the model via the argument \code{algorithm}. For further details, see \href{https://www.jmlr.org/papers/volume18/16-107/16-107.pdf}{this paper} comparing the meanfield and fullrank algorithms, and \href{https://doi.org/10.48550/arXiv.2108.03782}{this preprint} that introduced the Pathfinder algorithm. For a primer on automatic differentiation variational inference (ADVI), see \href{https://doi.org/10.48550/arXiv.1506.03431}{this preprint}. Lastly, \href{https://discourse.mc-stan.org/t/issues-with-differences-between-mcmc-and-pathfinder-results-how-to-make-pathfinder-or-something-else-more-accurate/35992}{this Stan forums thread} lays out some practical differences between the algorithms.
-#' \item If using the periodic kernel, the user should ideally provide their own value of \code{kernel.period} based on the resolution of the spatial dataset at hand. Typical values should be roughly equivalent to the typical inter-spot distance or perhaps a small multiple of it. 
+#' \item If using the periodic kernel, the user should ideally provide their own value of \code{kernel.period} based on the resolution of the spatial dataset at hand. Typical values should be roughly equivalent to the typical inter-spot distance or perhaps a small multiple of it.
 #' \item If \code{save.model} is set to TRUE, the final model fit, estimated log-likelihood, and estimated BIC will be saved to the appropriate unstructured metadata slot of \code{sp.obj}. This allows the user to inspect the final fit and perform posterior predictive checks, but the model object takes up a lot of space. As such, it is recommended to remove it from \code{sp.obj} by setting the appropriate slot to NULL before saving it to disk.
-#' \item Choosing the most appropriate kernel can be difficult, but a good place to start (besides just using your intuition) is setting \code{save.model = TRUE} and investigating the estimated BIC of the model. The estimated BIC can be used to compare multiple model fits with differing kernels, with lower values indicating a better model fit. Keep in mind that the BIC is an estimate based on the approximate variational posterior and the estimated number of parameters of the GP. 
+#' \item Choosing the most appropriate kernel can be difficult, but a good place to start (besides just using your intuition) is setting \code{save.model = TRUE} and investigating the estimated BIC of the model. The estimated BIC can be used to compare multiple model fits with differing kernels, with lower values indicating a better model fit. Keep in mind that the BIC is an estimate based on the approximate variational posterior and the estimated number of parameters of the GP.
 #' }
 #' @import magrittr
 #' @import cmdstanr
@@ -38,7 +38,7 @@
 #' @importFrom SpatialExperiment spatialCoords
 #' @importFrom SingleCellExperiment logcounts
 #' @importFrom BiocGenerics counts
-#' @importFrom Matrix rowSums 
+#' @importFrom Matrix rowSums
 #' @importFrom SummarizedExperiment rowData
 #' @importFrom dplyr relocate mutate rename rename_with with_groups select inner_join desc filter distinct arrange left_join bind_rows
 #' @importFrom tidyr pivot_longer
@@ -59,12 +59,12 @@
 #'                                  return.only.var.genes = FALSE,
 #'                                  seed.use = 312,
 #'                                  verbose = FALSE)
-#' seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain, 
-#'                                                 naive.hvgs = Seurat::VariableFeatures(seu_brain), 
-#'                                                 kernel = "matern", 
-#'                                                 kernel.smoothness = 1.5, 
-#'                                                 algorithm = "meanfield", 
-#'                                                 n.cores = 1L, 
+#' seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
+#'                                                 naive.hvgs = Seurat::VariableFeatures(seu_brain),
+#'                                                 kernel = "matern",
+#'                                                 kernel.smoothness = 1.5,
+#'                                                 algorithm = "meanfield",
+#'                                                 n.cores = 1L,
 #'                                                 save.model = TRUE)
 
 findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
@@ -72,13 +72,13 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                                n.iter = 3000L,
                                                kernel = "exp_quad",
                                                kernel.smoothness = 1.5,
-                                               kernel.period = 100L, 
+                                               kernel.period = 100L,
                                                n.basis.fns = 20L,
                                                algorithm = "meanfield",
-                                               mle.init = TRUE,
-                                               gene.depth.adjust = TRUE, 
+                                               mle.init = FALSE,
+                                               gene.depth.adjust = TRUE,
                                                n.draws = 1000L,
-                                               elbo.samples = NULL, 
+                                               elbo.samples = NULL,
                                                opencl.params = NULL,
                                                n.cores = 2L,
                                                random.seed = 312,
@@ -118,7 +118,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     }
   }
   if (n.cores > unname(parallelly::availableCores())) { stop("The number of requested cores is greater than the number of available cores.") }
-  # start time tracking 
+  # start time tracking
   time_start <- Sys.time()
   # extract spatial coordinates & scale them
   if (inherits(sp.obj, "Seurat")) {
@@ -145,8 +145,8 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                  values_to = "gene_expression") %>%
              dplyr::relocate(spot, gene) %>%
              dplyr::mutate(gene = factor(gene, levels = unique(gene)),
-                           spot = factor(spot, levels = unique(spot)), 
-                           gene_expression = as.numeric(scale(gene_expression))) %>% 
+                           spot = factor(spot, levels = unique(spot)),
+                           gene_expression = as.numeric(scale(gene_expression))) %>%
              as.data.frame()
   # estimate global length-scale
   M <- nrow(spatial_mtx)
@@ -172,7 +172,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   # scale basis functions
   phi <- scale(phi)
   attributes(phi)[2:3] <- NULL
-  # compute some constants 
+  # compute some constants
   N <- nrow(expr_df)
   G <- length(unique(expr_df$gene))
   # prepare data to be passed to cmdstan
@@ -193,7 +193,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                       spot_id = as.integer(expr_df$spot),
                       gene_id = as.integer(expr_df$gene),
                       phi = phi,
-                      gene_depths = gene_depths, 
+                      gene_depths = gene_depths,
                       y = expr_df$gene_expression)
     stan_file <- system.file("approxGP2.stan", package = "bayesVG")
   } else {
@@ -222,8 +222,8 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                    init = 0,
                                    opencl_ids = opencl_IDs,
                                    jacobian = FALSE,
-                                   iter = 1000L, 
-                                   algorithm = "lbfgs", 
+                                   iter = 1000L,
+                                   algorithm = "lbfgs",
                                    history_size = 25L)
       } else {
         model_init <- 0
@@ -239,12 +239,12 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     } else {
       fit_vi <- mod$pathfinder(data_list,
                                seed = random.seed,
-                               init = 0, 
+                               init = 0,
                                num_threads = n.cores,
                                draws = n.draws,
                                opencl_ids = opencl_IDs,
-                               num_elbo_draws = elbo.samples, 
-                               max_lbfgs_iters = 100L, 
+                               num_elbo_draws = elbo.samples,
+                               max_lbfgs_iters = 100L,
                                history_size = 25L)
     }
   } else {
@@ -256,8 +256,8 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                      init = 0,
                                      opencl_ids = opencl_IDs,
                                      jacobian = FALSE,
-                                     iter = 1000L, 
-                                     algorithm = "lbfgs", 
+                                     iter = 1000L,
+                                     algorithm = "lbfgs",
                                      history_size = 25L)
         } else {
           model_init <- 0
@@ -273,12 +273,12 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
       } else {
         fit_vi <- mod$pathfinder(data_list,
                                  seed = random.seed,
-                                 init = 0, 
+                                 init = 0,
                                  num_threads = n.cores,
                                  draws = n.draws,
                                  opencl_ids = opencl_IDs,
-                                 num_elbo_draws = elbo.samples, 
-                                 max_lbfgs_iters = 100L, 
+                                 num_elbo_draws = elbo.samples,
+                                 max_lbfgs_iters = 100L,
                                  history_size = 25L)
       }
     })
@@ -304,8 +304,8 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                        dplyr::mutate(amplitude_mean_rank = row_number()) %>%
                        as.data.frame() %>%
                        magrittr::set_rownames(.$gene)
-  # compute estimated log-likehood 
-  log_lik_draws <- suppressWarnings(as.data.frame(posterior::as_draws_df(fit_vi$draws(variables = "log_lik")))) %>% 
+  # compute estimated log-likehood
+  log_lik_draws <- suppressWarnings(as.data.frame(posterior::as_draws_df(fit_vi$draws(variables = "log_lik")))) %>%
                    dplyr::select(tidyselect::starts_with("log_lik"))
   log_likelihood <- mean(rowSums(log_lik_draws))
   p <- 5 + 2 * n.basis.fns + G * (1 + n.basis.fns)
@@ -373,20 +373,20 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
       sp.obj@metadata$BIC <- bic_est
     }
   }
-  # finish time tracking 
+  # finish time tracking
   time_diff <- Sys.time() - time_start
-  time_units <- ifelse(attributes(time_diff)$units == "secs", 
-                       "seconds", 
-                       ifelse(attributes(time_diff)$units == "mins", 
-                              "minutes", 
+  time_units <- ifelse(attributes(time_diff)$units == "secs",
+                       "seconds",
+                       ifelse(attributes(time_diff)$units == "mins",
+                              "minutes",
                               "hours"))
   if (verbose) {
-    time_message <- paste0("bayesVG modeling of ", 
-                           length(naive.hvgs), 
-                           " genes completed in ", 
-                           as.numeric(round(time_diff, 3)), 
-                           " ", 
-                           time_units, 
+    time_message <- paste0("bayesVG modeling of ",
+                           length(naive.hvgs),
+                           " genes completed in ",
+                           as.numeric(round(time_diff, 3)),
+                           " ",
+                           time_units,
                            ".")
     cli::cli_alert_success(time_message)
   }
