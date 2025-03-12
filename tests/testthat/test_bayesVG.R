@@ -26,7 +26,7 @@ seu_brain <- suppressWarnings({
                       verbose = FALSE)
 })
 
-# fit spatial model & extract output 
+# fit spatial model, extract output, & cluster SVGs
 seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain, 
                                                 naive.hvgs = Seurat::VariableFeatures(seu_brain),
                                                 kernel = "matern", 
@@ -37,6 +37,10 @@ seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
 svg_metadata <- seu_brain@assays$SCT@meta.features
 svg_fit <- extractModel(seu_brain)
 svg_plot <- plotSVGs(seu_brain)
+svg_clusters <- clusterSVGsBayes(seu_brain,
+                                 svgs = Seurat::VariableFeatures(seu_brain), 
+                                 n.clust = 3L, 
+                                 n.cores = 1L)
 
 # compute naive gene statistics
 gene_stats_naive <- computeNaiveGeneStatistics(seu_pbmc, use.norm = TRUE)
@@ -62,6 +66,12 @@ test_that("SVG model", {
   expect_equal(nrow(svg_metadata), 11464)
   expect_s3_class(svg_fit, "CmdStanVB")
   expect_s3_class(svg_plot, "ggplot")
+  expect_type(svg_clusters, "list")
+  expect_s3_class(svg_clusters$cluster_df, "data.frame")
+  expect_type(svg_clusters$pca_embedding, "double")
+  expect_s3_class(svg_clusters$model_fit, "CmdStanVB")
+  expect_type(svg_clusters$log_likelihood, "double")
+  expect_type(svg_clusters$BIC, "double")
 })
 
 # run naive gene statistics tests 
