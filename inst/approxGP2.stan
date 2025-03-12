@@ -45,6 +45,8 @@ model {
 }
 
 // generated quantities {
+//   matrix[M, G] phi_alpha;
+//   phi_alpha = phi * alpha_t;
 //   vector[G] amplitude_sq = square(amplitude);
 //   array[N] real log_lik;
 //   for (i in 1:N) {

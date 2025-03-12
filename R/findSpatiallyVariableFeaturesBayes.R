@@ -29,7 +29,6 @@
 #' \item The user can specify which VI algorithm to use to fit the model via the argument \code{algorithm}. For further details, see \href{https://www.jmlr.org/papers/volume18/16-107/16-107.pdf}{this paper} comparing the meanfield and fullrank algorithms, and \href{https://doi.org/10.48550/arXiv.2108.03782}{this preprint} that introduced the Pathfinder algorithm. For a primer on automatic differentiation variational inference (ADVI), see \href{https://doi.org/10.48550/arXiv.1506.03431}{this preprint}. Lastly, \href{https://discourse.mc-stan.org/t/issues-with-differences-between-mcmc-and-pathfinder-results-how-to-make-pathfinder-or-something-else-more-accurate/35992}{this Stan forums thread} lays out some practical differences between the algorithms.
 #' \item If using the periodic kernel, the user should ideally provide their own value of \code{kernel.period} based on the resolution of the spatial dataset at hand. Typical values should be roughly equivalent to the typical inter-spot distance or perhaps a small multiple of it.
 #' \item If \code{save.model} is set to TRUE, the final model fit, estimated log-likelihood, and estimated BIC will be saved to the appropriate unstructured metadata slot of \code{sp.obj}. This allows the user to inspect the final fit and perform posterior predictive checks, but the model object takes up a lot of space. As such, it is recommended to remove it from \code{sp.obj} by setting the appropriate slot to NULL before saving it to disk.
-#' \item Choosing the most appropriate kernel can be difficult, but a good place to start (besides just using your intuition) is setting \code{save.model = TRUE} and investigating the estimated BIC of the model. The estimated BIC can be used to compare multiple model fits with differing kernels, with lower values indicating a better model fit. Keep in mind that the BIC is an estimate based on the approximate variational posterior and the estimated number of parameters of the GP.
 #' }
 #' @import magrittr
 #' @import cmdstanr
@@ -304,12 +303,6 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                        dplyr::mutate(amplitude_mean_rank = row_number()) %>%
                        as.data.frame() %>%
                        magrittr::set_rownames(.$gene)
-  # compute estimated log-likehood
-  log_lik_draws <- suppressWarnings(as.data.frame(posterior::as_draws_df(fit_vi$draws(variables = "log_lik")))) %>%
-                   dplyr::select(tidyselect::starts_with("log_lik"))
-  log_likelihood <- mean(rowSums(log_lik_draws))
-  p <- 5 + 2 * n.basis.fns + G * (1 + n.basis.fns)
-  bic_est <- -2 * log_likelihood + p * log(N)
   if (verbose) {
     cli::cli_alert_success("Posterior summarization complete.")
   }
@@ -365,12 +358,8 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   if (save.model) {
     if (inherits(sp.obj, "Seurat")) {
       sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]]@misc$model_fit <- fit_vi
-      sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]]@misc$log_likelihood <- log_likelihood
-      sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]]@misc$BIC <- bic_est
     } else {
       sp.obj@metadata$model_fit <- fit_vi
-      sp.obj@metadata$log_likelihood <- log_likelihood
-      sp.obj@metadata$BIC <- bic_est
     }
   }
   # finish time tracking
