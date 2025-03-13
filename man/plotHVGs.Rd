@@ -34,11 +34,11 @@ This function plots the (log) mean versus the (log) dispersion of gene expressio
 }
 \examples{
 data(seu_pbmc)
-seu_pbmc <- findVariableFeaturesBayes(seu_pbmc, 
-                                      n.cells.subsample = 500L, 
-                                      algorithm = "meanfield", 
-                                      n.cores.per.chain = 1L, 
-                                      save.model = TRUE) \%>\% 
+seu_pbmc <- findVariableFeaturesBayes(seu_pbmc,
+                                      n.cells.subsample = 500L,
+                                      algorithm = "meanfield",
+                                      n.cores.per.chain = 1L,
+                                      save.model = TRUE) \%>\%
             classifyHVGs(n.HVG = 1000L)
 plotHVGs(seu_pbmc)
 }

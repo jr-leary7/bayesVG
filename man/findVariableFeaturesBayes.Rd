@@ -8,7 +8,7 @@ findVariableFeaturesBayes(
   sc.obj = NULL,
   subject.id = NULL,
   n.cells.subsample = 500L,
-  iter.per.chain = 1000L,
+  iter.per.chain = 2000L,
   warmup.per.chain = 250L,
   n.chains = 1L,
   n.cores.chain = 1L,
@@ -28,7 +28,7 @@ findVariableFeaturesBayes(
 
 \item{n.cells.subsample}{An integer specifying the number of cells per-gene (and per-subject if \code{subject.id} is not NULL) to subsample to when performing estimation. Defaults to 500.}
 
-\item{iter.per.chain}{An integer specifying the number of iterations per chain. Defaults to 3000.}
+\item{iter.per.chain}{An integer specifying the number of iterations per chain. Defaults to 2000.}
 
 \item{warmup.per.chain}{An integer specifying the number of warmup (burn-in) iterations per chain. Defaults to 250.}
 
@@ -68,10 +68,10 @@ This function implements HVG estimation using Bayesian variational inference to 
 }
 \examples{
 data(seu_pbmc)
-seu_pbmc <- findVariableFeaturesBayes(seu_pbmc, 
-                                      n.cells.subsample = 500L, 
-                                      algorithm = "meanfield", 
-                                      n.cores.per.chain = 1L, 
+seu_pbmc <- findVariableFeaturesBayes(seu_pbmc,
+                                      n.cells.subsample = 500L,
+                                      algorithm = "meanfield",
+                                      n.cores.per.chain = 1L,
                                       save.model = TRUE)
 }
 \seealso{

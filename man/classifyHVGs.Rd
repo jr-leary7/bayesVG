@@ -34,11 +34,11 @@ After estimating per-gene statistics, classify genes as highly variable or not i
 }
 \examples{
 data(seu_pbmc)
-seu_pbmc <- findVariableFeaturesBayes(seu_pbmc, 
-                                      n.cells.subsample = 500L, 
-                                      algorithm = "meanfield", 
-                                      n.cores.per.chain = 1L, 
-                                      save.model = TRUE) \%>\% 
+seu_pbmc <- findVariableFeaturesBayes(seu_pbmc,
+                                      n.cells.subsample = 500L,
+                                      algorithm = "meanfield",
+                                      n.cores.per.chain = 1L,
+                                      save.model = TRUE) \%>\%
             classifyHVGs(n.HVG = 3000L)
 }
 \seealso{

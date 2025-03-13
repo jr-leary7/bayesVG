@@ -9,7 +9,7 @@
 #' @importFrom SingleCellExperiment logcounts
 #' @importFrom BiocGenerics counts
 #' @importFrom Seurat GetAssayData DefaultAssay
-#' @importFrom methods as 
+#' @importFrom methods as
 #' @importFrom sparseMatrixStats rowMeans2 rowVars
 #' @return A \code{data.frame} containing the per-gene naive mean, variance, and dispersion.
 #' @export
@@ -17,6 +17,7 @@
 computeNaiveGeneStatistics <- function(obj = NULL, use.norm = FALSE) {
   # check inputs
   if (is.null(obj)) { stop("Please provide all inputs to computeNaiveGeneStatistics().") }
+  if (!(inherits(obj, "SingleCellExperiment") || inherits(obj, "Seurat") || inherits(obj, "SpatialExperiment"))) { stop("Please provide an object of class Seurat, SingleCellExperiment, or SpatialExperiment.") }
   # extract (sparse) counts or normalized counts matrix
   if (inherits(obj, "SingleCellExperiment") || inherits(obj, "SpatialExperiment")) {
     if (use.norm) {
