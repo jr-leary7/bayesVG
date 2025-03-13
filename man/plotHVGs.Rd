@@ -32,6 +32,11 @@ An object of class \code{ggplot2}.
 \description{
 This function plots the (log) mean versus the (log) dispersion of gene expression in order to visualize the relationship between the two statistics for HVGs and non-HVGs.
 }
+\details{
+\itemize{
+\item When multiple subjects are present (this is detected automatically by internal logic), the resulting plot will be faceted by subject and the top \code{n.genes.label} per-subject will be labelled. 
+}
+}
 \examples{
 data(seu_pbmc)
 seu_pbmc <- findVariableFeaturesBayes(seu_pbmc,

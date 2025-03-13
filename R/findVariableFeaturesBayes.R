@@ -90,6 +90,8 @@ findVariableFeaturesBayes <- function(sc.obj = NULL,
                       brms::set_prior("normal(0, 2)", class = "Intercept", dpar = "shape"),
                       brms::set_prior("student_t(3, 0, 2)", class = "sd", dpar = "shape"))
   }
+  # start time tracking
+  time_start <- Sys.time()
   # extract (sparse) counts matrix
   if (inherits(sc.obj, "SingleCellExperiment")) {
     if (!is.null(subject.id)) {
@@ -365,6 +367,23 @@ findVariableFeaturesBayes <- function(sc.obj = NULL,
     } else if (inherits(sc.obj, "Seurat")) {
       sc.obj@assays[[Seurat::DefaultAssay(sc.obj)]]@misc$model_fit <- brms_fit
     }
+  }
+  # finish time tracking
+  time_diff <- Sys.time() - time_start
+  time_units <- ifelse(attributes(time_diff)$units == "secs",
+                       "seconds",
+                       ifelse(attributes(time_diff)$units == "mins",
+                              "minutes",
+                              "hours"))
+  if (verbose) {
+    time_message <- paste0("bayesVG modeling of ",
+                           nrow(sc.obj),
+                           " genes completed in ",
+                           as.numeric(round(time_diff, 3)),
+                           " ",
+                           time_units,
+                           ".")
+    cli::cli_alert_success(time_message)
   }
   return(sc.obj)
 }

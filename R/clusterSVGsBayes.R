@@ -255,7 +255,7 @@ clusterSVGsBayes <- function(sp.obj = NULL,
     }
     colMeans(resp_iter)
   }
-  if (verbose) {
+  if (verbose && n.cores > 1L) {
     cat("\n")
   }
   if (n.cores > 1L) {

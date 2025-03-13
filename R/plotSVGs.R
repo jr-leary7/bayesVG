@@ -42,18 +42,7 @@ plotSVGs <- function(sp.obj = NULL,
   if (is.null(sp.obj)) { cli::cli_abort("Please provide a Seurat or SpatialExperiment object to plotSVGs().") }
   if (!(inherits(sp.obj, "Seurat") || inherits(sp.obj, "SpatialExperiment"))) { cli::cli_abort("Argument sp.obj must be of class Seurat or SpatialExperiment.") }
   # extract gene-level summary data.frame
-  if (inherits(sp.obj, "SingleCellExperiment")) {
-    gene_summary <- as.data.frame(SummarizedExperiment::rowData(sp.obj))
-  } else if (inherits(sp.obj, "Seurat")) {
-    version_check <- try({
-      methods::slot(sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]], name = "meta.data")
-    }, silent = TRUE)
-    if (inherits(version_check, "try-error")) {
-      gene_summary <- sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]]@meta.features
-    } else {
-      gene_summary <- sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]]@meta.data
-    }
-  }
+  gene_summary <- getBayesianGeneStats(sp.obj, sort.values = FALSE)
   # generate naive gene statistics
   naive_stats <- computeNaiveGeneStatistics(sp.obj, use.norm = TRUE)
   genes_label <- dplyr::inner_join(gene_summary,
@@ -79,7 +68,7 @@ plotSVGs <- function(sp.obj = NULL,
   if (n.genes.label > 0) {
     p <- p +
          ggrepel::geom_label_repel(data = genes_label,
-                                   mapping = aes(x = log(mu_naive), y = log(amplitude_mean), label = gene),
+                                   mapping = ggplot2::aes(x = log(mu_naive), y = log(amplitude_mean), label = gene),
                                    inherit.aes = FALSE,
                                    force = 3,
                                    size = label.text.size,

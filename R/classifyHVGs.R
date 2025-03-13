@@ -48,9 +48,13 @@ classifyHVGs <- function(sc.obj = NULL,
   ranker_var <- rlang::sym(paste0(selection.variable, "_mean"))
   # check if data are single- or multi-subject
   if (inherits(sc.obj, "SingleCellExperiment")) {
-    multi_subject_flag <- ifelse(is.null(sc.obj@metadata$gene_stats_bayes), FALSE, TRUE)
+    multi_subject_flag <- ifelse(is.null(sc.obj@metadata$gene_stats_bayes), 
+                                 FALSE, 
+                                 TRUE)
   } else if (inherits(sc.obj, "Seurat")) {
-    multi_subject_flag <- ifelse(is.null(sc.obj@assays[[Seurat::DefaultAssay(sc.obj)]]@misc$gene_stats_bayes), FALSE, TRUE)
+    multi_subject_flag <- ifelse(is.null(sc.obj@assays[[Seurat::DefaultAssay(sc.obj)]]@misc$gene_stats_bayes), 
+                                 FALSE, 
+                                 TRUE)
   }
   # extract gene mean & dispersion statistics
   if (inherits(sc.obj, "SingleCellExperiment")) {

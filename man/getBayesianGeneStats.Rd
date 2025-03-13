@@ -4,10 +4,12 @@
 \alias{getBayesianGeneStats}
 \title{Fetch the table of per-gene HVG or SVG statistics.}
 \usage{
-getBayesianGeneStats(obj = NULL)
+getBayesianGeneStats(obj = NULL, sort.values = TRUE)
 }
 \arguments{
 \item{obj}{An object of class \code{Seurat}, \code{SingleCellExperiment}, or \code{SpatialExperiment}. Defaults to NULL.}
+
+\item{sort.values}{A Boolean specifying whether the resulting \code{data.frame} should be sorted such that the most variable genes appear first. Defaults to TRUE.}
 }
 \value{
 A \code{data.frame} containing the relevant Bayesian gene statistics.
