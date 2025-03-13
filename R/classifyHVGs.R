@@ -10,6 +10,7 @@
 #' @param quantile.HVG A double specifying the quantile cutoff used to classify HVGs (if using quantile-based selection). Defaults to 0.75.
 #' @param cutoff A double specifying the cutoff value for dispersion or variance (depending on how \code{selection.variable} is defined) used to classify HVGs (if using cutoff-based selection). Defaults to 3.
 #' @import magrittr
+#' @importFrom cli cli_abort
 #' @importFrom rlang sym
 #' @importFrom purrr reduce
 #' @importFrom SummarizedExperiment rowData
@@ -38,11 +39,11 @@ classifyHVGs <- function(sc.obj = NULL,
                          quantile.HVG = 0.75,
                          cutoff = 3) {
   # check inputs
-  if (is.null(sc.obj)) { stop("Please provide an object to classifyHVGs().") }
+  if (is.null(sc.obj)) { cli::cli_abort("Please provide an object to classifyHVGs().") }
   selection.variable <- tolower(selection.variable)
-  if (!selection.variable %in% c("dispersion", "sigma2")) { stop("Please provide a valid random variable used in classifyHVGs().") }
+  if (!selection.variable %in% c("dispersion", "sigma2")) { cli::cli_abort("Please provide a valid random variable used in classifyHVGs().") }
   selection.method <- tolower(selection.method)
-  if (!selection.method %in% c("rank", "quantile", "cutoff")) { stop("Please provide a valid HVG selection method to classifyHVGs().") }
+  if (!selection.method %in% c("rank", "quantile", "cutoff")) { cli::cli_abort("Please provide a valid HVG selection method to classifyHVGs().") }
   # set up ranking variable
   ranker_var <- rlang::sym(paste0(selection.variable, "_mean"))
   # check if data are single- or multi-subject

@@ -28,6 +28,7 @@
 #' }
 #' @import cmdstanr
 #' @import magrittr
+#' @importFrom cli cli_abort cli_alert_warning cli_alert_success
 #' @importFrom parallelly availableCores
 #' @importFrom SingleCellExperiment colData logcounts
 #' @importFrom SummarizedExperiment rowData
@@ -41,7 +42,6 @@
 #' @importFrom brms set_prior brm bf negbinomial
 #' @importFrom posterior as_draws_df
 #' @importFrom S4Vectors DataFrame
-#' @importFrom cli cli_alert_success
 #' @importFrom purrr map
 #' @return Depending on the input, either an object of class \code{Seurat} or \code{SingleCellExperiment} with gene-level statistics added to the appropriate metadata slot.
 #' @seealso \code{\link[Seurat]{FindVariableFeatures}}
@@ -71,14 +71,14 @@ findVariableFeaturesBayes <- function(sc.obj = NULL,
                                       verbose = TRUE,
                                       save.model = FALSE) {
   # check & parse inputs
-  if (is.null(sc.obj)) { stop("Please provide all inputs to findVariableFeaturesBayes().") }
+  if (is.null(sc.obj)) { cli::cli_abort("Please provide all inputs to findVariableFeaturesBayes().") }
   n_cores_total <- n.cores.chain * n.cores.per.chain
-  if (n_cores_total > unname(parallelly::availableCores())) { stop("The total number of requested cores is greater than the number of available cores on your machine.") }
-  if (n.cores.chain != n.chains) { warning("In general, the number of cores should equal the number of chains for optimal performance.") }
+  if (n_cores_total > unname(parallelly::availableCores())) { cli::cli_abort("The total number of requested cores is greater than the number of available cores on your machine.") }
+  if (n.cores.chain != n.chains) { cli::cli_alert_warning("In general, the number of cores should equal the number of chains for optimal performance.") }
   algorithm <- tolower(algorithm)
-  if (!algorithm %in% c("meanfield", "fullrank", "pathfinder", "laplace", "sampling")) { stop("Please provide a valid sampling or approximation algorithm.") }
-  if (algorithm == "sampling" && n.chains == 1L) { warning("It is recommended to use multiple chains when utilizing MCMC sampling.") }
-  if (!is.null(opencl.params) && (!is.double(opencl.params) || !length(opencl.params) == 2)) { stop("Argument opencl.params must be a double vector of length 2 if non-NULL.") }
+  if (!algorithm %in% c("meanfield", "fullrank", "pathfinder", "laplace", "sampling")) { cli::cli_abort("Please provide a valid sampling or approximation algorithm.") }
+  if (algorithm == "sampling" && n.chains == 1L) { cli::cli_alert_warning("It is recommended to use multiple chains when utilizing MCMC sampling.") }
+  if (!is.null(opencl.params) && (!is.double(opencl.params) || !length(opencl.params) == 2)) { cli::cli_abort("Argument opencl.params must be a double vector of length 2 if non-NULL.") }
   if (is.null(opencl.params)) {
     opencl_IDs <- NULL
   } else {

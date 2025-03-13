@@ -6,6 +6,7 @@
 #' @param seu.obj An object of class \code{Seurat}. Defaults to NULL.
 #' @param sample.id A string specifying the sample ID corresponding to the image saved in \code{seu.obj}.
 #' @param scale.coords A Boolean specifying whether the spatial coordinates matrix should be scaled. Defaults to FALSE.
+#' @importFrom cli cli_abort
 #' @importFrom Seurat as.SingleCellExperiment GetTissueCoordinates
 #' @importFrom S4Vectors DataFrame metadata
 #' @importFrom grDevices as.raster
@@ -22,8 +23,8 @@ convertToSpatialExperiment <- function(seu.obj = NULL,
                                        sample.id = NULL,
                                        scale.coords = FALSE) {
   # check inputs
-  if (!inherits(seu.obj, "Seurat")) { stop("Please provide an object of class Seurat.") }
-  if (!sample.id %in% names(seu.obj@images)) { stop("Please provide a valid sample.id value.") }
+  if (!inherits(seu.obj, "Seurat")) { cli::cli_abort("Please provide an object of class Seurat.") }
+  if (!sample.id %in% names(seu.obj@images)) { cli::cli_abort("Please provide a valid sample.id value.") }
   # convert to singlecellexperiment object
   sce <- Seurat::as.SingleCellExperiment(seu.obj)
   # extract image data

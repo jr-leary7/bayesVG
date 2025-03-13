@@ -9,6 +9,7 @@
 #' @param quantile.SVG A double specifying the quantile cutoff used to classify SVGs (if using quantile-based selection). Defaults to 0.75.
 #' @param cutoff A double specifying the cutoff value for the spatial variation parameter \eqn{\tau_g} used to classify SVGs (if using cutoff-based selection). Defaults to 0.1.
 #' @import magrittr
+#' @importFrom cli cli_abort
 #' @importFrom methods slot
 #' @importFrom Seurat DefaultAssay VariableFeatures
 #' @importFrom SummarizedExperiment rowData
@@ -43,10 +44,10 @@ classifySVGs <- function(sp.obj = NULL,
                          quantile.SVG = 0.75,
                          cutoff = 0.1) {
   # check inputs
-  if (is.null(sp.obj)) { stop("Please provide an object to classifySVGs().") }
-  if (!(inherits(sp.obj, "Seurat") || inherits(sp.obj, "SpatialExperiment"))) { stop("Please provide an object of class Seurat or SpatialExperiment.") }
+  if (is.null(sp.obj)) { cli::cli_abort("Please provide an object to classifySVGs().") }
+  if (!(inherits(sp.obj, "Seurat") || inherits(sp.obj, "SpatialExperiment"))) { cli::cli_abort("Please provide an object of class Seurat or SpatialExperiment.") }
   selection.method <- tolower(selection.method)
-  if (!selection.method %in% c("rank", "quantile", "cutoff")) { stop("Please provide a valid SVG selection method to classifyHVGs().") }
+  if (!selection.method %in% c("rank", "quantile", "cutoff")) { cli::cli_abort("Please provide a valid SVG selection method to classifyHVGs().") }
   # extract gene spatial variation statistics
   if (inherits(sp.obj, "Seurat")) {
     version_check <- try({

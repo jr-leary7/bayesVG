@@ -5,6 +5,7 @@
 #' @description Given a user-provided object upon which the relevant HVG or SVG identification pipeline has been run, this function fetches the table of Bayesian gene statistics that is stored in the object's metadata.
 #' @param obj An object of class \code{Seurat}, \code{SingleCellExperiment}, or \code{SpatialExperiment}. Defaults to NULL.
 #' @import magrittr
+#' @importFrom cli cli_abort
 #' @importFrom SummarizedExperiment rowData
 #' @importFrom Seurat DefaultAssay
 #' @importFrom purrr reduce
@@ -14,8 +15,8 @@
 
 getBayesianGeneStats <- function(obj = NULL) {
   # check inputs
-  if (is.null(obj)) { stop("Please provide all inputs to getBayesianGeneStats().") }
-  if (!(inherits(obj, "SingleCellExperiment") || inherits(obj, "Seurat") || inherits(obj, "SpatialExperiment"))) { stop("Please provide an object of class Seurat, SingleCellExperiment, or SpatialExperiment.") }
+  if (is.null(obj)) { cli::cli_abort("Please provide all inputs to getBayesianGeneStats().") }
+  if (!(inherits(obj, "SingleCellExperiment") || inherits(obj, "Seurat") || inherits(obj, "SpatialExperiment"))) { cli::cli_abort("Please provide an object of class Seurat, SingleCellExperiment, or SpatialExperiment.") }
   # extract HVG or SVG summary table
   if (inherits(obj, "SingleCellExperiment")) {
     multi_subject_flag <- ifelse(is.null(obj@metadata$gene_stats_bayes), FALSE, TRUE)

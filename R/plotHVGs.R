@@ -10,6 +10,7 @@
 #' @param n.genes.label An integer specifying the number of top HVGs to label on the plot using \code{\link[ggrepel]{geom_label_repel}}. If equal to 0, no genes will be labelled. Defaults to 10.
 #' @param label.text.size A double specifying the size of the text for each top HVG's label. Defaults to 3.
 #' @import magrittr
+#' @importFrom cli cli_abort
 #' @importFrom methods slot
 #' @importFrom SummarizedExperiment rowData
 #' @importFrom Seurat DefaultAssay
@@ -38,8 +39,8 @@ plotHVGs <- function(sc.obj = NULL,
                      n.genes.label = 10L,
                      label.text.size = 3) {
   # check inputs
-  if (is.null(sc.obj)) { stop("Please provide a Seurat or SingleCellExperiment object to plotHVGs().") }
-  if (!(inherits(sc.obj, "Seurat") || inherits(sc.obj, "SingleCellExperiment"))) { stop("Argument sc.obj must be of class Seurat or SingleCellExperiment.") }
+  if (is.null(sc.obj)) { cli::cli_abort("Please provide a Seurat or SingleCellExperiment object to plotHVGs().") }
+  if (!(inherits(sc.obj, "Seurat") || inherits(sc.obj, "SingleCellExperiment"))) { cli::cli_abort("Argument sc.obj must be of class Seurat or SingleCellExperiment.") }
   # extract gene-level summary data.frame
   if (inherits(sc.obj, "SingleCellExperiment")) {
     gene_summary <- as.data.frame(SummarizedExperiment::rowData(sc.obj))
