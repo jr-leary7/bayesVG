@@ -15,6 +15,7 @@ Imports:
     cli, 
     brms, 
     utils, 
+    purrr, 
     withr, 
     rlang, 
     stats, 

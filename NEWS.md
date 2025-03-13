@@ -4,6 +4,8 @@
 + Added an R function and accompanying Stan code to soft-cluster SVG sets in a Bayesian manner. 
 + Upgraded clustering function and relevant Stan code to run in parallel and provide estimates of the log-likelihood and BIC of the final clustering. 
 + Updated documentation. 
++ Added multi-subject support to main HVG function and downstream functions. 
++ Added new helper function `getBayesianGeneStats()` to pull HVG / SVG summary table from user-specified object's metadata.
 
 # bayesVG v0.0.3 
 
