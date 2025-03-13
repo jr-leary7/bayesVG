@@ -2,13 +2,14 @@
 #'
 #' @name theme_bayesVG
 #' @author Jack R. Leary
-#' @importFrom ggplot2 theme_classic theme element_rect element_line element_blank
 #' @description A publication-ready theme for creating gene expression scatterplots, embedding plots, etc.
 #' @param base.size The base font size. Defaults to 12.
 #' @param base.lwd The base linewidth. Defaults to 0.75.
 #' @param base.family The font family to be used throughout. Defaults to "sans".
 #' @param umap (Optional) If set to TRUE, removes axis text and ticks for a cleaner look. Defaults to FALSE.
 #' @param spatial (Optional) If set to true, provides a box around the spatial representation of the data and cleans up the axes. Defaults to FALSE.
+#' @importFrom cli cli_abort
+#' @importFrom ggplot2 theme_classic theme element_rect element_line element_blank
 #' @return A \code{ggplot2} theme.
 #' @export
 
@@ -18,7 +19,7 @@ theme_bayesVG <- function(base.size = 12,
                           umap = FALSE,
                           spatial = FALSE) {
   # check inputs
-  if (umap && spatial) { stop("Only one of umap and spatial can be specified at once.") }
+  if (umap && spatial) { cli::cli_abort("Only one of umap and spatial can be specified at once.") }
   # generate theme
   theme_bayesVG <- ggplot2::theme_classic(base_size = base.size,
                                           base_family = base.family,

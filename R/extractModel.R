@@ -4,6 +4,7 @@
 #' @author Jack R. Leary
 #' @description This function extracts the fitted model from \code{brms} or \code{cmdstanr} (depending on whether you're identifying HVGs or SVGs) from the user-provided object to which the model has been written.
 #' @param obj The \code{Seurat}, \code{SingleCellExperiment}, or \code{SpatialExperiment} whose unstructured metadata contains the fitted model. Defaults to NULL.
+#' @importFrom cli cli_abort
 #' @importFrom Seurat DefaultAssay
 #' @details
 #' \itemize{
@@ -15,7 +16,7 @@
 
 extractModel <- function(obj = NULL) {
   # check inputs
-  if (is.null(obj)) { stop("Argument obj must be non-NULL.") }
+  if (is.null(obj)) { cli::cli_abort("Argument obj must be non-NULL.") }
   # extract fitted model from object's unstructured metadata
   if (inherits(obj, "Seurat")) {
     model_fit <- obj@assays[[Seurat::DefaultAssay(obj)]]@misc$model_fit

@@ -32,6 +32,7 @@
 #' }
 #' @import magrittr
 #' @import cmdstanr
+#' @importFrom cli cli_abort cli_alert_warning cli_alert_success
 #' @importFrom parallelly availableCores
 #' @importFrom Seurat GetAssayData DefaultAssay GetTissueCoordinates
 #' @importFrom SpatialExperiment spatialCoords
@@ -45,7 +46,6 @@
 #' @importFrom withr with_output_sink
 #' @importFrom posterior as_draws_df
 #' @importFrom S4Vectors DataFrame
-#' @importFrom cli cli_alert_success
 #' @seealso \code{\link[Seurat]{FindSpatiallyVariableFeatures}}
 #' @seealso \code{\link{findVariableFeaturesBayes}}
 #' @export
@@ -84,15 +84,15 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                                verbose = TRUE,
                                                save.model = FALSE) {
   # check & parse inputs
-  if (is.null(sp.obj)) { stop("Please provide a spatial data object to findSpatiallyVariableFeaturesBayes().") }
-  if (!(inherits(sp.obj, "Seurat") || inherits(sp.obj, "SpatialExperiment"))) { stop("Please provide an object of class Seurat or SpatialExperiment.") }
-  if (is.null(naive.hvgs)) { stop("Please identify a set of naive HVGs prior to running findSpatiallyVariableFeaturesBayes().") }
+  if (is.null(sp.obj)) { cli::cli_abort("Please provide a spatial data object to findSpatiallyVariableFeaturesBayes().") }
+  if (!(inherits(sp.obj, "Seurat") || inherits(sp.obj, "SpatialExperiment"))) { cli::cli_abort("Please provide an object of class Seurat or SpatialExperiment.") }
+  if (is.null(naive.hvgs)) { cli::cli_abort("Please identify a set of naive HVGs prior to running findSpatiallyVariableFeaturesBayes().") }
   kernel <- tolower(kernel)
-  if (!kernel %in% c("exp_quad", "matern", "periodic")) { stop("Please provide a valid covariance kernel.") }
-  if (kernel == "matern" && !kernel.smoothness %in% c(0.5, 1.5, 2.5)) { stop("When utilizing the Matern kernel you must provide a valid smoothness parameter value.") }
+  if (!kernel %in% c("exp_quad", "matern", "periodic")) { cli::cli_abort("Please provide a valid covariance kernel.") }
+  if (kernel == "matern" && !kernel.smoothness %in% c(0.5, 1.5, 2.5)) { cli::cli_abort("When utilizing the Matern kernel you must provide a valid smoothness parameter value.") }
   algorithm <- tolower(algorithm)
-  if (!algorithm %in% c("meanfield", "fullrank", "pathfinder")) { stop("Please provide a valid variational inference approximation algorithm.") }
-  if (mle.init && algorithm == "pathfinder") { warning("Initialization at the MLE is not supported when using the Pathfinder algorithm.") }
+  if (!algorithm %in% c("meanfield", "fullrank", "pathfinder")) { cli::cli_abort("Please provide a valid variational inference approximation algorithm.") }
+  if (mle.init && algorithm == "pathfinder") { cli::cli_alert_warning("Initialization at the MLE is not supported when using the Pathfinder algorithm.") }
   if (is.null(elbo.samples)) {
     if (algorithm == "pathfinder") {
       elbo.samples <- 50L
@@ -100,7 +100,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
       elbo.samples <- 150L
     }
   }
-  if (!is.null(opencl.params) && (!is.double(opencl.params) || !length(opencl.params) == 2)) { stop("Argument opencl.params must be a double vector of length 2 if non-NULL.") }
+  if (!is.null(opencl.params) && (!is.double(opencl.params) || !length(opencl.params) == 2)) { cli::cli_abort("Argument opencl.params must be a double vector of length 2 if non-NULL.") }
   if (is.null(opencl.params)) {
     opencl_IDs <- NULL
     if (algorithm == "pathfinder") {
@@ -116,7 +116,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
       cpp_options <- list(stan_opencl = TRUE, stan_threads = FALSE)
     }
   }
-  if (n.cores > unname(parallelly::availableCores())) { stop("The number of requested cores is greater than the number of available cores.") }
+  if (n.cores > unname(parallelly::availableCores())) { cli::cli_abort("The number of requested cores is greater than the number of available cores.") }
   # start time tracking
   time_start <- Sys.time()
   # extract spatial coordinates & scale them

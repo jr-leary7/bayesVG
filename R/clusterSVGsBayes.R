@@ -4,26 +4,27 @@
 #' @author Jack R. Leary
 #' @description This downstream analysis function clusters identified SVGs into modules via an approximate Bayesian soft-clustering approach.
 #' @param sp.obj An object of class \code{Seurat} or \code{SpatialExperiment} upon which \code{\link{findSpatiallyVariableFeaturesBayes}} and \code{\link{classifySVGs}} have been run. Defaults to NULL.
-#' @param svgs A character vector containing the identified SVGs. Defaults to NULL. 
-#' @param n.clust An integer specifying the number of clusters to fit to the data. Defaults to 5. 
-#' @param n.PCs An integer specifying the number of principal components (PCs) to reduce the data to prior to clustering. Defaults to 30. 
+#' @param svgs A character vector containing the identified SVGs. Defaults to NULL.
+#' @param n.clust An integer specifying the number of clusters to fit to the data. Defaults to 5.
+#' @param n.PCs An integer specifying the number of principal components (PCs) to reduce the data to prior to clustering. Defaults to 30.
 #' @param algorithm A string specifying the variational inference (VI) approximation algorithm to be used. Must be one of "meanfield", "fullrank", or "pathfinder". Defaults to "meanfield".
 #' @param n.iter An integer specifying the maximum number of iterations. Defaults to 3000.
 #' @param n.draws An integer specifying the number of draws to be generated from the variational posterior. Defaults to 1000.
-#' @param elbo.samples An integer specifying the number of samples to be used to estimate the ELBO at every 100th iteration. Higher values will provide a more accurate estimate at the cost of computational complexity. Defaults to 150 when \code{algorithm} is one of "meanfield" or "fullrank", and 50 when \code{algorithm} is "pathfinder".  
+#' @param elbo.samples An integer specifying the number of samples to be used to estimate the ELBO at every 100th iteration. Higher values will provide a more accurate estimate at the cost of computational complexity. Defaults to 150 when \code{algorithm} is one of "meanfield" or "fullrank", and 50 when \code{algorithm} is "pathfinder".
 #' @param opencl.params A two-element double vector specifying the platform and device IDs of the OpenCL GPU device. Most users should specify \code{c(0, 0)}. See \code{\link[brms]{opencl}} for more details. Defaults to NULL.
 #' @param n.cores An integer specifying the number of threads used in compiling and fitting the model and estimating the soft cluster assignment probabilities. Defaults to 2.
 #' @param random.seed A double specifying the random seed to be used when fitting and sampling from the model. Defaults to 312.
 #' @param verbose A Boolean specifying whether or not verbose model output should be printed to the console. Defaults to TRUE.
-#' @details 
+#' @details
 #' \itemize{
 #' \item The soft clustering algorithm is a Gaussian mixture model (GMM), thus each cluster is modeled by a multivariate normal distribution with diagonal covariance. The diagonal covariance assumption is appropriate because each PC is orthogonal to the others.
-#' \item The mixing proportions for each cluster are specified with a Dirichlet prior, while the mean follows a Gaussian distribution and the standard deviation a HalfGaussian. 
-#' \item Due to the architecture of the model, it is necessary for the user to supply a number of clusters via the \code{n.clust} argument. It s difficult to know the correct value to provide beforehand, but luckily the clustering model is quick to run and so multiple values of \code{n.clust} can be fitted and visualized in order to find the "best" value. 
+#' \item The mixing proportions for each cluster are specified with a Dirichlet prior, while the mean follows a Gaussian distribution and the standard deviation a HalfGaussian.
+#' \item Due to the architecture of the model, it is necessary for the user to supply a number of clusters via the \code{n.clust} argument. It s difficult to know the correct value to provide beforehand, but luckily the clustering model is quick to run and so multiple values of \code{n.clust} can be fitted and visualized in order to find the "best" value.
 #' \item After modeling, the per-cluster assignment probabilities are computed for each gene. The cluster with the highest probability is then defined as the hard cluster for each gene.
-#' \item The cluster model also estimated the log-likelihood per-gene, per-draw. This is then used to estimate the overall log-likelihood of the model as well as the corresponding Bayesian information criterion (BIC). The BIC can be used to compare multiple runs of the model, and thus choose the best value of the number of clusters \code{n.clust}. 
+#' \item The cluster model also estimated the log-likelihood per-gene, per-draw. This is then used to estimate the overall log-likelihood of the model as well as the corresponding Bayesian information criterion (BIC). The BIC can be used to compare multiple runs of the model, and thus choose the best value of the number of clusters \code{n.clust}.
 #' }
-#' @import magrittr 
+#' @import magrittr
+#' @importFrom cli cli_abort
 #' @importFrom parallelly availableCores
 #' @importFrom SingleCellExperiment logcounts
 #' @importFrom Seurat GetAssayData DefaultAssay
@@ -36,7 +37,7 @@
 #' @importFrom utils txtProgressBar setTxtProgressBar
 #' @importFrom foreach foreach %dopar% registerDoSEQ
 #' @importFrom doSNOW registerDoSNOW
-#' @importFrom parallel makeCluster stopCluster 
+#' @importFrom parallel makeCluster stopCluster
 #' @importFrom cli cli_alert_success cli_alert_info
 #' @return A list containing the gene-level PCA embedding, a \code{data.frame} of the soft cluster assignments, the fitted model from \code{\link[cmdstanr]{cmdstan_model}}, and the estimated log-likelihood and BIC of the model.
 #' @export
@@ -57,29 +58,29 @@
 #'                                                 n.cores = 1L,
 #'                                                 save.model = TRUE) %>%
 #'              classifySVGs(n.SVG = 1000L)
-#' svg_clusters <- clusterSVGsBayes(seu_brain, 
+#' svg_clusters <- clusterSVGsBayes(seu_brain,
 #'                                  svgs = Seurat::VariableFeatures(seu_brain),
-#'                                  n.clust = 3L, 
+#'                                  n.clust = 3L,
 #'                                  n.cores = 1L)
 
-clusterSVGsBayes <- function(sp.obj = NULL, 
-                             svgs = NULL, 
-                             n.clust = 5L, 
-                             n.PCs = 30L, 
+clusterSVGsBayes <- function(sp.obj = NULL,
+                             svgs = NULL,
+                             n.clust = 5L,
+                             n.PCs = 30L,
                              algorithm = "meanfield",
-                             n.iter = 3000, 
-                             n.draws = 1000L, 
-                             elbo.samples = NULL, 
-                             opencl.params = NULL, 
-                             n.cores = 2L, 
-                             random.seed = 312, 
+                             n.iter = 3000,
+                             n.draws = 1000L,
+                             elbo.samples = NULL,
+                             opencl.params = NULL,
+                             n.cores = 2L,
+                             random.seed = 312,
                              verbose = TRUE) {
-  # check inputs 
-  if (is.null(sp.obj) || is.null(svgs)) { stop("All arguments to clusterSVGsBayes() must be supplied.") }
-  if (!(inherits(sp.obj, "Seurat") || inherits(sp.obj, "SpatialExperiment"))) { stop("Please provide an object of class Seurat or SpatialExperiment.") }
-  if (n.clust <= 1L) { stop("Please provide a valid number of clusters.") }
+  # check inputs
+  if (is.null(sp.obj) || is.null(svgs)) { cli::cli_abort("All arguments to clusterSVGsBayes() must be supplied.") }
+  if (!(inherits(sp.obj, "Seurat") || inherits(sp.obj, "SpatialExperiment"))) { cli::cli_abort("Please provide an object of class Seurat or SpatialExperiment.") }
+  if (n.clust <= 1L) { cli::cli_abort("Please provide a valid number of clusters.") }
   algorithm <- tolower(algorithm)
-  if (!algorithm %in% c("meanfield", "fullrank", "pathfinder")) { stop("Please provide a valid variational inference approximation algorithm.") }
+  if (!algorithm %in% c("meanfield", "fullrank", "pathfinder")) { cli::cli_abort("Please provide a valid variational inference approximation algorithm.") }
   if (is.null(elbo.samples)) {
     if (algorithm == "pathfinder") {
       elbo.samples <- 50L
@@ -87,7 +88,7 @@ clusterSVGsBayes <- function(sp.obj = NULL,
       elbo.samples <- 150L
     }
   }
-  if (!is.null(opencl.params) && (!is.double(opencl.params) || !length(opencl.params) == 2)) { stop("Argument opencl.params must be a double vector of length 2 if non-NULL.") }
+  if (!is.null(opencl.params) && (!is.double(opencl.params) || !length(opencl.params) == 2)) { cli::cli_abort("Argument opencl.params must be a double vector of length 2 if non-NULL.") }
   if (is.null(opencl.params)) {
     opencl_IDs <- NULL
     if (algorithm == "pathfinder") {
@@ -103,10 +104,10 @@ clusterSVGsBayes <- function(sp.obj = NULL,
       cpp_options <- list(stan_opencl = TRUE, stan_threads = FALSE)
     }
   }
-  if (n.cores > unname(parallelly::availableCores())) { stop("The number of requested cores is greater than the number of available cores.") }
-  # start time tracking 
+  if (n.cores > unname(parallelly::availableCores())) { cli::cli_abort("The number of requested cores is greater than the number of available cores.") }
+  # start time tracking
   time_start <- Sys.time()
-  # extract matrix of normalized gene expression & scale it 
+  # extract matrix of normalized gene expression & scale it
   if (inherits(sp.obj, "Seurat")) {
     expr_mtx <- Seurat::GetAssayData(sp.obj,
                                      assay = Seurat::DefaultAssay(sp.obj),
@@ -117,15 +118,15 @@ clusterSVGsBayes <- function(sp.obj = NULL,
   expr_mtx <- as.matrix(expr_mtx[svgs, ])
   expr_mtx <- t(scale(t(expr_mtx)))
   attributes(expr_mtx)[3:4] <- NULL
-  # run PCA on the normalized data 
-  svg_mtx_pca <- irlba::prcomp_irlba(expr_mtx, 
-                                     n = n.PCs, 
-                                     center = FALSE, 
+  # run PCA on the normalized data
+  svg_mtx_pca <- irlba::prcomp_irlba(expr_mtx,
+                                     n = n.PCs,
+                                     center = FALSE,
                                      scale. = FALSE)
   # prepare data to be passed to cmdstan
-  data_list <- list(N = nrow(svg_mtx_pca$x), 
-                    D = ncol(svg_mtx_pca$x), 
-                    K = n.clust, 
+  data_list <- list(N = nrow(svg_mtx_pca$x),
+                    D = ncol(svg_mtx_pca$x),
+                    K = n.clust,
                     X = svg_mtx_pca$x)
   stan_file <- system.file("clusterSVGs.stan", package = "bayesVG")
   # compile model
@@ -148,12 +149,12 @@ clusterSVGsBayes <- function(sp.obj = NULL,
     } else {
       fit_vi <- mod$pathfinder(data_list,
                                seed = random.seed,
-                               init = 0, 
+                               init = 0,
                                num_threads = n.cores,
                                draws = n.draws,
                                opencl_ids = opencl_IDs,
-                               num_elbo_draws = elbo.samples, 
-                               max_lbfgs_iters = 100L, 
+                               num_elbo_draws = elbo.samples,
+                               max_lbfgs_iters = 100L,
                                history_size = 25L)
     }
   } else {
@@ -170,12 +171,12 @@ clusterSVGsBayes <- function(sp.obj = NULL,
       } else {
         fit_vi <- mod$pathfinder(data_list,
                                  seed = random.seed,
-                                 init = 0, 
+                                 init = 0,
                                  num_threads = n.cores,
                                  draws = n.draws,
                                  opencl_ids = opencl_IDs,
-                                 num_elbo_draws = elbo.samples, 
-                                 max_lbfgs_iters = 100L, 
+                                 num_elbo_draws = elbo.samples,
+                                 max_lbfgs_iters = 100L,
                                  history_size = 25L)
       }
     })
@@ -184,7 +185,7 @@ clusterSVGsBayes <- function(sp.obj = NULL,
   if (verbose) {
     fit_vi$cmdstan_diagnose()
   }
-  # extract posterior draws 
+  # extract posterior draws
   draws_df <- posterior::as_draws_df(fit_vi$draws())
   theta_draws <- suppressWarnings(as.matrix(dplyr::select(draws_df, tidyselect::starts_with("theta"))))
   mu_draws    <- suppressWarnings(as.matrix(dplyr::select(draws_df, tidyselect::starts_with("mu"))))
@@ -194,12 +195,12 @@ clusterSVGsBayes <- function(sp.obj = NULL,
   K <- ncol(theta_draws)
   D <- ncol(mu_draws) / K
   N <- nrow(svg_mtx_pca$x)
-  # define function used to compute per-gene, per-draw responsibility values via the log-sum-exp trick 
-  computeResponsibility <- function(x = NULL, 
-                                    theta_s = NULL, 
-                                    mu_s = NULL, 
+  # define function used to compute per-gene, per-draw responsibility values via the log-sum-exp trick
+  computeResponsibility <- function(x = NULL,
+                                    theta_s = NULL,
+                                    mu_s = NULL,
                                     sigma_s = NULL,
-                                    K = NULL, 
+                                    K = NULL,
                                     D = NULL) {
     log_probs <- vector("numeric", length = K)
     for (i in seq(K)) {
@@ -232,8 +233,8 @@ clusterSVGsBayes <- function(sp.obj = NULL,
   } else {
     cl <- foreach::registerDoSEQ()
   }
-  soft_assignments <- foreach::foreach(i = seq(N), 
-                                       .combine = rbind, 
+  soft_assignments <- foreach::foreach(i = seq(N),
+                                       .combine = rbind,
                                        .multicombine = ifelse(N > 1, TRUE, FALSE),
                                        .maxcombine = ifelse(N > 1, N, 2),
                                        .inorder = TRUE,
@@ -245,16 +246,16 @@ clusterSVGsBayes <- function(sp.obj = NULL,
       theta_j <- theta_draws[j, ]
       mu_j <- mu_draws[j, ]
       sigma_j <- sigma_draws[j, ]
-      resp_iter[j, ] <- computeResponsibility(x_i, 
-                                              theta_s = theta_j, 
-                                              mu_s = mu_j, 
-                                              sigma_s = sigma_j, 
-                                              K = K, 
+      resp_iter[j, ] <- computeResponsibility(x_i,
+                                              theta_s = theta_j,
+                                              mu_s = mu_j,
+                                              sigma_s = sigma_j,
+                                              K = K,
                                               D = D)
     }
     colMeans(resp_iter)
   }
-  if (verbose) {
+  if (verbose && n.cores > 1L) {
     cat("\n")
   }
   if (n.cores > 1L) {
@@ -263,42 +264,42 @@ clusterSVGsBayes <- function(sp.obj = NULL,
   # generate a hard assignment for each gene to its most likely cluster
   cluster_df <- as.data.frame(soft_assignments)
   colnames(cluster_df) <- paste0("prob_cluster_", seq(K))
-  cluster_df <- dplyr::mutate(cluster_df, 
-                              gene = svgs, 
-                              .before = 1) %>% 
+  cluster_df <- dplyr::mutate(cluster_df,
+                              gene = svgs,
+                              .before = 1) %>%
                 dplyr::rowwise() %>%
                 dplyr::mutate(assigned_cluster = which.max(dplyr::c_across(tidyselect::starts_with("prob_cluster_")))) %>%
                 dplyr::ungroup()
-  # estimate log-likelihood from fitted model and summarize 
-  log_lik_draws <- suppressWarnings(as.data.frame(posterior::as_draws_df(fit_vi$draws(variables = "log_lik")))) %>% 
+  # estimate log-likelihood from fitted model and summarize
+  log_lik_draws <- suppressWarnings(as.data.frame(posterior::as_draws_df(fit_vi$draws(variables = "log_lik")))) %>%
                    dplyr::select(tidyselect::starts_with("log_lik"))
   log_likelihood <- mean(rowSums(log_lik_draws))
-  # compute BIC from estimated log-likelihood 
+  # compute BIC from estimated log-likelihood
   p <- (K - 1) + 2 * K * D
   bic_est <- -2 * log_likelihood + p * log(N)
   if (verbose) {
     cli::cli_alert_success("Posterior summarization complete.")
   }
-  # format results 
-  res <- list(pca_embedding = svg_mtx_pca$x, 
-              cluster_df = cluster_df, 
-              model_fit = fit_vi, 
-              log_likelihood = log_likelihood, 
+  # format results
+  res <- list(pca_embedding = svg_mtx_pca$x,
+              cluster_df = cluster_df,
+              model_fit = fit_vi,
+              log_likelihood = log_likelihood,
               BIC = bic_est)
-  # finish time tracking 
+  # finish time tracking
   time_diff <- Sys.time() - time_start
-  time_units <- ifelse(attributes(time_diff)$units == "secs", 
-                       "seconds", 
-                       ifelse(attributes(time_diff)$units == "mins", 
-                              "minutes", 
+  time_units <- ifelse(attributes(time_diff)$units == "secs",
+                       "seconds",
+                       ifelse(attributes(time_diff)$units == "mins",
+                              "minutes",
                               "hours"))
   if (verbose) {
-    time_message <- paste0("bayesVG clustering of ", 
-                           length(svgs), 
-                           " SVGs completed in ", 
-                           as.numeric(round(time_diff, 3)), 
-                           " ", 
-                           time_units, 
+    time_message <- paste0("bayesVG clustering of ",
+                           length(svgs),
+                           " SVGs completed in ",
+                           as.numeric(round(time_diff, 3)),
+                           " ",
+                           time_units,
                            ".")
     cli::cli_alert_success(time_message)
   }
