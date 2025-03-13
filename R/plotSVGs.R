@@ -64,7 +64,7 @@ plotSVGs <- function(sp.obj = NULL,
   p <- dplyr::inner_join(gene_summary, 
                          naive_stats, 
                          by = "gene") %>% 
-       dplyr::mutate(svg_label = dplyr::if_else(svg, "SVG", "Non-SVG")) %>% 
+       dplyr::mutate(svg_label = dplyr::if_else(svg_status, "SVG", "Non-SVG")) %>% 
        ggplot2::ggplot(ggplot2::aes(x = log(mu_naive), y = log(amplitude_mean), color = svg_label)) + 
        ggplot2::geom_point(size = pt.size, 
                            stroke = 0, 

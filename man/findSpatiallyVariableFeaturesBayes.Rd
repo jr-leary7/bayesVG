@@ -13,7 +13,7 @@ findSpatiallyVariableFeaturesBayes(
   kernel.period = 100L,
   n.basis.fns = 20L,
   algorithm = "meanfield",
-  mle.init = TRUE,
+  mle.init = FALSE,
   gene.depth.adjust = TRUE,
   n.draws = 1000L,
   elbo.samples = NULL,
@@ -41,7 +41,7 @@ findSpatiallyVariableFeaturesBayes(
 
 \item{algorithm}{A string specifying the variational inference (VI) approximation algorithm to be used. Must be one of "meanfield", "fullrank", or "pathfinder". Defaults to "meanfield".}
 
-\item{mle.init}{A Boolean specifying whether the the VI algorithm should be initialized using the MLE for each parameter. In general, this increases both computational speed and the accuracy of the variational approximation. Cannot be used when the Pathfinder algorithm is specified. Defaults to TRUE.}
+\item{mle.init}{A Boolean specifying whether the the VI algorithm should be initialized using the MLE for each parameter. In general, this isn't necessary but can help if the VI algorithm struggles to converge when provided with the default initialization (zero). Cannot be used when the Pathfinder algorithm is specified. Defaults to FALSE.}
 
 \item{gene.depth.adjust}{A Boolean specifying whether the model should include a fixed effect term for total gene expression. Defaults to TRUE.}
 
@@ -69,9 +69,8 @@ This function implements SVG estimation using Bayesian variational inference to 
 \item The term "approximate" in reference to the GP means that the the full GP is instead represented as a Hilbert space using basis functions. The basis function computation requires a kernel, here either the exponentiated quadratic (the default) or one of the Matérn-family kernels. In short, the exponentiated quadratic kernel assumes infinite smoothness, while the Matérn-family kernels assume varying degrees of roughness depending on the value of the smoothness parameter \eqn{\nu}.
 \item While we have implemented GPU acceleration via OpenCL through the argument \code{opencl.params}, OpenCL acceleration is not supported on every machine. For example, Apple M-series chips do not support double-precision floating-points, which are necessary for Stan to compile with OpenCL support. For more information, see \href{https://discourse.mc-stan.org/t/gpus-on-mac-osx-apple-m1/23375/5}{this Stan forums thread}. In order to correctly specify the OpenCL platform and device IDs, use the \code{clinfo} command line utility.
 \item The user can specify which VI algorithm to use to fit the model via the argument \code{algorithm}. For further details, see \href{https://www.jmlr.org/papers/volume18/16-107/16-107.pdf}{this paper} comparing the meanfield and fullrank algorithms, and \href{https://doi.org/10.48550/arXiv.2108.03782}{this preprint} that introduced the Pathfinder algorithm. For a primer on automatic differentiation variational inference (ADVI), see \href{https://doi.org/10.48550/arXiv.1506.03431}{this preprint}. Lastly, \href{https://discourse.mc-stan.org/t/issues-with-differences-between-mcmc-and-pathfinder-results-how-to-make-pathfinder-or-something-else-more-accurate/35992}{this Stan forums thread} lays out some practical differences between the algorithms.
-\item If using the periodic kernel, the user should ideally provide their own value of \code{kernel.period} based on the resolution of the spatial dataset at hand. Typical values should be roughly equivalent to the typical inter-spot distance or perhaps a small multiple of it. 
+\item If using the periodic kernel, the user should ideally provide their own value of \code{kernel.period} based on the resolution of the spatial dataset at hand. Typical values should be roughly equivalent to the typical inter-spot distance or perhaps a small multiple of it.
 \item If \code{save.model} is set to TRUE, the final model fit, estimated log-likelihood, and estimated BIC will be saved to the appropriate unstructured metadata slot of \code{sp.obj}. This allows the user to inspect the final fit and perform posterior predictive checks, but the model object takes up a lot of space. As such, it is recommended to remove it from \code{sp.obj} by setting the appropriate slot to NULL before saving it to disk.
-\item Choosing the most appropriate kernel can be difficult, but a good place to start (besides just using your intuition) is setting \code{save.model = TRUE} and investigating the estimated BIC of the model. The estimated BIC can be used to compare multiple model fits with differing kernels, with lower values indicating a better model fit. Keep in mind that the BIC is an estimate based on the approximate variational posterior and the estimated number of parameters of the GP. 
 }
 }
 \examples{
@@ -83,12 +82,12 @@ seu_brain <- Seurat::SCTransform(seu_brain,
                                  return.only.var.genes = FALSE,
                                  seed.use = 312,
                                  verbose = FALSE)
-seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain, 
-                                                naive.hvgs = Seurat::VariableFeatures(seu_brain), 
-                                                kernel = "matern", 
-                                                kernel.smoothness = 1.5, 
-                                                algorithm = "meanfield", 
-                                                n.cores = 1L, 
+seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
+                                                naive.hvgs = Seurat::VariableFeatures(seu_brain),
+                                                kernel = "matern",
+                                                kernel.smoothness = 1.5,
+                                                algorithm = "meanfield",
+                                                n.cores = 1L,
                                                 save.model = TRUE)
 }
 \seealso{
