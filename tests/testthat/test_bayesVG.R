@@ -11,7 +11,7 @@ seu_pbmc <- findVariableFeaturesBayes(seu_pbmc,
                                       n.cores.per.chain = 1L,
                                       save.model = TRUE) %>% 
             classifyHVGs(n.HVG = 50L)
-hvg_metadata <- seu_pbmc@assays$RNA@meta.data
+hvg_metadata <- getBayesianGeneStats(seu_pbmc)
 hvg_fit <- extractModel(seu_pbmc)
 hvg_plot <- plotHVGs(seu_pbmc)
 
@@ -26,6 +26,21 @@ seu_brain <- suppressWarnings({
                       verbose = FALSE)
 })
 
+# fit each kernel to spatial coordinates matrix 
+spatial_mtx <- scale(as.matrix(dplyr::select(Seurat::GetTissueCoordinates(seu_brain), -cell)))
+M <- nrow(spatial_mtx)
+k <- 20
+kmeans_centers <- stats::kmeans(spatial_mtx, centers = k, iter.max = 100L)$centers
+dists_centers <- as.matrix(stats::dist(kmeans_centers))
+lscale <- stats::median(dists_centers[upper.tri(dists_centers)])
+phi_exp_quad <- phi_matern <- phi_periodic <- matrix(0, nrow = M, ncol = k)
+for (i in seq(k)) {
+  d2 <- rowSums((spatial_mtx - matrix(kmeans_centers[i, ], nrow = M, ncol = 2, byrow = TRUE))^2)
+  phi_exp_quad[, i] <- expQuadKernel(d2, length.scale = lscale)
+  phi_matern[, i] <- maternKernel(d2, length.scale = lscale, nu = 2.5)
+  phi_periodic[, i] <- periodicKernel(d2, length.scale = lscale, period = 100L)
+}
+
 # fit spatial model, extract output, & cluster SVGs
 seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain, 
                                                 naive.hvgs = Seurat::VariableFeatures(seu_brain),
@@ -34,7 +49,7 @@ seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
                                                 n.cores = 1L, 
                                                 save.model = TRUE) %>% 
              classifySVGs(n.SVG = 100L)
-svg_metadata <- seu_brain@assays$SCT@meta.features
+svg_metadata <- getBayesianGeneStats(seu_brain)
 svg_fit <- extractModel(seu_brain)
 svg_plot <- plotSVGs(seu_brain)
 svg_clusters <- clusterSVGsBayes(seu_brain,
@@ -45,7 +60,7 @@ svg_clusters <- clusterSVGsBayes(seu_brain,
 # compute naive gene statistics
 gene_stats_naive <- computeNaiveGeneStatistics(seu_pbmc, use.norm = TRUE)
 
-# convert seu_brain to spatialexperiment 
+# convert seu_brain to SpatialExperiment from Seurat
 spe_brain <- convertToSpatialExperiment(seu_brain, sample.id = "anterior1")
 
 # run HVG model tests 
@@ -58,12 +73,25 @@ test_that("HVG model", {
   expect_s3_class(hvg_plot, "ggplot")
 })
 
+# run kernel tests 
+test_that("kernels", {
+  expect_type(phi_exp_quad, "double")
+  expect_equal(ncol(phi_exp_quad), 20)
+  expect_equal(nrow(phi_exp_quad), ncol(seu_brain))
+  expect_type(phi_matern, "double")
+  expect_equal(ncol(phi_matern), 20)
+  expect_equal(nrow(phi_matern), ncol(seu_brain))
+  expect_type(phi_periodic, "double")
+  expect_equal(ncol(phi_periodic), 20)
+  expect_equal(nrow(phi_periodic), ncol(seu_brain))
+})
+
 # run SVG model tests
 test_that("SVG model", {
   expect_s4_class(seu_brain, "Seurat")
   expect_s3_class(svg_metadata, "data.frame")
   expect_equal(ncol(svg_metadata), 10)
-  expect_equal(nrow(svg_metadata), 11464)
+  expect_equal(nrow(svg_metadata), 500)
   expect_s3_class(svg_fit, "CmdStanVB")
   expect_s3_class(svg_plot, "ggplot")
   expect_type(svg_clusters, "list")
@@ -82,7 +110,7 @@ test_that("naive gene statistics", {
 })
 
 # run spatialexperiment conversion tests 
-test_that("spatialexperiment conversion", {
+test_that("SpatialExperiment conversion", {
   expect_s4_class(spe_brain, "SpatialExperiment")
   expect_equal(ncol(spe_brain), 2444)
   expect_equal(nrow(spe_brain), 11464)
