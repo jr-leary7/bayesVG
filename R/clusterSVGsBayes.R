@@ -42,7 +42,7 @@
 #' @return A list containing the gene-level PCA embedding, a \code{data.frame} of the soft cluster assignments, the fitted model from \code{\link[cmdstanr]{cmdstan_model}}, and the estimated log-likelihood and BIC of the model.
 #' @export
 #' @examples
-#' data("seu_brain", package = "bayesVG")
+#' data(seu_brain)
 #' seu_brain <- Seurat::SCTransform(seu_brain,
 #'                                  assay = "Spatial",
 #'                                  variable.features.n = 3000L,

@@ -56,6 +56,9 @@ svg_clusters <- clusterSVGsBayes(seu_brain,
                                  svgs = Seurat::VariableFeatures(seu_brain), 
                                  n.clust = 3L, 
                                  n.cores = 1L)
+seu_brain <- scoreSpatialModules(seu_brain, 
+                                 svg.clusters = svg_clusters, 
+                                 n.cores = 1L)
 
 # compute naive gene statistics
 gene_stats_naive <- computeNaiveGeneStatistics(seu_pbmc, use.norm = TRUE)
@@ -100,6 +103,9 @@ test_that("SVG model", {
   expect_s3_class(svg_clusters$model_fit, "CmdStanVB")
   expect_type(svg_clusters$log_likelihood, "double")
   expect_type(svg_clusters$BIC, "double")
+  expect_type(seu_brain$svg_cluster_1_UCell, "double")
+  expect_type(seu_brain$svg_cluster_2_UCell, "double")
+  expect_type(seu_brain$svg_cluster_3_UCell, "double")
 })
 
 # run naive gene statistics tests 

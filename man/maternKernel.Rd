@@ -19,7 +19,7 @@ maternKernel(d = NULL, length.scale = NULL, nu = NULL, sigma = 1)
 A vector of numeric values.
 }
 \description{
-This function computes the Matern kernel for a given vector of distances and a global length-scale.
+This function computes the Matérn kernel for a given vector of distances and a global length-scale.
 }
 \seealso{
 \code{\link{expQuadKernel}}
