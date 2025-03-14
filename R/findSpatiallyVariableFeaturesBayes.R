@@ -12,7 +12,7 @@
 #' @param n.basis.fns An integer specifying the number of basis functions to be used when approximating the GP as a Hilbert space. Defaults to 20.
 #' @param algorithm A string specifying the variational inference (VI) approximation algorithm to be used. Must be one of "meanfield", "fullrank", or "pathfinder". Defaults to "meanfield".
 #' @param mle.init A Boolean specifying whether the the VI algorithm should be initialized using the MLE for each parameter. In general, this isn't necessary but can help if the VI algorithm struggles to converge when provided with the default initialization (zero). Cannot be used when the Pathfinder algorithm is specified. Defaults to FALSE.
-#' @param mle.iter An integer specifying the number of optimization iterations used when \code{mle.init = TRUE}. Defaults to 1000.
+#' @param mle.iter An integer specifying the maximum number of optimization iterations used when \code{mle.init = TRUE}. Defaults to 1000.
 #' @param gene.depth.adjust A Boolean specifying whether the model should include a fixed effect term for total gene expression. Defaults to TRUE.
 #' @param n.draws An integer specifying the number of draws to be generated from the variational posterior. Defaults to 1000.
 #' @param elbo.samples An integer specifying the number of samples to be used to estimate the ELBO at every 100th iteration. Higher values will provide a more accurate estimate at the cost of computational complexity. Defaults to 150 when \code{algorithm} is one of "meanfield" or "fullrank", 50 when \code{algorithm} is "pathfinder".
@@ -26,6 +26,7 @@
 #' \item Prior to running this function, it is necessary to identify a naive set of highly variable genes (HVGs). Use e.g., \code{\link[Seurat]{FindVariableFeatures}} or \code{\link[scran]{modelGeneVar}} depending on the class of \code{sp.obj}.
 #' \item This function utilizes an approximate multivariate hierarchical Gaussian process (GP) to model spatial variation in gene expression. The primary parameter of interest is the per-gene amplitude (marginal standard deviation) \eqn{\tau_g} of the GP, which can be interpreted as a scaling factor for how much spatial location contributes to mean expression.
 #' \item The term "approximate" in reference to the GP means that the the full GP is instead represented as a Hilbert space using basis functions. The basis function computation requires a kernel, here either the exponentiated quadratic (the default) or one of the Matérn-family kernels. In short, the exponentiated quadratic kernel assumes infinite smoothness, while the Matérn-family kernels assume varying degrees of roughness depending on the value of the smoothness parameter \eqn{\nu}.
+#' \item The argument \code{mle.init} is used to specify whether or not optimization should be performed via the L-BFGS algorithm to attempt to find the (regularized) maximum likelihood estimate (MLE), which is then used as initialization for the VI algorithm. This is often unnecessary, but can help with convergence issues in large / complex datasets.
 #' \item While we have implemented GPU acceleration via OpenCL through the argument \code{opencl.params}, OpenCL acceleration is not supported on every machine. For example, Apple M-series chips do not support double-precision floating-points, which are necessary for Stan to compile with OpenCL support. For more information, see \href{https://discourse.mc-stan.org/t/gpus-on-mac-osx-apple-m1/23375/5}{this Stan forums thread}. In order to correctly specify the OpenCL platform and device IDs, use the \code{clinfo} command line utility.
 #' \item The user can specify which VI algorithm to use to fit the model via the argument \code{algorithm}. For further details, see \href{https://www.jmlr.org/papers/volume18/16-107/16-107.pdf}{this paper} comparing the meanfield and fullrank algorithms, and \href{https://doi.org/10.48550/arXiv.2108.03782}{this preprint} that introduced the Pathfinder algorithm. For a primer on automatic differentiation variational inference (ADVI), see \href{https://doi.org/10.48550/arXiv.1506.03431}{this preprint}. Lastly, \href{https://discourse.mc-stan.org/t/issues-with-differences-between-mcmc-and-pathfinder-results-how-to-make-pathfinder-or-something-else-more-accurate/35992}{this Stan forums thread} lays out some practical differences between the algorithms.
 #' \item If using the periodic kernel, the user should ideally provide their own value of \code{kernel.period} based on the resolution of the spatial dataset at hand. Typical values should be roughly equivalent to the typical inter-spot distance or perhaps a small multiple of it.
@@ -45,7 +46,6 @@
 #' @importFrom tidyr pivot_longer
 #' @importFrom stats kmeans dist median
 #' @importFrom withr with_output_sink
-#' @importFrom posterior as_draws_df
 #' @importFrom methods slot
 #' @importFrom S4Vectors DataFrame
 #' @seealso \code{\link[Seurat]{FindSpatiallyVariableFeatures}}
