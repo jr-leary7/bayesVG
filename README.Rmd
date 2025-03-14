@@ -25,7 +25,8 @@ knitr::opts_chunk$set(warning = FALSE,
 # `bayesVG`
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/jr-leary7/scLANE/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jr-leary7/scLANE/actions/workflows/R-CMD-check.yaml)
+![release](https://img.shields.io/github/v/release/jr-leary7/bayesVG?color=purple)
+[![R-CMD-check](https://github.com/jr-leary7/bayesVG/actions/workflows/R-CMD-CHECK.yaml/badge.svg)](https://github.com/jr-leary7/bayesVG/actions/workflows/R-CMD-CHECK.yaml)
 ![last commit](https://img.shields.io/github/last-commit/jr-leary7/bayesVG/main?color=darkgreen)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Coverage](https://codecov.io/gh/jr-leary7/bayesVG/graph/badge.svg)](https://app.codecov.io/gh/jr-leary7/bayesVG)
@@ -45,7 +46,6 @@ remotes::install_github("jr-leary7/bayesVG")
 ## Libraries 
 
 ```{r, eval=FALSE}
-library(dplyr)
 library(Seurat)
 library(bayesVG)
 ```
@@ -72,13 +72,12 @@ seu_pbmc <- findVariableFeaturesBayes(seu_pbmc,
             classifyHVGs(n.HVG = 3000L)
 ```
 
-We can extract the summary table and classify the top 3,000 genes as HVGs like so. These genes can then be used as the basis for downstream analyses such as PCA, clustering, UMAP visualization, etc. 
+We can extract the summary table (which is sorted by default) and classify the top 3,000 genes as HVGs like so. These genes can then be used as the basis for downstream analyses such as PCA, clustering, UMAP visualization, etc. 
 
 ```{r, eval=FALSE}
-summary_hvg <- arrange(seu_pbmc@assays$RNA@meta.data, desc(dispersion_mean))
+summary_hvg <- getBayesianGeneStats(seu_pbmc)
 top3k_hvgs <- summary_hvg$gene[1:3000]
 ```
-
 
 ## SVG detection 
 
@@ -117,11 +116,19 @@ seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
              classifySVGs(n.SVG = 1000L)
 ```
 
-We can extract the summary table and classify the top 1,000 genes as SVGs like so. These genes can then be used as the basis for downstream analyses such as PCA, clustering, UMAP visualization, etc. 
+We can extract the summary table (which, like the HVG summary table is sorted by default)  and classify the top 1,000 genes as SVGs like so. These genes can then be used as the basis for downstream analyses such as PCA, clustering, UMAP visualization, etc. 
 
 ```{r, eval=FALSE}
-summary_svg <- arrange(seu_brain@assays$SCT@meta.features, amplitude_mean_rank)
+summary_svg <- getBayesianGeneStats(seu_brain)
 top1k_svgs <- summary_svg$gene[1:1000]
+```
+
+Lastly, we can cluster the SVG set (using a Bayesian Gaussian mixture model) into spatial modules as shown below. The clustering function returns a PCA embedding of the SVGs, a table of the soft cluster assignment probabilities, and the log-likelihood and Bayesian information criterion (BIC) of the clustering.
+
+```{r, eval=FALSE}
+svg_clusters <- clusterSVGsBayes(seu_brain, 
+                                 svgs = top1k_svgs, 
+                                 n.clust = 5L)
 ```
 
 # Contact information 
