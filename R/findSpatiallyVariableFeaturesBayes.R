@@ -12,6 +12,7 @@
 #' @param n.basis.fns An integer specifying the number of basis functions to be used when approximating the GP as a Hilbert space. Defaults to 20.
 #' @param algorithm A string specifying the variational inference (VI) approximation algorithm to be used. Must be one of "meanfield", "fullrank", or "pathfinder". Defaults to "meanfield".
 #' @param mle.init A Boolean specifying whether the the VI algorithm should be initialized using the MLE for each parameter. In general, this isn't necessary but can help if the VI algorithm struggles to converge when provided with the default initialization (zero). Cannot be used when the Pathfinder algorithm is specified. Defaults to FALSE.
+#' @param mle.iter An integer specifying the number of optimization iterations used when \code{mle.init = TRUE}. Defaults to 1000.
 #' @param gene.depth.adjust A Boolean specifying whether the model should include a fixed effect term for total gene expression. Defaults to TRUE.
 #' @param n.draws An integer specifying the number of draws to be generated from the variational posterior. Defaults to 1000.
 #' @param elbo.samples An integer specifying the number of samples to be used to estimate the ELBO at every 100th iteration. Higher values will provide a more accurate estimate at the cost of computational complexity. Defaults to 150 when \code{algorithm} is one of "meanfield" or "fullrank", 50 when \code{algorithm} is "pathfinder".
@@ -45,6 +46,7 @@
 #' @importFrom stats kmeans dist median
 #' @importFrom withr with_output_sink
 #' @importFrom posterior as_draws_df
+#' @importFrom methods slot
 #' @importFrom S4Vectors DataFrame
 #' @seealso \code{\link[Seurat]{FindSpatiallyVariableFeatures}}
 #' @seealso \code{\link{findVariableFeaturesBayes}}
@@ -75,6 +77,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                                n.basis.fns = 20L,
                                                algorithm = "meanfield",
                                                mle.init = FALSE,
+                                               mle.iter = 1000L,
                                                gene.depth.adjust = TRUE,
                                                n.draws = 1000L,
                                                elbo.samples = NULL,
@@ -221,7 +224,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                    init = 0,
                                    opencl_ids = opencl_IDs,
                                    jacobian = FALSE,
-                                   iter = 1000L,
+                                   iter = mle.iter,
                                    algorithm = "lbfgs",
                                    history_size = 25L)
       } else {
@@ -255,7 +258,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                      init = 0,
                                      opencl_ids = opencl_IDs,
                                      jacobian = FALSE,
-                                     iter = 1000L,
+                                     iter = mle.iter,
                                      algorithm = "lbfgs",
                                      history_size = 25L)
         } else {
@@ -309,7 +312,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   # add gene-level estimates to object metadata
   if (inherits(sp.obj, "Seurat")) {
     version_check <- try({
-      slot(sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]], name = "meta.data")
+      methods::slot(sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]], name = "meta.data")
     }, silent = TRUE)
     if (inherits(version_check, "try-error")) {
       orig_metadata <- sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]]@meta.features
