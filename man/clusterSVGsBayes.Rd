@@ -60,7 +60,7 @@ This downstream analysis function clusters identified SVGs into modules via an a
 }
 }
 \examples{
-data("seu_brain", package = "bayesVG")
+data(seu_brain)
 seu_brain <- Seurat::SCTransform(seu_brain,
                                  assay = "Spatial",
                                  variable.features.n = 3000L,

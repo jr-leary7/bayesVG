@@ -23,6 +23,10 @@ An object of class \code{SpatialExperiment}.
 \description{
 This function converts a \code{Seurat} object to a \code{SpatialExperiment} object while retaining all assays, metadata, and images.
 }
+\examples{
+data(seu_brain)
+spe_brain <- convertToSpatialExperiment(seu_brain, sample.id = "anterior1")
+}
 \seealso{
 \code{\link[Seurat]{as.SingleCellExperiment}}
 

@@ -42,6 +42,8 @@ Imports:
     SummarizedExperiment, 
     SingleCellExperiment
 Suggests: 
+    UCell, 
+    ggspavis, 
     testthat (>= 3.0.0)
 Additional_repositories: https://mc-stan.org/r-packages/, https://bioconductor.org/packages/release/bioc
 SystemRequirements: CmdStan (https://mc-stan.org/users/interfaces/cmdstan)

@@ -18,6 +18,9 @@
 #' @seealso \code{\link[Seurat]{as.SingleCellExperiment}}
 #' @seealso \code{\link[SpatialExperiment]{SpatialExperiment}}
 #' @export
+#' @examples
+#' data(seu_brain)
+#' spe_brain <- convertToSpatialExperiment(seu_brain, sample.id = "anterior1")
 
 convertToSpatialExperiment <- function(seu.obj = NULL,
                                        sample.id = NULL,

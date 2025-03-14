@@ -8,6 +8,7 @@
 + Added new helper function `getBayesianGeneStats()` to pull HVG / SVG summary table from user-specified object's metadata.
 + Updated and expanded test suite. 
 + Updated `DESCRIPTION` file to point to BioConductor as this is needed for some dependencies e.g., `SpatialExperiment`.
++ Added function to compute spatial module scores for SVG clusters via the `UCell` package. 
 
 # bayesVG v0.0.3 
 

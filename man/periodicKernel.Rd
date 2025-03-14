@@ -17,7 +17,7 @@ periodicKernel(d = NULL, length.scale = NULL, period = 100L)
 A vector of numeric values.
 }
 \description{
-This function computes the exponentiated quadratic kernel for a given vector of distances and a global length-scale.
+This function computes the periodic kernel for a given vector of distances and a global length-scale.
 }
 \seealso{
 \code{\link{maternKernel}}

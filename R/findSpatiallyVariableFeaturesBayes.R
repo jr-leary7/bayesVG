@@ -48,6 +48,7 @@
 #' @importFrom withr with_output_sink
 #' @importFrom methods slot
 #' @importFrom S4Vectors DataFrame
+#' @return Depending on the input, either an object of class \code{Seurat} or \code{SpatialExperiment} with gene-level statistics added to the appropriate metadata slot.
 #' @seealso \code{\link[Seurat]{FindSpatiallyVariableFeatures}}
 #' @seealso \code{\link{findVariableFeaturesBayes}}
 #' @export
