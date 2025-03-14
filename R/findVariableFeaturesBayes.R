@@ -42,6 +42,7 @@
 #' @importFrom brms set_prior brm bf negbinomial
 #' @importFrom posterior as_draws_df
 #' @importFrom S4Vectors DataFrame
+#' @importFrom methods slot
 #' @importFrom purrr map
 #' @return Depending on the input, either an object of class \code{Seurat} or \code{SingleCellExperiment} with gene-level statistics added to the appropriate metadata slot.
 #' @seealso \code{\link[Seurat]{FindVariableFeatures}}
@@ -321,7 +322,7 @@ findVariableFeaturesBayes <- function(sc.obj = NULL,
       SummarizedExperiment::rowData(sc.obj) <- gene_summary_s4
     } else if (inherits(sc.obj, "Seurat")) {
       version_check <- try({
-        slot(sc.obj@assays[[Seurat::DefaultAssay(sc.obj)]], name = "meta.data")
+        methods::slot(sc.obj@assays[[Seurat::DefaultAssay(sc.obj)]], name = "meta.data")
       }, silent = TRUE)
       if (inherits(version_check, "try-error")) {
         orig_metadata <- sc.obj@assays[[Seurat::DefaultAssay(sc.obj)]]@meta.features
