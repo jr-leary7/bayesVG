@@ -16,7 +16,7 @@
 
 extractModel <- function(obj = NULL) {
   # check inputs
-  if (is.null(obj)) { cli::cli_abort("Argument obj must be non-NULL.") }
+  if (is.null(obj)) { cli::cli_abort("Argument {.field obj} must be non-NULL.") }
   # extract fitted model from object's unstructured metadata
   if (inherits(obj, "Seurat")) {
     model_fit <- obj@assays[[Seurat::DefaultAssay(obj)]]@misc$model_fit

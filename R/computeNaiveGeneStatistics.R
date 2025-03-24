@@ -18,7 +18,7 @@
 computeNaiveGeneStatistics <- function(obj = NULL, use.norm = FALSE) {
   # check inputs
   if (is.null(obj)) { cli::cli_abort("Please provide all inputs to computeNaiveGeneStatistics().") }
-  if (!(inherits(obj, "SingleCellExperiment") || inherits(obj, "Seurat") || inherits(obj, "SpatialExperiment"))) { cli::cli_abort("Please provide an object of class Seurat, SingleCellExperiment, or SpatialExperiment.") }
+  if (!(inherits(obj, "SingleCellExperiment") || inherits(obj, "Seurat") || inherits(obj, "SpatialExperiment"))) { cli::cli_abort("Please provide an object of class {.pkg Seurat}, {.pkg SingleCellExperiment}, or {.pkg SpatialExperiment}.") }
   # extract (sparse) counts or normalized counts matrix
   if (inherits(obj, "SingleCellExperiment") || inherits(obj, "SpatialExperiment")) {
     if (use.norm) {

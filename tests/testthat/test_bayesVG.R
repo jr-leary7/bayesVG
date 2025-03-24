@@ -66,7 +66,11 @@ gene_stats_naive <- computeNaiveGeneStatistics(seu_pbmc, use.norm = TRUE)
 # convert seu_brain to SpatialExperiment from Seurat
 spe_brain <- convertToSpatialExperiment(seu_brain, sample.id = "anterior1")
 
-# run HVG model tests 
+# run spatial plotting 
+p1 <- plotSpatialExpression(seu_brain, gene.plot = "Nrgn")
+p2 <- plotSpatialExpression(spe_brain, gene.plot = "Nrgn")
+
+# run HVG tests 
 test_that("HVG model", {
   expect_s4_class(seu_pbmc, "Seurat")
   expect_s3_class(hvg_metadata, "data.frame")
@@ -89,7 +93,7 @@ test_that("kernels", {
   expect_equal(nrow(phi_periodic), ncol(seu_brain))
 })
 
-# run SVG model tests
+# run SVG tests
 test_that("SVG model", {
   expect_s4_class(seu_brain, "Seurat")
   expect_s3_class(svg_metadata, "data.frame")
@@ -106,6 +110,8 @@ test_that("SVG model", {
   expect_type(seu_brain$svg_cluster_1_UCell, "double")
   expect_type(seu_brain$svg_cluster_2_UCell, "double")
   expect_type(seu_brain$svg_cluster_3_UCell, "double")
+  expect_s3_class(p1, "ggplot")
+  expect_s3_class(p2, "ggplot")
 })
 
 # run naive gene statistics tests 

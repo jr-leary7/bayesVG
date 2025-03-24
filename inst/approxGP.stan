@@ -40,8 +40,6 @@ model {
   amplitude ~ lognormal(mu_amplitude, sigma_amplitude);
   y ~ normal(beta0 + amplitude_sq[gene_id] .* w, sigma_y);
 }
-
-
 // generated quantities {
 //   array[N] real log_lik;
 //   for (i in 1:N) {

@@ -13,7 +13,7 @@ findSpatiallyVariableFeaturesBayes(
   kernel.period = 100L,
   n.basis.fns = 20L,
   algorithm = "meanfield",
-  mle.init = FALSE,
+  mle.init = TRUE,
   mle.iter = 1000L,
   gene.depth.adjust = TRUE,
   n.draws = 1000L,
@@ -42,7 +42,7 @@ findSpatiallyVariableFeaturesBayes(
 
 \item{algorithm}{A string specifying the variational inference (VI) approximation algorithm to be used. Must be one of "meanfield", "fullrank", or "pathfinder". Defaults to "meanfield".}
 
-\item{mle.init}{A Boolean specifying whether the the VI algorithm should be initialized using the MLE for each parameter. In general, this isn't necessary but can help if the VI algorithm struggles to converge when provided with the default initialization (zero). Cannot be used when the Pathfinder algorithm is specified. Defaults to FALSE.}
+\item{mle.init}{A Boolean specifying whether the the VI algorithm should be initialized using the MLE for each parameter. In general, this isn't strictly necessary but can help if the VI algorithm struggles to converge when provided with the default initialization (zero). Cannot be used when the Pathfinder algorithm is specified. Defaults to TRUE.}
 
 \item{mle.iter}{An integer specifying the maximum number of optimization iterations used when \code{mle.init = TRUE}. Defaults to 1000.}
 

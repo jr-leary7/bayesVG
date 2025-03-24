@@ -79,7 +79,7 @@ findVariableFeaturesBayes <- function(sc.obj = NULL,
   algorithm <- tolower(algorithm)
   if (!algorithm %in% c("meanfield", "fullrank", "pathfinder", "laplace", "sampling")) { cli::cli_abort("Please provide a valid sampling or approximation algorithm.") }
   if (algorithm == "sampling" && n.chains == 1L) { cli::cli_alert_warning("It is recommended to use multiple chains when utilizing MCMC sampling.") }
-  if (!is.null(opencl.params) && (!is.double(opencl.params) || !length(opencl.params) == 2)) { cli::cli_abort("Argument opencl.params must be a double vector of length 2 if non-NULL.") }
+  if (!is.null(opencl.params) && (!is.double(opencl.params) || !length(opencl.params) == 2)) { cli::cli_abort("Argument {.field opencl.params} must be a double vector of length 2 if non-NULL.") }
   if (is.null(opencl.params)) {
     opencl_IDs <- NULL
   } else {
@@ -377,7 +377,7 @@ findVariableFeaturesBayes <- function(sc.obj = NULL,
                               "minutes",
                               "hours"))
   if (verbose) {
-    time_message <- paste0("bayesVG modeling of ",
+    time_message <- paste0("{.pkg bayesVG} modeling of ",
                            nrow(sc.obj),
                            " genes completed in ",
                            as.numeric(round(time_diff, 3)),

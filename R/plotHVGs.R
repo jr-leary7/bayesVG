@@ -43,8 +43,8 @@ plotHVGs <- function(sc.obj = NULL,
                      n.genes.label = 10L,
                      label.text.size = 3) {
   # check inputs
-  if (is.null(sc.obj)) { cli::cli_abort("Please provide a Seurat or SingleCellExperiment object to plotHVGs().") }
-  if (!(inherits(sc.obj, "Seurat") || inherits(sc.obj, "SingleCellExperiment"))) { cli::cli_abort("Argument sc.obj must be of class Seurat or SingleCellExperiment.") }
+  if (is.null(sc.obj)) { cli::cli_abort("Please provide a {.pkg Seurat} or {.pkg SingleCellExperiment} object to plotHVGs().") }
+  if (!(inherits(sc.obj, "Seurat") || inherits(sc.obj, "SingleCellExperiment"))) { cli::cli_abort("Argument {.field sc.obj} must be of class {.pkg Seurat} or {.pkg SingleCellExperiment}.") }
   # extract gene-level summary data.frame
   gene_summary <- getBayesianGeneStats(sc.obj, sort.values = FALSE)
   multi_subject_flag <- ifelse("subject" %in% colnames(gene_summary), 

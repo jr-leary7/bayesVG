@@ -40,6 +40,7 @@ classifyHVGs <- function(sc.obj = NULL,
                          cutoff = 3) {
   # check inputs
   if (is.null(sc.obj)) { cli::cli_abort("Please provide an object to classifyHVGs().") }
+  if (!(inherits(sc.obj, "Seurat") || inherits(sc.obj, "SingleCellExperiment"))) { cli::cli_abort("Please provide an object of class {.pkg Seurat} or {.pkg SingleCellExperiment}.") }
   selection.variable <- tolower(selection.variable)
   if (!selection.variable %in% c("dispersion", "sigma2")) { cli::cli_abort("Please provide a valid random variable used in classifyHVGs().") }
   selection.method <- tolower(selection.method)

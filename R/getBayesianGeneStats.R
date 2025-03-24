@@ -18,7 +18,7 @@
 getBayesianGeneStats <- function(obj = NULL, sort.values = TRUE) {
   # check inputs
   if (is.null(obj)) { cli::cli_abort("Please provide all inputs to getBayesianGeneStats().") }
-  if (!(inherits(obj, "SingleCellExperiment") || inherits(obj, "Seurat") || inherits(obj, "SpatialExperiment"))) { cli::cli_abort("Please provide an object of class Seurat, SingleCellExperiment, or SpatialExperiment.") }
+  if (!(inherits(obj, "SingleCellExperiment") || inherits(obj, "Seurat") || inherits(obj, "SpatialExperiment"))) { cli::cli_abort("Please provide an object of class {.pkg Seurat}, {.pkg SingleCellExperiment}, or {.pkg SpatialExperiment}.") }
   # extract HVG or SVG summary table
   if (inherits(obj, "SingleCellExperiment")) {
     multi_subject_flag <- ifelse(is.null(obj@metadata$gene_stats_bayes), FALSE, TRUE)
