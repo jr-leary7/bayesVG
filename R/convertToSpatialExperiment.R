@@ -26,8 +26,8 @@ convertToSpatialExperiment <- function(seu.obj = NULL,
                                        sample.id = NULL,
                                        scale.coords = FALSE) {
   # check inputs
-  if (!inherits(seu.obj, "Seurat")) { cli::cli_abort("Please provide an object of class Seurat.") }
-  if (!sample.id %in% names(seu.obj@images)) { cli::cli_abort("Please provide a valid sample.id value.") }
+  if (!inherits(seu.obj, "Seurat")) { cli::cli_abort("Please provide an object of class {.pkg Seurat}.") }
+  if (!sample.id %in% names(seu.obj@images)) { cli::cli_abort("Please provide a valid {.field sample.id} value.") }
   # convert to singlecellexperiment object
   sce <- Seurat::as.SingleCellExperiment(seu.obj)
   # extract image data

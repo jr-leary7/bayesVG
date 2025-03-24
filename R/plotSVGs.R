@@ -39,8 +39,8 @@ plotSVGs <- function(sp.obj = NULL,
                      n.genes.label = 10L,
                      label.text.size = 3) {
   # check inputs
-  if (is.null(sp.obj)) { cli::cli_abort("Please provide a Seurat or SpatialExperiment object to plotSVGs().") }
-  if (!(inherits(sp.obj, "Seurat") || inherits(sp.obj, "SpatialExperiment"))) { cli::cli_abort("Argument sp.obj must be of class Seurat or SpatialExperiment.") }
+  if (is.null(sp.obj)) { cli::cli_abort("Please provide a {.pkg Seurat} or {.pkg SpatialExperiment} object to plotSVGs().") }
+  if (!(inherits(sp.obj, "Seurat") || inherits(sp.obj, "SpatialExperiment"))) { cli::cli_abort("Argument {.field sp.obj} must be of class {.pkg Seurat} or {.pkg SpatialExperiment}.") }
   # extract gene-level summary data.frame
   gene_summary <- getBayesianGeneStats(sp.obj, sort.values = FALSE)
   # generate naive gene statistics

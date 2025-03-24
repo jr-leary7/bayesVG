@@ -41,7 +41,7 @@ scoreSpatialModules <- function(sp.obj = NULL,
                                 n.cores = 2L) {
   # check inputs 
   if (is.null(sp.obj) || is.null(svg.clusters)) { cli::cli_abort("Please provide all inputs to scoreSpatialModules().") }
-  if (!(inherits(sp.obj, "Seurat") || inherits(sp.obj, "SpatialExperiment"))) { cli::cli_abort("Please provide an object of class Seurat or SpatialExperiment.") }
+  if (!(inherits(sp.obj, "Seurat") || inherits(sp.obj, "SpatialExperiment"))) { cli::cli_abort("Please provide an object of class {.pkg Seurat} or {.pkg SpatialExperiment}.") }
   if (n.cores > unname(parallelly::availableCores())) { cli::cli_abort("The number of requested cores is greater than the number of available cores.") }
   # set up list of SVG clusters 
   cluster_list <- split(svg.clusters$cluster_df, svg.clusters$cluster_df$assigned_cluster)

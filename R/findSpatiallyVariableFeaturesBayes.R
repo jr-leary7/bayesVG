@@ -89,11 +89,11 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                                save.model = FALSE) {
   # check & parse inputs
   if (is.null(sp.obj)) { cli::cli_abort("Please provide a spatial data object to findSpatiallyVariableFeaturesBayes().") }
-  if (!(inherits(sp.obj, "Seurat") || inherits(sp.obj, "SpatialExperiment"))) { cli::cli_abort("Please provide an object of class Seurat or SpatialExperiment.") }
+  if (!(inherits(sp.obj, "Seurat") || inherits(sp.obj, "SpatialExperiment"))) { cli::cli_abort("Please provide an object of class {.pkg Seurat} or {.pkg SpatialExperiment}.") }
   if (is.null(naive.hvgs)) { cli::cli_abort("Please identify a set of naive HVGs prior to running findSpatiallyVariableFeaturesBayes().") }
   kernel <- tolower(kernel)
   if (!kernel %in% c("exp_quad", "matern", "periodic")) { cli::cli_abort("Please provide a valid covariance kernel.") }
-  if (kernel == "matern" && !kernel.smoothness %in% c(0.5, 1.5, 2.5)) { cli::cli_abort("When utilizing the Matern kernel you must provide a valid smoothness parameter value.") }
+  if (kernel == "matern" && !kernel.smoothness %in% c(0.5, 1.5, 2.5)) { cli::cli_abort("When utilizing the Matérn kernel you must provide a valid smoothness parameter value.") }
   algorithm <- tolower(algorithm)
   if (!algorithm %in% c("meanfield", "fullrank", "pathfinder")) { cli::cli_abort("Please provide a valid variational inference approximation algorithm.") }
   if (mle.init && algorithm == "pathfinder") { cli::cli_alert_warning("Initialization at the MLE is not supported when using the Pathfinder algorithm.") }
@@ -104,7 +104,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
       elbo.samples <- 150L
     }
   }
-  if (!is.null(opencl.params) && (!is.double(opencl.params) || !length(opencl.params) == 2)) { cli::cli_abort("Argument opencl.params must be a double vector of length 2 if non-NULL.") }
+  if (!is.null(opencl.params) && (!is.double(opencl.params) || !length(opencl.params) == 2)) { cli::cli_abort("Argument {.field opencl.params} must be a double vector of length 2 if non-NULL.") }
   if (is.null(opencl.params)) {
     opencl_IDs <- NULL
     if (algorithm == "pathfinder") {
@@ -376,7 +376,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                               "minutes",
                               "hours"))
   if (verbose) {
-    time_message <- paste0("bayesVG modeling of ",
+    time_message <- paste0("{.pkg bayesVG} modeling of ",
                            length(naive.hvgs),
                            " genes completed in ",
                            as.numeric(round(time_diff, 3)),

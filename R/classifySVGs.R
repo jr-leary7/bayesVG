@@ -45,9 +45,9 @@ classifySVGs <- function(sp.obj = NULL,
                          cutoff = 0.1) {
   # check inputs
   if (is.null(sp.obj)) { cli::cli_abort("Please provide an object to classifySVGs().") }
-  if (!(inherits(sp.obj, "Seurat") || inherits(sp.obj, "SpatialExperiment"))) { cli::cli_abort("Please provide an object of class Seurat or SpatialExperiment.") }
+  if (!(inherits(sp.obj, "Seurat") || inherits(sp.obj, "SpatialExperiment"))) { cli::cli_abort("Please provide an object of class {.pkg Seurat} or {.pkg SpatialExperiment}.") }
   selection.method <- tolower(selection.method)
-  if (!selection.method %in% c("rank", "quantile", "cutoff")) { cli::cli_abort("Please provide a valid SVG selection method to classifyHVGs().") }
+  if (!selection.method %in% c("rank", "quantile", "cutoff")) { cli::cli_abort("Please provide a valid SVG selection method to classifySVGs().") }
   # extract gene spatial variation statistics
   if (inherits(sp.obj, "Seurat")) {
     version_check <- try({

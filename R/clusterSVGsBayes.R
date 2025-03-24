@@ -77,7 +77,7 @@ clusterSVGsBayes <- function(sp.obj = NULL,
                              verbose = TRUE) {
   # check inputs
   if (is.null(sp.obj) || is.null(svgs)) { cli::cli_abort("All arguments to clusterSVGsBayes() must be supplied.") }
-  if (!(inherits(sp.obj, "Seurat") || inherits(sp.obj, "SpatialExperiment"))) { cli::cli_abort("Please provide an object of class Seurat or SpatialExperiment.") }
+  if (!(inherits(sp.obj, "Seurat") || inherits(sp.obj, "SpatialExperiment"))) { cli::cli_abort("Please provide an object of class {.pkg Seurat} or {.pkg SpatialExperiment}.") }
   if (n.clust <= 1L) { cli::cli_abort("Please provide a valid number of clusters.") }
   algorithm <- tolower(algorithm)
   if (!algorithm %in% c("meanfield", "fullrank", "pathfinder")) { cli::cli_abort("Please provide a valid variational inference approximation algorithm.") }
@@ -88,7 +88,7 @@ clusterSVGsBayes <- function(sp.obj = NULL,
       elbo.samples <- 150L
     }
   }
-  if (!is.null(opencl.params) && (!is.double(opencl.params) || !length(opencl.params) == 2)) { cli::cli_abort("Argument opencl.params must be a double vector of length 2 if non-NULL.") }
+  if (!is.null(opencl.params) && (!is.double(opencl.params) || !length(opencl.params) == 2)) { cli::cli_abort("Argument {.field opencl.params} must be a double vector of length 2 if non-NULL.") }
   if (is.null(opencl.params)) {
     opencl_IDs <- NULL
     if (algorithm == "pathfinder") {
@@ -294,7 +294,7 @@ clusterSVGsBayes <- function(sp.obj = NULL,
                               "minutes",
                               "hours"))
   if (verbose) {
-    time_message <- paste0("bayesVG clustering of ",
+    time_message <- paste0("{.pkg bayesVG} clustering of ",
                            length(svgs),
                            " SVGs completed in ",
                            as.numeric(round(time_diff, 3)),

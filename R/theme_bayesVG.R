@@ -19,7 +19,7 @@ theme_bayesVG <- function(base.size = 12,
                           umap = FALSE,
                           spatial = FALSE) {
   # check inputs
-  if (umap && spatial) { cli::cli_abort("Only one of umap and spatial can be specified at once.") }
+  if (umap && spatial) { cli::cli_abort("Only one of {.field umap} and {.field spatial} can be specified at once.") }
   # generate theme
   theme_bayesVG <- ggplot2::theme_classic(base_size = base.size,
                                           base_family = base.family,
