@@ -9,7 +9,6 @@
 #' @importFrom cli cli_abort
 #' @importFrom parallelly availableCores
 #' @importFrom purrr map
-#' @importFrom UCell AddModuleScore_UCell ScoreSignatures_UCell
 #' @return Depending on the input, either an object of class \code{Seurat} or \code{SpatialExperiment} with per-cluster module scores added to the appropriate metadata slot. Module scores are named as e.g., \code{"svg_cluster_1_UCell"}.
 #' @export 
 #' @examples

@@ -11,7 +11,7 @@
 #' @param kernel.period An integer specifying the period parameter \eqn{p} used when computing the periodic kernel. Defaults to 100.
 #' @param n.basis.fns An integer specifying the number of basis functions to be used when approximating the GP as a Hilbert space. Defaults to 20.
 #' @param algorithm A string specifying the variational inference (VI) approximation algorithm to be used. Must be one of "meanfield", "fullrank", or "pathfinder". Defaults to "meanfield".
-#' @param mle.init A Boolean specifying whether the the VI algorithm should be initialized using the MLE for each parameter. In general, this isn't necessary but can help if the VI algorithm struggles to converge when provided with the default initialization (zero). Cannot be used when the Pathfinder algorithm is specified. Defaults to FALSE.
+#' @param mle.init A Boolean specifying whether the the VI algorithm should be initialized using the MLE for each parameter. In general, this isn't strictly necessary but can help if the VI algorithm struggles to converge when provided with the default initialization (zero). Cannot be used when the Pathfinder algorithm is specified. Defaults to TRUE.
 #' @param mle.iter An integer specifying the maximum number of optimization iterations used when \code{mle.init = TRUE}. Defaults to 1000.
 #' @param gene.depth.adjust A Boolean specifying whether the model should include a fixed effect term for total gene expression. Defaults to TRUE.
 #' @param n.draws An integer specifying the number of draws to be generated from the variational posterior. Defaults to 1000.
@@ -77,7 +77,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                                kernel.period = 100L,
                                                n.basis.fns = 20L,
                                                algorithm = "meanfield",
-                                               mle.init = FALSE,
+                                               mle.init = TRUE,
                                                mle.iter = 1000L,
                                                gene.depth.adjust = TRUE,
                                                n.draws = 1000L,
@@ -246,8 +246,9 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                num_threads = n.cores,
                                draws = n.draws,
                                opencl_ids = opencl_IDs,
+                               num_paths = n.cores, 
+                               max_lbfgs_iters = 200L,
                                num_elbo_draws = elbo.samples,
-                               max_lbfgs_iters = 100L,
                                history_size = 25L)
     }
   } else {
@@ -280,8 +281,9 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                  num_threads = n.cores,
                                  draws = n.draws,
                                  opencl_ids = opencl_IDs,
+                                 num_paths = n.cores, 
+                                 max_lbfgs_iters = 200L,
                                  num_elbo_draws = elbo.samples,
-                                 max_lbfgs_iters = 100L,
                                  history_size = 25L)
       }
     })
