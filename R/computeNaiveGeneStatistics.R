@@ -14,6 +14,9 @@
 #' @importFrom sparseMatrixStats rowMeans2 rowVars
 #' @return A \code{data.frame} containing the per-gene naive mean, variance, and dispersion.
 #' @export
+#' @examples
+#' data(seu_pbmc)
+#' naive_gene_stats <- computeNaiveGeneStatistics(seu_pbmc)
 
 computeNaiveGeneStatistics <- function(obj = NULL, use.norm = FALSE) {
   # check inputs
