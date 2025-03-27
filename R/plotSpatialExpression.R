@@ -20,7 +20,9 @@
 #' @export 
 #' @examples 
 #' data(seu_brain)
-#' plotSpatialExpression(seu_brain, gene.plot = "Nrgn")
+#' plotSpatialExpression(seu_brain,
+#'                       gene.plot = "Nrgn", 
+#'                       use.norm = FALSE)
 
 
 
@@ -31,7 +33,7 @@ plotSpatialExpression <- function(sp.obj = NULL,
   # check inputs 
   if (is.null(sp.obj) || is.null(gene.plot)) { cli::cli_abort("Please provide all inputs to plotSpatialExpression().") }
   if (!(inherits(sp.obj, "Seurat") || inherits(sp.obj, "SpatialExperiment"))) { cli::cli_abort("Please provide an object of class {.pkg Seurat} or {.pkg SpatialExperiment}.") }
-  if (!gene.plot %in% rownames(sp.obj)) { cli::cli_abort("gene.plot must exist in the rownames of {.field sp.obj}.") }
+  if (!gene.plot %in% rownames(sp.obj)) { cli::cli_abort("{.field gene.plot} must exist in the rownames of {.field sp.obj}.") }
   # generate plot 
   if (inherits(sp.obj, "Seurat")) {
     p <- Seurat::SpatialFeaturePlot(sp.obj, 

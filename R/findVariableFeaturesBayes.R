@@ -107,6 +107,8 @@ findVariableFeaturesBayes <- function(sc.obj = NULL,
                                      layer = "counts",
                                      assay = Seurat::DefaultAssay(sc.obj))
   }
+  # generate offset from counts matrix 
+  seq_depth <- log(Matrix::colSums(expr_mat))
   # convert counts matrix to long data.frame for modeling
   expr_df <- as.data.frame(expr_mat) %>%
              dplyr::mutate(gene = rownames(.), .before = 1)
