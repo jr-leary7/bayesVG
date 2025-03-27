@@ -28,7 +28,9 @@ Given a \code{Seurat} or \code{SpatialExperiment} object, plot the spatial locat
 }
 \examples{
 data(seu_brain)
-plotSpatialExpression(seu_brain, gene.plot = "Nrgn")
+plotSpatialExpression(seu_brain,
+                      gene.plot = "Nrgn", 
+                      use.norm = FALSE)
 }
 \seealso{
 \code{\link[Seurat]{SpatialFeaturePlot}}
