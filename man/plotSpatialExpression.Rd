@@ -8,6 +8,7 @@ plotSpatialExpression(
   sp.obj = NULL,
   gene.plot = NULL,
   use.norm = TRUE,
+  pt.size = 1,
   color.palette = NULL
 )
 }
@@ -17,6 +18,8 @@ plotSpatialExpression(
 \item{gene.plot}{A character specifying the gene whose expression will be used to color the spots. Defaults to NULL.}
 
 \item{use.norm}{A Boolean specifying whether the raw or normalized counts should be plotted. Defaults to TRUE.}
+
+\item{pt.size}{A double specifying the size of the points to be plotted. Defaults to 1.}
 
 \item{color.palette}{A vector containing colors that are passed to \code{\link[ggplot2]{scale_color_gradientn}} and thus used to color the spots. Defaults to NULL.}
 }
@@ -29,7 +32,7 @@ Given a \code{Seurat} or \code{SpatialExperiment} object, plot the spatial locat
 \examples{
 data(seu_brain)
 plotSpatialExpression(seu_brain,
-                      gene.plot = "Nrgn", 
+                      gene.plot = "Nrgn",
                       use.norm = FALSE)
 }
 \seealso{
