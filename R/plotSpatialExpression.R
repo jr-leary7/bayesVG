@@ -7,14 +7,14 @@
 #' @param gene.plot A character specifying the gene whose expression will be used to color the spots. Defaults to NULL.
 #' @param use.norm A Boolean specifying whether the raw or normalized counts should be plotted. Defaults to TRUE.
 #' @param pt.size A double specifying the size of the points to be plotted. Defaults to 1.
-#' @param color.palette A vector containing colors that are passed to \code{\link[ggplot2]{scale_color_gradientn}} and thus used to color the spots. Defaults to NULL.
+#' @param color.palette A vector containing colors that are passed to \code{\link[ggplot2]{scale_color_gradientn}} and \code{\link[ggplot2]{scale_fill_gradientn}} and thus used to color the spots. Defaults to NULL.
 #' @importFrom cli cli_abort
 #' @importFrom Seurat SpatialFeaturePlot
 #' @importFrom SummarizedExperiment rowData
 #' @importFrom dplyr mutate
 #' @importFrom S4Vectors DataFrame
 #' @importFrom SpatialExperiment spatialCoords
-#' @importFrom ggplot2 labs scale_color_gradientn
+#' @importFrom ggplot2 labs scale_color_gradientn scale_fill_gradientn
 #' @return An object of class \code{ggplot2}.
 #' @seealso \code{\link[Seurat]{SpatialFeaturePlot}}
 #' @seealso \code{\link[ggspavis]{plotSpots}}
@@ -62,7 +62,9 @@ plotSpatialExpression <- function(sp.obj = NULL,
   }
   p <- p + ggplot2::labs(x = "Spatial 1", y = "Spatial 2")
   if (!is.null(color.palette)) {
-    p <- p + ggplot2::scale_color_gradientn(colors = color.palette)
+    p <- p + 
+         ggplot2::scale_color_gradientn(colors = color.palette) + 
+         ggplot2::scale_fill_gradientn(colors = color.palette)
   }
   p <- p + theme_bayesVG(spatial = TRUE)
   return(p)

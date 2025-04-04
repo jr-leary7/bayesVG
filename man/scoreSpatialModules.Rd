@@ -17,7 +17,7 @@ scoreSpatialModules(sp.obj = NULL, svg.clusters = NULL, n.cores = 2L)
 Depending on the input, either an object of class \code{Seurat} or \code{SpatialExperiment} with per-cluster module scores added to the appropriate metadata slot. Module scores are named as e.g., \code{"svg_cluster_1_UCell"}.
 }
 \description{
-Given a \code{Seurat} or \code{SpatialExperiment} and the results from \code{\link{clusterSVGsBayes}}, this function uses \code{UCell} to estimate gene set scores for each cluster of SVGs.
+Given a \code{Seurat} or \code{SpatialExperiment} object and the results from \code{\link{clusterSVGsBayes}}, this function uses \code{UCell} to estimate gene set scores for each cluster of SVGs.
 }
 \examples{
 data(seu_brain)
