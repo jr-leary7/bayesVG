@@ -264,7 +264,7 @@ establishAmplitudeThreshold <- function(sp.obj = NULL,
                        magrittr::set_rownames(.$gene)
   if (verbose) {
     cli::cli_alert_success("Posterior summarization complete.")
-    cli::cli_alert_info("Mean amplitude of control data: ", round(mean(amplitude_summary$amplitude_mean), 4))
+    cli::cli_alert_info(paste0("Mean amplitude of control data: ", round(mean(amplitude_summary$amplitude_mean), 4)))
   }
   return(amplitude_summary)
 }
