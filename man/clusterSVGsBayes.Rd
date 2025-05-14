@@ -61,13 +61,8 @@ This downstream analysis function clusters identified SVGs into modules via an a
 }
 \examples{
 data(seu_brain)
-seu_brain <- Seurat::SCTransform(seu_brain,
-                                 assay = "Spatial",
-                                 variable.features.n = 3000L,
-                                 vst.flavor = "v2",
-                                 return.only.var.genes = FALSE,
-                                 seed.use = 312,
-                                 verbose = FALSE)
+seu_brain <- Seurat::NormalizeData(seu_brain, verbose = FALSE) \%>\% 
+             Seurat::FindVariableFeatures(nfeatures = 1000L, verbose = FALSE)
 seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
                                                 naive.hvgs = Seurat::VariableFeatures(seu_brain),
                                                 kernel = "matern",
@@ -75,7 +70,7 @@ seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
                                                 algorithm = "meanfield",
                                                 n.cores = 1L,
                                                 save.model = TRUE) \%>\%
-             classifySVGs(n.SVG = 1000L)
+             classifySVGs(n.SVG = 500L)
 svg_clusters <- clusterSVGsBayes(seu_brain,
                                  svgs = Seurat::VariableFeatures(seu_brain),
                                  n.clust = 3L,
