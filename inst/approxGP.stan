@@ -34,8 +34,8 @@ model {
   mu_amplitude ~ normal(0, 2);
   sigma_amplitude ~ std_normal();
   sigma_y ~ normal(0, 2);
-  for (i in 1:G) {
-    alpha_t[, i] ~ normal(mu_alpha, sigma_alpha);
+  for (i in 1:k) {
+    alpha_t[i] ~ normal(mu_alpha[i], sigma_alpha[i]);
   }
   amplitude ~ lognormal(mu_amplitude, sigma_amplitude);
   y ~ normal(beta0 + amplitude_sq[gene_id] .* w, sigma_y);
