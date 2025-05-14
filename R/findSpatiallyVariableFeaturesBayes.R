@@ -156,6 +156,9 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   kmeans_centers <- stats::kmeans(spatial_mtx, centers = n.basis.fns, iter.max = 100L)$centers
   dists_centers <- as.matrix(stats::dist(kmeans_centers))
   lscale <- stats::median(dists_centers[upper.tri(dists_centers)])
+  if (verbose) {
+    cli::cli_alert_info(paste0("Estimated length-scale: ", round(lscale, 4)))
+  }
   # estimate matrix of basis functions used to approximate GP with desired kernel
   phi <- matrix(0, nrow = M, ncol = n.basis.fns)
   for (i in seq(n.basis.fns)) {
@@ -172,9 +175,8 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                  period = kernel.period)
     }
   }
-  # scale basis functions
-  phi <- scale(phi)
-  attributes(phi)[2:3] <- NULL
+  # ensure basis functions are orthonormal i.e., mutually orthogonal with unit norms
+  phi <- qr.Q(qr(phi))
   # compute some constants
   N <- nrow(expr_df)
   G <- length(unique(expr_df$gene))
