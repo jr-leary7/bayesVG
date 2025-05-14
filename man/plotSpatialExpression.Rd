@@ -8,7 +8,7 @@ plotSpatialExpression(
   sp.obj = NULL,
   gene.plot = NULL,
   use.norm = TRUE,
-  pt.size = 1,
+  pt.size = 2,
   color.palette = NULL
 )
 }
@@ -19,7 +19,7 @@ plotSpatialExpression(
 
 \item{use.norm}{A Boolean specifying whether the raw or normalized counts should be plotted. Defaults to TRUE.}
 
-\item{pt.size}{A double specifying the size of the points to be plotted. Defaults to 1.}
+\item{pt.size}{A double specifying the size of the points to be plotted. Defaults to 2.}
 
 \item{color.palette}{A vector containing colors that are passed to \code{\link[ggplot2]{scale_color_gradientn}} and \code{\link[ggplot2]{scale_fill_gradientn}} and thus used to color the spots. Defaults to NULL.}
 }
