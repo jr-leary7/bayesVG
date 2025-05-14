@@ -1,3 +1,10 @@
+# bayesVG v0.0.5
+
++ Added function `plotSpatialExpression()` to generate a clean plot of gene expression overlaid on spatial coordinates given a `Seurat` or `SpatialExperiment` object. 
++ Added function `plotTissueImage()` to render a plot of the tissue image alone - with no information overlaid - given a `Seurat` object. 
++ Changed the way basis functions are generated so that they are orthonormal (mutually orthogonal and having unit norm) via a QR decomposition.
++ Added function `enrichSpatialModules()` to perform GSEA on clusters of SVGs using `gProfiler2` under the hood.
+
 # bayesVG v0.0.4 
 
 + Fixed bugs throughout. 
