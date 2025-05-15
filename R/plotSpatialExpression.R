@@ -8,6 +8,7 @@
 #' @param use.norm A Boolean specifying whether the raw or normalized counts should be plotted. Defaults to TRUE.
 #' @param pt.size A double specifying the size of the points to be plotted. Defaults to 2.
 #' @param color.palette A vector containing colors that are passed to \code{\link[ggplot2]{scale_color_gradientn}} and \code{\link[ggplot2]{scale_fill_gradientn}} and thus used to color the spots. Defaults to NULL.
+#' @import magrittr
 #' @importFrom cli cli_abort
 #' @importFrom Seurat GetAssayData DefaultAssay GetTissueCoordinates
 #' @importFrom dplyr select mutate
@@ -41,6 +42,7 @@ plotSpatialExpression <- function(sp.obj = NULL,
     expr_vector <- Seurat::GetAssayData(sp.obj, assay = Seurat::DefaultAssay(sp.obj), layer = ifelse(use.norm, "data", "counts"))[gene.plot, ]
     coord_df <- Seurat::GetTissueCoordinates(seu_brain) %>% 
                 dplyr::select(1:2) %>% 
+                magrittr::set_colnames(c("x", "y")) %>% 
                 as.matrix() %>% 
                 scale() %>% 
                 as.data.frame() %>% 
