@@ -62,7 +62,7 @@ data("seu_pbmc")
 
 ### Modeling 
 
-Now we're able to model gene expression, summarize the posterior distribution of variance for each gene, and classify the top 3000 most-variable genes as HVGs. The `findVariableFeaturesBayes()` function can take as input either a `Seurat` or a `SingleCellExperiment` object. 
+Now we're able to model gene expression, summarize the posterior distribution of variance for each gene, and classify the top 3,000 most-variable genes as HVGs. The `findVariableFeaturesBayes()` function can take as input either a `Seurat` or a `SingleCellExperiment` object. 
 
 ```{r, eval=FALSE}
 seu_pbmc <- findVariableFeaturesBayes(seu_pbmc, 
@@ -72,7 +72,7 @@ seu_pbmc <- findVariableFeaturesBayes(seu_pbmc,
             classifyHVGs(n.HVG = 3000L)
 ```
 
-We can extract the summary table (which is sorted by default) and classify the top 3,000 genes as HVGs like so. These genes can then be used as the basis for downstream analyses such as PCA, clustering, UMAP visualization, etc. 
+We can extract the summary table (which is sorted by default) and extract the HVGs like so. These genes can then be used as the basis for downstream analyses such as PCA, clustering, UMAP visualization, etc. 
 
 ```{r, eval=FALSE}
 summary_hvg <- getBayesianGeneStats(seu_pbmc)
@@ -92,18 +92,13 @@ data("seu_brain")
 Before running `bayesVG` for SVG detection it's necessary to normalize the expression data and identify a set of naive HVGs. 
 
 ```{r, eval=FALSE}
-seu_brain <- SCTransform(seu_brain,
-                         assay = "Spatial",
-                         variable.features.n = 3000L,
-                         vst.flavor = "v2",
-                         return.only.var.genes = FALSE,
-                         seed.use = 312,
-                         verbose = FALSE)
+seu_brain <- NormalizeData(seu_brain, verbose = FALSE) %>% 
+             FindVariableFeatures(nfeatures = 3000L, verbose = FALSE)
 ```
 
 ### Modeling 
 
-Now we can model gene expression with an approximate multivariate hierarchical Gaussian process (GP), summarize the spatial component of variance for each gene, and classify the top 1000 most spatially variable genes as SVGs. The `findSpatiallyVariableFeaturesBayes()` function can take as input either a `Seurat` or a `SpatialExperiment` object. 
+Now we can model gene expression with an approximate multivariate hierarchical Gaussian process (GP), summarize the spatial component of variance for each gene, and classify the top 1,000 most spatially variable genes as SVGs. The `findSpatiallyVariableFeaturesBayes()` function can take as input either a `Seurat` or a `SpatialExperiment` object. 
 
 ```{r, eval=FALSE}
 seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain, 
@@ -116,20 +111,34 @@ seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
              classifySVGs(n.SVG = 1000L)
 ```
 
-We can extract the summary table (which, like the HVG summary table is sorted by default)  and classify the top 1,000 genes as SVGs like so. These genes can then be used as the basis for downstream analyses such as PCA, clustering, UMAP visualization, etc. 
+We can extract the summary table (which, like the HVG summary table is sorted by default)  and extract the top 1,000 SVGs like so. These genes can then be used as the basis for downstream analyses such as PCA, spatial clustering, UMAP visualization, etc. 
 
 ```{r, eval=FALSE}
 summary_svg <- getBayesianGeneStats(seu_brain)
 top1k_svgs <- summary_svg$gene[1:1000]
 ```
 
-Lastly, we can cluster the SVG set (using a Bayesian Gaussian mixture model) into spatial modules as shown below. The clustering function returns a PCA embedding of the SVGs, a table of the soft cluster assignment probabilities, and the log-likelihood and Bayesian information criterion (BIC) of the clustering.
+We can cluster the SVG set (using a modified Gaussian mixture model) into spatial modules as shown below. The clustering function returns a PCA embedding of the SVGs, a table of the soft cluster assignment probabilities, and the log-likelihood and Bayesian information criterion (BIC) of the clustering.
 
 ```{r, eval=FALSE}
 svg_clusters <- clusterSVGsBayes(seu_brain, 
                                  svgs = top1k_svgs, 
-                                 n.clust = 5L)
+                                 n.clust = 5L, 
+                                 n.cores = 4L)
 ```
+
+Next, we can score the SVG clusters using [`UCell`](https://github.com/carmonalab/UCell) under the hood. These scores can then be visualized using e.g., violin plots or UMAPs. 
+
+```{r, eval=FALSE}
+seu_brain <- scoreSpatialModules(seu_brain, svg.clusters = svg_clusters)
+```
+
+Lastly, with our spatial modules identified and scores we can perform gene set enrichment analysis (GSEA) on each module; this is done internally using [`gProfiler2`](https://biit.cs.ut.ee/gprofiler/page/r). All you need to do is provide the results from `clusterSVGsBayes()` and specify the correct species. 
+
+```{r, eval=FALSE}
+enrich_res <- enrichSpatialModules(svg_clusters, species = "mmusculus")
+```
+
 
 # Contact information 
 

@@ -14,6 +14,19 @@
 #' @importFrom dplyr filter arrange desc
 #' @return A \code{data.frame} containing the relevant Bayesian gene statistics.
 #' @export
+#' @examples
+#' data(seu_brain)
+#' seu_brain <- Seurat::NormalizeData(seu_brain, verbose = FALSE) %>% 
+#'              Seurat::FindVariableFeatures(nfeatures = 3000L, verbose = FALSE)
+#' seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
+#'                                                 naive.hvgs = Seurat::VariableFeatures(seu_brain),
+#'                                                 kernel = "matern",
+#'                                                 kernel.smoothness = 1.5,
+#'                                                 algorithm = "meanfield",
+#'                                                 n.cores = 1L,
+#'                                                 save.model = TRUE) %>% 
+#'              classifySVGs(n.SVG = 1000L) 
+#' gene_stats <- getBayesianGeneStats(seu_brain)
 
 getBayesianGeneStats <- function(obj = NULL, sort.values = TRUE) {
   # check inputs

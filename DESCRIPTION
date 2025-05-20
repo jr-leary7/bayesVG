@@ -1,7 +1,7 @@
 Package: bayesVG
 Type: Package
 Title: Identify Variable Genes via Bayesian Inference
-Version: 0.0.4
+Version: 0.0.5
 Authors@R: c(person(given = c("Jack", "R."), family = "Leary", email = "j.leary@ufl.edu", role = c("aut", "cre"), comment = c(ORCID = "0009-0004-8821-3269")))
 Description: Our method implements efficient highly and spatially variable gene identification in scRNA-seq and spatial transcriptomics data using approximate Bayesian hierarchical models.
 License: MIT + file LICENSE
@@ -44,6 +44,7 @@ Imports:
 Suggests: 
     UCell, 
     ggspavis, 
+    gprofiler2, 
     testthat (>= 3.0.0)
 Additional_repositories: https://mc-stan.org/r-packages/, https://bioconductor.org/packages/release/bioc
 SystemRequirements: CmdStan (https://mc-stan.org/users/interfaces/cmdstan)

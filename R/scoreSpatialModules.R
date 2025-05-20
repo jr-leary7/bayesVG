@@ -2,7 +2,7 @@
 #' 
 #' @name scoreSpatialModules 
 #' @author Jack R. Leary 
-#' @description Given a \code{Seurat} or \code{SpatialExperiment} and the results from \code{\link{clusterSVGsBayes}}, this function uses \code{UCell} to estimate gene set scores for each cluster of SVGs. 
+#' @description Given a \code{Seurat} or \code{SpatialExperiment} object and the results from \code{\link{clusterSVGsBayes}}, this function uses \code{UCell} to estimate gene set scores for each cluster of SVGs. 
 #' @param sp.obj An object of class \code{Seurat} or \code{SpatialExperiment} upon which \code{\link{findSpatiallyVariableFeaturesBayes}} and \code{\link{classifySVGs}} have been run. Defaults to NULL.
 #' @param svg.clusters The results from \code{\link{clusterSVGsBayes}}. Defaults to NULL. 
 #' @param n.cores An integer specifying the number of cores used when running \code{UCell}. Defaults to 2. 
@@ -13,13 +13,8 @@
 #' @export 
 #' @examples
 #' data(seu_brain)
-#' seu_brain <- Seurat::SCTransform(seu_brain,
-#'                                  assay = "Spatial",
-#'                                  variable.features.n = 3000L,
-#'                                  vst.flavor = "v2",
-#'                                  return.only.var.genes = FALSE,
-#'                                  seed.use = 312,
-#'                                  verbose = FALSE)
+#' seu_brain <- Seurat::NormalizeData(seu_brain, verbose = FALSE) %>% 
+#'              Seurat::FindVariableFeatures(nfeatures = 3000L, verbose = FALSE)
 #' seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
 #'                                                 naive.hvgs = Seurat::VariableFeatures(seu_brain),
 #'                                                 kernel = "matern",

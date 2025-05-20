@@ -5,7 +5,7 @@ data {
   int<lower=1> k;  // number of basis functions used to approximate GP
   array[N] int<lower=1, upper=M> spot_id;  // unique ID for each spot
   array[N] int<lower=1, upper=G> gene_id;  // unique ID for each gene
-  matrix[M, k] phi;  // matrix of basis functions used to approximate GP
+  matrix[M, k] phi;  // matrix of QR-decomposed basis functions used to approximate GP
   vector[G] gene_depths;  // vector of logged gene-level sequencing depths to adjust for in the model
   vector[N] y;  // vector of normalized, scaled gene expression used as response variable
 }
@@ -37,8 +37,8 @@ model {
   mu_amplitude ~ normal(0, 2);
   sigma_amplitude ~ std_normal();
   sigma_y ~ normal(0, 2);
-  for (i in 1:G) {
-    alpha_t[, i] ~ normal(mu_alpha, sigma_alpha);
+  for (i in 1:k) {
+    alpha_t[i] ~ normal(mu_alpha[i], sigma_alpha[i]);
   }
   amplitude ~ lognormal(mu_amplitude, sigma_amplitude);
   y ~ normal(beta0 + beta1 * gene_depths[gene_id] + amplitude_sq[gene_id] .* w, sigma_y);

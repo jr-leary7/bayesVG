@@ -90,13 +90,8 @@ Before running `bayesVG` for SVG detection it’s necessary to normalize
 the expression data and identify a set of naive HVGs.
 
 ``` r
-seu_brain <- SCTransform(seu_brain,
-                         assay = "Spatial",
-                         variable.features.n = 3000L,
-                         vst.flavor = "v2",
-                         return.only.var.genes = FALSE,
-                         seed.use = 312,
-                         verbose = FALSE)
+seu_brain <- NormalizeData(seu_brain, verbose = FALSE) %>% 
+             FindVariableFeatures(nfeatures = 3000L, verbose = FALSE)
 ```
 
 ### Modeling
@@ -129,16 +124,23 @@ summary_svg <- getBayesianGeneStats(seu_brain)
 top1k_svgs <- summary_svg$gene[1:1000]
 ```
 
-Lastly, we can cluster the SVG set (using a Bayesian Gaussian mixture
-model) into spatial modules as shown below. The clustering function
-returns a PCA embedding of the SVGs, a table of the soft cluster
-assignment probabilities, and the log-likelihood and Bayesian
-information criterion (BIC) of the clustering.
+We can cluster the SVG set (using a Bayesian Gaussian mixture model)
+into spatial modules as shown below. The clustering function returns a
+PCA embedding of the SVGs, a table of the soft cluster assignment
+probabilities, and the log-likelihood and Bayesian information criterion
+(BIC) of the clustering.
 
 ``` r
 svg_clusters <- clusterSVGsBayes(seu_brain, 
                                  svgs = top1k_svgs, 
                                  n.clust = 5L)
+```
+
+Lastly, we can score the SVG clusters using `UCell` under the hood.
+These scores can then be visualized using e.g., violin plots or UMAPs.
+
+``` r
+seu_brain <- scoreSpatialModules(seu_brain, svg.clusters = svg_clusters)
 ```
 
 # Contact information

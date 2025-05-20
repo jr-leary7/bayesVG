@@ -23,14 +23,18 @@
 #' @seealso \code{\link[Seurat]{VariableFeaturePlot}}
 #' @export
 #' @examples
-#' data(seu_pbmc)
-#' seu_pbmc <- findVariableFeaturesBayes(seu_pbmc,
-#'                                       n.cells.subsample = 500L,
-#'                                       algorithm = "meanfield",
-#'                                       n.cores.per.chain = 1L,
-#'                                       save.model = TRUE) %>%
-#'             classifyHVGs(n.HVG = 1000L)
-#' plotHVGs(seu_pbmc)
+#' data(seu_brain)
+#' seu_brain <- Seurat::NormalizeData(seu_brain, verbose = FALSE) %>% 
+#'              Seurat::FindVariableFeatures(nfeatures = 3000L, verbose = FALSE)
+#' seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
+#'                                                 naive.hvgs = Seurat::VariableFeatures(seu_brain),
+#'                                                 kernel = "matern",
+#'                                                 kernel.smoothness = 1.5,
+#'                                                 algorithm = "meanfield",
+#'                                                 n.cores = 1L,
+#'                                                 save.model = TRUE) %>% 
+#'              classifySVGs(n.SVG = 1000L) 
+#' plotSVGs(seu_brain)
 
 plotSVGs <- function(sp.obj = NULL,
                      pt.size = 1,
