@@ -218,7 +218,11 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                       phi = phi,
                       gene_depths = gene_depths,
                       y = expr_df$gene_expression)
-    stan_file <- system.file("approxGP2.stan", package = "bayesVG")
+    if (likelihood == "gaussian") {
+      stan_file <- system.file("approxGP2.stan", package = "bayesVG")
+    } else if (likelihood == "nb") {
+      stan_file <- system.file("approxGP3.stan", package = "bayesVG")
+    }
   } else {
     data_list <- list(M = M,
                       N = N,

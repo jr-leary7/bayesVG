@@ -6,13 +6,13 @@ data {
   array[N] int<lower=1,upper=M> spot_id;  // unique ID for each spot
   array[N] int<lower=1,upper=G> gene_id;  // unique ID for each gene
   matrix[M, k] phi;  // QR–decomposed basis functions
+  vector[G] gene_depths;  // vector of logged gene-level sequencing depths to adjust for in the model
   array[N] int<lower=0> y;  // raw UMI counts
 }
 
 parameters {
-  real mu_beta0;  // mean for the gene-specific intercept 
-  real<lower=0> sigma_beta0;  // SD for the gene-specific intercept 
-  vector[G] beta0;  // vector of gene-specific intercepts 
+  real beta0;  // global intercept
+  real beta1;  // coefficient for gene library size
   matrix[k, G] alpha_t;  // transposed matrix of gene-specific coefficients for each basis function
   real<lower=0> phi_nb;  // negative-binomial overdispersion parameter 
   vector<lower=0>[G] amplitude;  // vector of gene-specific amplitudes of the approximate GP
@@ -25,9 +25,8 @@ parameters {
 model {
   matrix[M, G] phi_alpha;
   phi_alpha = phi * alpha_t;
-  mu_beta0 ~ normal(0, 2);
-  sigma_beta0 ~ std_normal();
-  beta0 ~ normal(mu_beta0, sigma_beta0);
+  beta0 ~ normal(0, 2);
+  beta1 ~ normal(0, 2);
   mu_alpha ~ normal(0, 2);
   sigma_alpha ~ std_normal();
   for (i in 1:k) {
@@ -42,5 +41,5 @@ model {
   for (i in 1:N) {
     w[i] = phi_alpha[spot_id[i], gene_id[i]];
   }
-  y ~ neg_binomial_2_log(beta0[gene_id] + amplitude_sq[gene_id] .* w, phi_nb);
+  y ~ neg_binomial_2_log(beta0 + beta1 * gene_depths[gene_id] + amplitude_sq[gene_id] .* w, phi_nb);
 }

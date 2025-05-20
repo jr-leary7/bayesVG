@@ -46,5 +46,6 @@ enrichSpatialModules <- function(svg.clusters = NULL, species = "hsapiens") {
                                  ordered_query = TRUE, 
                                  multi_query = FALSE, 
                                  significant = FALSE)$result
+  enrich_res <- dplyr::arrange(enrich_res, p_value)
   return(enrich_res)
 }

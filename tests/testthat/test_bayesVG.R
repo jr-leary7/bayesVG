@@ -18,12 +18,8 @@ hvg_plot <- plotHVGs(seu_pbmc)
 # load spatial data & preprocess 
 load(system.file("data/seu_brain.rda", package = "bayesVG"))
 seu_brain <- suppressWarnings({ 
-  Seurat::SCTransform(seu_brain, 
-                      assay = "Spatial", 
-                      variable.features.n = 500L, 
-                      vst.flavor = "v2", 
-                      seed.use = 312, 
-                      verbose = FALSE)
+  Seurat::NormalizeData(seu_brain, verbose = FALSE) %>% 
+  Seurat::FindVariableFeatures(nfeatures = 1000L, verbose = FALSE)
 })
 
 # fit each kernel to spatial coordinates matrix 
@@ -41,14 +37,14 @@ for (i in seq(k)) {
   phi_periodic[, i] <- periodicKernel(d2, length.scale = lscale, period = 100L)
 }
 
-# fit spatial model, extract output, & cluster SVGs
+# fit spatial model, extract output, cluster SVGs, & run enrichment on SVG modules
 seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain, 
                                                 naive.hvgs = Seurat::VariableFeatures(seu_brain),
                                                 kernel = "matern", 
                                                 kernel.smoothness = 1.5, 
                                                 n.cores = 1L, 
                                                 save.model = TRUE) %>% 
-             classifySVGs(n.SVG = 100L)
+             classifySVGs(n.SVG = 300L)
 svg_metadata <- getBayesianGeneStats(seu_brain)
 svg_fit <- extractModel(seu_brain)
 svg_plot <- plotSVGs(seu_brain)
@@ -59,16 +55,19 @@ svg_clusters <- clusterSVGsBayes(seu_brain,
 seu_brain <- scoreSpatialModules(seu_brain, 
                                  svg.clusters = svg_clusters, 
                                  n.cores = 1L)
+enrich_res <- enrichSpatialModules(svg_clusters, species = "mmusculus")
 
 # compute naive gene statistics
 gene_stats_naive <- computeNaiveGeneStatistics(seu_pbmc, use.norm = TRUE)
 
 # convert seu_brain to SpatialExperiment from Seurat
-spe_brain <- convertToSpatialExperiment(seu_brain, sample.id = "anterior1")
+spe_brain <- suppressWarnings(convertToSpatialExperiment(seu_brain, sample.id = "anterior1"))
 
 # run spatial plotting 
 p1 <- plotSpatialExpression(seu_brain, gene.plot = "Nrgn")
 p2 <- plotSpatialExpression(spe_brain, gene.plot = "Nrgn")
+p3 <- plotTissueImage(seu_brain)
+p4 <- plotSpatialAttributes(seu_brain, attribute.plot = "region")
 
 # run HVG tests 
 test_that("HVG model", {
@@ -97,8 +96,8 @@ test_that("kernels", {
 test_that("SVG model", {
   expect_s4_class(seu_brain, "Seurat")
   expect_s3_class(svg_metadata, "data.frame")
-  expect_equal(ncol(svg_metadata), 10)
-  expect_equal(nrow(svg_metadata), 500)
+  expect_equal(ncol(svg_metadata), 18)
+  expect_equal(nrow(svg_metadata), 1000)
   expect_s3_class(svg_fit, "CmdStanVB")
   expect_s3_class(svg_plot, "ggplot")
   expect_type(svg_clusters, "list")
@@ -110,8 +109,11 @@ test_that("SVG model", {
   expect_type(seu_brain$svg_cluster_1_UCell, "double")
   expect_type(seu_brain$svg_cluster_2_UCell, "double")
   expect_type(seu_brain$svg_cluster_3_UCell, "double")
+  expect_s3_class(enrich_res, "data.frame")
   expect_s3_class(p1, "ggplot")
   expect_s3_class(p2, "ggplot")
+  expect_s3_class(p3, "ggplot")
+  expect_s3_class(p4, "ggplot")
 })
 
 # run naive gene statistics tests 
