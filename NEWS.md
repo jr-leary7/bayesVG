@@ -4,6 +4,8 @@
 + Added function `plotTissueImage()` to render a plot of the tissue image alone - with no information overlaid - given a `Seurat` object. 
 + Changed the way basis functions are generated so that they are orthonormal (mutually orthogonal and having unit norm) via a QR decomposition.
 + Added function `enrichSpatialModules()` to perform GSEA on clusters of SVGs using `gProfiler2` under the hood.
++ Made the default option to adjust for differing means among genes to be a hierarchical prior on the intercept instead of a fixed effect for gene depth. 
++ Added option to use the Negative-binomial likelihood for gene expression to `findSpatiallyvariableFeaturesBayes()`, along with accompanying Stan code. The relevant parameter is denoted `likelihood`. 
 
 # bayesVG v0.0.4 
 
