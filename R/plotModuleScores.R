@@ -8,8 +8,8 @@
 #' @param plot.type A character specifying which type of plot should be generated. Must be one of "spatial", "embedding", or "violin". Defaults to "spatial".
 #' @param embedding.name A character specifying which low-dimensional embedding to be used when \code{plot.type = "embedding"}. Defaults to NULL.
 #' @param violin.group A character specifying which categorical variable in the metadata of \code{sp.obj} will be used to group the violins when \code{plot.type = "violin"}. Defaults to NULL.
-#' @param pt.size A double specifying the size of the points to be plotted. Defaults to 2.
-#' @param pt.alpha A double specifying the opacity of the points to be plotted when \code{plot.type %in% c("spatial", "embedding")}. Defaults to 0.75.
+#' @param pt.size A double specifying the size of the points to be plotted when \code{plot.type} is "spatial" or "embedding". Defaults to 2.
+#' @param pt.alpha A double specifying the opacity of the points to be plotted when \code{plot.type} is "spatial" or "embedding". Defaults to 0.75.
 #' @param color.palette A vector containing colors that are passed to \code{\link[ggplot2]{scale_color_gradientn}} or \code{\link[ggplot2]{scale_color_manual}} and \code{\link[ggplot2]{scale_fill_manual}}, depending on the value of \code{plot.type}. Defaults to NULL.
 #' @import magrittr
 #' @importFrom cli cli_abort
@@ -20,7 +20,9 @@
 #' @importFrom SpatialExperiment spatialCoords
 #' @importFrom ggplot2 ggplot aes geom_point geom_violin scale_y_continuous labs scale_color_gradientn scale_color_manual scale_fill_manual
 #' @return An object of class \code{ggplot2}.
-#' @seealso \code{\link[ggspavis]{plotSpots}}
+#' @seealso \code{\link{scoreSpatialModules}}
+#' @seealso \code{\link{plotSpatialExpression}}
+#' @seealso \code{\link{plotSpatialAttributes}}
 #' @export
 #' @examples
 #' data(seu_brain)
@@ -66,9 +68,11 @@ plotModuleScores <- function(sp.obj = NULL,
   module_label <- paste0("Module ", module.plot, " Score")
   if (!module_name %in% colnames(meta_df)) { cli::cli_abort("Please provide a valid module name; check the metadata of {.field sp.obj}. to make sure the specified module exists.") }
   if (plot.type == "embedding") {
-    embedding_names <- ifelse(inherits(sp.obj, "Seurat"),
-                              Seurat::Reductions(sp.obj),
-                              SingleCellExperiment::reducedDimNames(sp.obj))
+    if (inherits(sp.obj, "Seurat")) {
+      embedding_names <- Seurat::Reductions(sp.obj)
+    } else if (inherits(sp.obj, "SpatialExperiment")) {
+      embedding_names <- SingleCellExperiment::reducedDimNames(sp.obj)
+    }
     if (!embedding.name %in% embedding_names) { cli::cli_abort("{.field embedding.name} must be the name of a low-dimensional embedding present in {.field sp.obj}. Check to make sure you've spelled / capitalized {.field embedding.name} correctly.") }
   } else if (plot.type == "violin") {
     violin_group_sym <- rlang::sym(violin.group)
@@ -96,7 +100,7 @@ plotModuleScores <- function(sp.obj = NULL,
                        y = "Spatial 2",
                        color = module_label) +
          theme_bayesVG(spatial = TRUE)
-    if (is.null(color.palette)) {
+    if (!is.null(color.palette)) {
       p <- p + ggplot2::scale_color_gradientn(colours = color.palette)
     }
   } else if (plot.type == "embedding") {
@@ -117,11 +121,11 @@ plotModuleScores <- function(sp.obj = NULL,
                        y = embedding_labels[2],
                        color = module_label) +
          theme_bayesVG(umap = TRUE)
-    if (is.null(color.palette)) {
+    if (!is.null(color.palette)) {
       p <- p + ggplot2::scale_color_gradientn(colours = color.palette)
     }
   } else if (plot.type == "violin") {
-    p <- ggplot2::ggplot(meta_df, ggplot2::aes(x = violin_group_sym, y = module_name_sym, color = violin_group_sym, fill = violin_group_sym)) +
+    p <- ggplot2::ggplot(meta_df, ggplot2::aes(x = !!violin_group_sym, y = !!module_name_sym, color = !!violin_group_sym, fill = !!violin_group_sym)) +
          ggplot2::geom_violin(draw_quantiles = 0.5,
                               scale = "width",
                               alpha = 0.5,
@@ -129,9 +133,9 @@ plotModuleScores <- function(sp.obj = NULL,
          ggplot2::labs(x = violin.group,
                        y = module_label,
                        color = violin.group,
-                       fill = violin.group)
+                       fill = violin.group) + 
          theme_bayesVG()
-    if (is.null(color.palette)) {
+    if (!is.null(color.palette)) {
       p <- p +
            ggplot2::scale_color_manual(values = color.palette) +
            ggplot2::scale_fill_manual(values = color.palette)

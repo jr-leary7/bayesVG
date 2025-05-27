@@ -7,6 +7,7 @@
 + Made the default option to adjust for differing means among genes to be a hierarchical prior on the intercept instead of a fixed effect for gene depth. 
 + Added option to use the Negative-binomial likelihood for gene expression to `findSpatiallyvariableFeaturesBayes()`, along with accompanying Stan code. The relevant parameter is denoted `likelihood`. 
 + Updated test suite. 
++ Added function `plotModuleScores()` to generate spatial scatterplots, embedding scatterplots, and violin plots of spatial module scores.
 
 # bayesVG v0.0.4 
 
