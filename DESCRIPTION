@@ -12,8 +12,10 @@ Depends:
   magrittr, 
   R (>= 3.5.0)
 Imports: 
+    sp, 
     cli, 
     brms, 
+    gstat, 
     utils, 
     purrr, 
     withr, 

@@ -40,6 +40,7 @@ for (i in seq(k)) {
 # fit spatial model, extract output, cluster SVGs, & run enrichment on SVG modules
 seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain, 
                                                 naive.hvgs = Seurat::VariableFeatures(seu_brain),
+                                                lscale.estimator = "variogram", 
                                                 kernel = "matern", 
                                                 kernel.smoothness = 1.5, 
                                                 n.cores = 1L, 
@@ -91,7 +92,7 @@ spe_brain <- suppressWarnings(convertToSpatialExperiment(seu_brain, sample.id = 
 p1 <- plotSpatialExpression(seu_brain, gene.plot = "Nrgn")
 p2 <- plotSpatialExpression(spe_brain, gene.plot = "Nrgn")
 p3 <- plotTissueImage(seu_brain)
-p4 <- plotSpatialAttributes(seu_brain, attribute.plot = "region")
+p4 <- plotSpatialAttributes(seu_brain, attribute.plot = "seurat_clusters")
 p5 <- plotModuleScores(seu_brain, 
                        module.plot = "1", 
                        plot.type = "spatial")

@@ -8,6 +8,7 @@
 + Added option to use the Negative-binomial likelihood for gene expression to `findSpatiallyvariableFeaturesBayes()`, along with accompanying Stan code. The relevant parameter is denoted `likelihood`. 
 + Updated test suite. 
 + Added function `plotModuleScores()` to generate spatial scatterplots, embedding scatterplots, and violin plots of spatial module scores.
++ Added alternative method of estimating global length-scale within `findSpatiallyvariableFeaturesBayes()` using aggregated variograms. 
 
 # bayesVG v0.0.4 
 
