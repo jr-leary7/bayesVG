@@ -1,3 +1,7 @@
+# bayesVG v0.0.6 
+
++ Updated dependencies for R 4.5.1. 
+
 # bayesVG v0.0.5
 
 + Added function `plotSpatialExpression()` to generate a clean plot of gene expression overlaid on spatial coordinates given a `Seurat` or `SpatialExperiment` object. 
