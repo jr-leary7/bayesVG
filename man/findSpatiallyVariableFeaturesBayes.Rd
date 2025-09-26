@@ -8,6 +8,7 @@ findSpatiallyVariableFeaturesBayes(
   sp.obj = NULL,
   naive.hvgs = NULL,
   likelihood = "gaussian",
+  lscale.estimator = "kmeans",
   n.iter = 3000L,
   kernel = "exp_quad",
   kernel.smoothness = 1.5,
@@ -32,6 +33,8 @@ findSpatiallyVariableFeaturesBayes(
 \item{naive.hvgs}{A vector containing genes that have been classified as naive HVGs from which SVGs will be detected. Defaults to NULL.}
 
 \item{likelihood}{A string specifying the likelihood to be used when fitting the model. Must be one of "gaussian" or "nb" (for Negative-binomial). Defaults to "gaussian".}
+
+\item{lscale.estimator}{A string specifying how the global length-scale should be estimated. Must be one of "kmeans" or "variogram". Defaults to "kmeans".}
 
 \item{n.iter}{An integer specifying the maximum number of iterations. Defaults to 3000.}
 

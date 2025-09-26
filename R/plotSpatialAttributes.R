@@ -37,15 +37,15 @@ plotSpatialAttributes <- function(sp.obj = NULL,
   if (!attribute.plot %in% colnames(meta_df)) { cli::cli_abort("{.field attribute.plot} must exist in the colnames of the metadata of {.field sp.obj}.") }
   # generate plot
   if (inherits(sp.obj, "Seurat")) {
-    coord_df <- Seurat::GetTissueCoordinates(seu_brain) %>% 
-                dplyr::select(1:2) %>% 
-                magrittr::set_colnames(c("x", "y")) %>% 
-                as.matrix() %>% 
-                scale() %>% 
-                as.data.frame() %>% 
+    coord_df <- Seurat::GetTissueCoordinates(sp.obj) %>%
+                dplyr::select(1:2) %>%
+                magrittr::set_colnames(c("x", "y")) %>%
+                as.matrix() %>%
+                scale() %>%
+                as.data.frame() %>%
                 dplyr::mutate(meta_vec = meta_df[, attribute.plot])
-    p <- ggplot2::ggplot(coord_df, ggplot2::aes(x = y, y = x, color = meta_vec)) + 
-         ggplot2::geom_point(size = pt.size, stroke = 0) + 
+    p <- ggplot2::ggplot(coord_df, ggplot2::aes(x = y, y = x, color = meta_vec)) +
+         ggplot2::geom_point(size = pt.size, stroke = 0) +
          ggplot2::scale_y_continuous(transform = "reverse")
   } else if (inherits(sp.obj, "SpatialExperiment")) {
     coord_df <- SpatialExperiment::spatialCoords(sp.obj)
@@ -54,19 +54,19 @@ plotSpatialAttributes <- function(sp.obj = NULL,
     p <- ggspavis::plotSpots(sp.obj,
                              x_coord = coord1_name,
                              y_coord = coord2_name,
-                             annotate = attribute.plot, 
+                             annotate = attribute.plot,
                              point_size = pt.size,
                              show_axes = TRUE)
   }
-  p <- p + ggplot2::labs(x = "Spatial 1", 
-                         y = "Spatial 2", 
-                         color = attribute.plot, 
+  p <- p + ggplot2::labs(x = "Spatial 1",
+                         y = "Spatial 2",
+                         color = attribute.plot,
                          fill = attribute.plot)
   if (!is.null(color.palette)) {
-    p <- p + 
+    p <- p +
          ggplot2::scale_color_manual(values = color.palette)
   }
-  p <- p + 
+  p <- p +
        theme_bayesVG(spatial = TRUE)
   return(p)
 }

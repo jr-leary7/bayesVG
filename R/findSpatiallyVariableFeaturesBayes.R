@@ -6,6 +6,7 @@
 #' @param sp.obj An object of class \code{Seurat} containing spatial data. Defaults to NULL.
 #' @param naive.hvgs A vector containing genes that have been classified as naive HVGs from which SVGs will be detected. Defaults to NULL.
 #' @param likelihood A string specifying the likelihood to be used when fitting the model. Must be one of "gaussian" or "nb" (for Negative-binomial). Defaults to "gaussian". 
+#' @param lscale.estimator A string specifying how the global length-scale should be estimated. Must be one of "kmeans" or "variogram". Defaults to "kmeans". 
 #' @param n.iter An integer specifying the maximum number of iterations. Defaults to 3000.
 #' @param kernel A string specifying the covariance kernel to be used when fitting the GP. Must be one of "exp_quad", "matern", or "periodic". Defaults to "exp_quad".
 #' @param kernel.smoothness A double specifying the smoothness parameter \eqn{\nu} used when computing the Matérn kernel. Must be one of 0.5, 1.5, or 2.5. Using 0.5 corresponds to the exponential kernel. Defaults to 1.5.
@@ -46,8 +47,13 @@
 #' @importFrom SummarizedExperiment rowData
 #' @importFrom dplyr relocate mutate rename rename_with with_groups select inner_join desc filter distinct arrange left_join bind_rows
 #' @importFrom tidyr pivot_longer
-#' @importFrom stats kmeans dist median
+#' @importFrom stats kmeans dist median var
 #' @importFrom withr with_output_sink
+#' @importFrom utils txtProgressBar setTxtProgressBar
+#' @importFrom parallel makeCluster stopCluster
+#' @importFrom doSNOW registerDoSNOW
+#' @importFrom sp SpatialPointsDataFrame
+#' @importFrom gstat variogram vgm fit.variogram
 #' @importFrom methods slot
 #' @importFrom S4Vectors DataFrame
 #' @return Depending on the input, either an object of class \code{Seurat} or \code{SpatialExperiment} with gene-level statistics added to the appropriate metadata slot.
@@ -69,6 +75,7 @@
 findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                                naive.hvgs = NULL,
                                                likelihood = "gaussian", 
+                                               lscale.estimator = "kmeans", 
                                                n.iter = 3000L,
                                                kernel = "exp_quad",
                                                kernel.smoothness = 1.5,
@@ -141,6 +148,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
    spatial_df <- SpatialExperiment::spatialCoords(sp.obj) %>%
                  as.data.frame()
   }
+  colnames(spatial_df) <- c("x", "y")
   spatial_mtx <- scale(as.matrix(spatial_df))
   # extract matrix of (raw or normalized) gene expression
   if (inherits(sp.obj, "Seurat")) {
@@ -170,13 +178,72 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   }
   expr_df <- as.data.frame(expr_df)
   # estimate global length-scale
-  M <- nrow(spatial_mtx)
+  if (verbose) {
+    cli::cli_alert_info(paste0("Estimating global length-scale using the ", 
+                               ifelse(lscale.estimator == "kmeans", "k-means", "variogram"), 
+                               " method..."))
+  }
   kmeans_centers <- stats::kmeans(spatial_mtx, centers = n.basis.fns, iter.max = 100L)$centers
-  dists_centers <- as.matrix(stats::dist(kmeans_centers))
-  lscale <- stats::median(dists_centers[upper.tri(dists_centers)])
+  if (lscale.estimator == "kmeans") {
+    dists_centers <- as.matrix(stats::dist(kmeans_centers))
+    lscale <- stats::median(dists_centers[upper.tri(dists_centers)])
+  } else if (lscale.estimator == "variogram") {
+    spatial_df <- mutate(spatial_df, 
+                         x = as.numeric(scale(x)), 
+                         y = as.numeric(scale(y)))
+    if (verbose) {
+      withr::with_output_sink(tempfile(), {
+        pb <- utils::txtProgressBar(0, length(naive.hvgs), style = 3)
+      })
+      progress_fun <- function(n) utils::setTxtProgressBar(pb, n)
+      snow_opts <- list(progress = progress_fun)
+    } else {
+      snow_opts <- list()
+    }
+    if (n.cores > 1L) {
+      cl <- parallel::makeCluster(n.cores)
+      doSNOW::registerDoSNOW(cl)
+    } else {
+      cl <- foreach::registerDoSEQ()
+    }
+    vario_ranges <- foreach::foreach(g = seq(naive.hvgs),
+                                     .combine = c,
+                                     .multicombine = ifelse(length(naive.hvgs) > 1, TRUE, FALSE),
+                                     .maxcombine = ifelse(length(naive.hvgs) > 1, length(naive.hvgs), 2),
+                                     .inorder = TRUE,
+                                     .verbose = FALSE,
+                                     .options.snow = snow_opts) %dopar% {
+      gene_expr <- unname(expr_mtx[naive.hvgs[g], ])
+      sp_df <- sp::SpatialPointsDataFrame(spatial_df, data = data.frame(z = gene_expr))
+      emp_vario <- gstat::variogram(z ~ 1, data = sp_df)
+      gene_var <- stats::var(gene_expr)
+      init_model <- gstat::vgm(gene_var * 0.8,
+                               model = "Mat",
+                               range = stats::median(emp_vario$dist, na.rm = TRUE),
+                               nugget = gene_var * 0.2, 
+                               kappa = kernel.smoothness)
+      vario_fit <- try({
+        gstat::fit.variogram(emp_vario, init_model)
+      }, silent = TRUE)
+      if (inherits(vario_fit, "try-error")) {
+        res <- NA_real_
+      } else {
+        res <- as.numeric(vario_fit[vario_fit$model == "Mat", "range"])
+      }
+      res
+    }
+    if (verbose && n.cores > 1L) {
+      cat("\n")
+    }
+    if (n.cores > 1L) {
+      parallel::stopCluster(cl)
+    }
+    lscale <- stats::median(vario_ranges, na.rm = TRUE)
+  }
   if (verbose) {
     cli::cli_alert_info(paste0("Estimated length-scale: ", round(lscale, 4)))
   }
+  M <- nrow(spatial_mtx)
   # estimate matrix of basis functions used to approximate GP with desired kernel
   phi <- matrix(0, nrow = M, ncol = n.basis.fns)
   for (i in seq(n.basis.fns)) {
