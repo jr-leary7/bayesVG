@@ -11,6 +11,7 @@
 #' @importFrom cli cli_abort
 #' @importFrom Seurat GetTissueCoordinates
 #' @importFrom dplyr select mutate
+#' @importFrom SingleCellExperiment colData
 #' @importFrom SpatialExperiment spatialCoords
 #' @importFrom ggplot2 ggplot aes geom_point scale_y_continuous labs scale_color_manual
 #' @return An object of class \code{ggplot2}.
@@ -32,7 +33,7 @@ plotSpatialAttributes <- function(sp.obj = NULL,
   if (inherits(sp.obj, "Seurat")) {
     meta_df <- sp.obj@meta.data
   } else if (inherits(sp.obj, "SpatialExperiment")) {
-    meta_df <- as.data.frame(sp.obj@metadata)
+    meta_df <- as.data.frame(SingleCellExperiment::colData(sp.obj))
   }
   if (!attribute.plot %in% colnames(meta_df)) { cli::cli_abort("{.field attribute.plot} must exist in the colnames of the metadata of {.field sp.obj}.") }
   # generate plot
