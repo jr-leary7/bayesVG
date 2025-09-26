@@ -1,6 +1,8 @@
 # bayesVG v0.0.6 
 
 + Updated dependencies for R 4.5.1. 
++ Fixed failing tests related to `Seurat` to `SpatialExperiment` conversion. 
++ Updated spatial expression plotting function to use `ggspavis::plotCoords()` as `ggspavis::plotSpots()` has been deprecated. 
 
 # bayesVG v0.0.5
 
