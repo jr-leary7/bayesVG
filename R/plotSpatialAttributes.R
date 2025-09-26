@@ -11,6 +11,7 @@
 #' @importFrom cli cli_abort
 #' @importFrom Seurat GetTissueCoordinates
 #' @importFrom dplyr select mutate
+#' @importFrom SingleCellExperiment colData
 #' @importFrom SpatialExperiment spatialCoords
 #' @importFrom ggplot2 ggplot aes geom_point scale_y_continuous labs scale_color_manual
 #' @return An object of class \code{ggplot2}.
