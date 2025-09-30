@@ -2,7 +2,7 @@
 % Please edit documentation in R/maternKernel.R
 \name{maternKernel}
 \alias{maternKernel}
-\title{Compute the Matern-family kernel.}
+\title{Compute the Matérn-family kernel.}
 \usage{
 maternKernel(d = NULL, length.scale = NULL, nu = NULL, sigma = 1)
 }
@@ -11,9 +11,9 @@ maternKernel(d = NULL, length.scale = NULL, nu = NULL, sigma = 1)
 
 \item{length.scale}{A numeric specifying the length-scale \eqn{\ell} for the approximate GP. Defaults to NULL.}
 
-\item{nu}{A numeric specifying the smoothness parameter \eqn{\nu} of the Matern kernel. Defaults to NULL.}
+\item{nu}{A numeric specifying the smoothness parameter \eqn{\nu} of the Matérn kernel. Defaults to NULL.}
 
-\item{sigma}{A numeric specifying the variance of the Matern kernel. Defaults to 1.}
+\item{sigma}{A numeric specifying the variance of the Matérn kernel. Defaults to 1.}
 }
 \value{
 A vector of numeric values.

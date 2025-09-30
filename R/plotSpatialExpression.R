@@ -15,7 +15,7 @@
 #' @importFrom SummarizedExperiment rowData
 #' @importFrom S4Vectors DataFrame
 #' @importFrom SpatialExperiment spatialCoords
-#' @importFrom ggplot2 ggplot aes geom_point scale_y_continuous labs scale_color_gradientn scale_fill_gradientn theme element_text
+#' @importFrom ggplot2 ggplot aes geom_point scale_y_continuous labs scale_color_gradientn theme element_text
 #' @return An object of class \code{ggplot2}.
 #' @seealso \code{\link[Seurat]{SpatialFeaturePlot}}
 #' @seealso \code{\link[ggspavis]{plotSpots}}
@@ -70,12 +70,10 @@ plotSpatialExpression <- function(sp.obj = NULL,
   }
   p <- p + ggplot2::labs(x = "Spatial 1",
                          y = "Spatial 2",
-                         color = gene.plot,
-                         fill = gene.plot)
+                         color = gene.plot)
   if (!is.null(color.palette)) {
     p <- p +
-         ggplot2::scale_color_gradientn(colors = color.palette) +
-         ggplot2::scale_fill_gradientn(colors = color.palette)
+         ggplot2::scale_color_gradientn(colors = color.palette)
   }
   p <- p +
        theme_bayesVG(spatial = TRUE) +
