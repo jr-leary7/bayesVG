@@ -125,15 +125,27 @@ plotModuleScores <- function(sp.obj = NULL,
       p <- p + ggplot2::scale_color_gradientn(colours = color.palette)
     }
   } else if (plot.type == "violin") {
-    p <- ggplot2::ggplot(meta_df, ggplot2::aes(x = !!violin_group_sym, y = !!module_name_sym, color = !!violin_group_sym, fill = !!violin_group_sym)) +
-         ggplot2::geom_violin(draw_quantiles = 0.5,
-                              scale = "width",
-                              alpha = 0.5,
-                              linewidth = 0.75) +
+    p <- ggplot2::ggplot(meta_df, ggplot2::aes(x = !!violin_group_sym, y = !!module_name_sym, color = !!violin_group_sym, fill = !!violin_group_sym))
+    if (packageVersion("ggplot2") < "4.0.0") {
+      p <- p +
+           ggplot2::geom_violin(draw_quantiles = 0.5,
+                                scale = "width",
+                                alpha = 0.5,
+                                linewidth = 0.75)
+    } else {
+      p <- p +
+           ggplot2::geom_violin(quantile.linetype = 1,
+                                quantile.linewidth = 0.75,
+                                quantiles = 0.5,
+                                scale = "width",
+                                alpha = 0.5,
+                                linewidth = 0.75)
+    }
+    p <- p +
          ggplot2::labs(x = violin.group,
                        y = module_label,
                        color = violin.group,
-                       fill = violin.group) + 
+                       fill = violin.group) +
          theme_bayesVG()
     if (!is.null(color.palette)) {
       p <- p +

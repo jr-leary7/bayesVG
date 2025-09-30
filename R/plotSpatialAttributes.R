@@ -16,7 +16,7 @@
 #' @importFrom ggplot2 ggplot aes geom_point scale_y_continuous labs scale_color_manual
 #' @return An object of class \code{ggplot2}.
 #' @seealso \code{\link[Seurat]{SpatialDimPlot}}
-#' @seealso \code{\link[ggspavis]{plotSpots}}
+#' @seealso \code{\link[ggspavis]{plotCoords}}
 #' @seealso \code{\link{plotSpatialExpression}}
 #' @export
 #' @examples
@@ -52,12 +52,12 @@ plotSpatialAttributes <- function(sp.obj = NULL,
     coord_df <- SpatialExperiment::spatialCoords(sp.obj)
     coord1_name <- colnames(coord_df)[1]
     coord2_name <- colnames(coord_df)[2]
-    p <- ggspavis::plotSpots(sp.obj,
-                             x_coord = coord1_name,
-                             y_coord = coord2_name,
-                             annotate = attribute.plot,
-                             point_size = pt.size,
-                             show_axes = TRUE)
+    p <- ggspavis::plotCoords(sp.obj,
+                              x_coord = coord1_name,
+                              y_coord = coord2_name,
+                              annotate = attribute.plot,
+                              point_size = pt.size,
+                              show_axes = TRUE)
   }
   p <- p + ggplot2::labs(x = "Spatial 1",
                          y = "Spatial 2",
