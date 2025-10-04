@@ -39,7 +39,9 @@ plotSpatialExpression <- function(sp.obj = NULL,
   if (!gene.plot %in% rownames(sp.obj)) { cli::cli_abort("{.field gene.plot} must exist in the rownames of {.field sp.obj}.") }
   # generate plot
   if (inherits(sp.obj, "Seurat")) {
-    expr_vector <- Seurat::GetAssayData(sp.obj, assay = Seurat::DefaultAssay(sp.obj), layer = ifelse(use.norm, "data", "counts"))[gene.plot, ]
+    expr_vector <- Seurat::GetAssayData(sp.obj, 
+                                        assay = Seurat::DefaultAssay(sp.obj), 
+                                        layer = ifelse(use.norm, "data", "counts"))[gene.plot, ]
     coord_df <- Seurat::GetTissueCoordinates(sp.obj) %>%
                 dplyr::select(1:2) %>%
                 magrittr::set_colnames(c("x", "y")) %>%
