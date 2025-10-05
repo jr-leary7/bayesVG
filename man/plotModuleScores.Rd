@@ -41,7 +41,7 @@ Given a \code{Seurat} or \code{SpatialExperiment} object, generate a variety of 
 \examples{
 data(seu_brain)
 seu_brain <- Seurat::NormalizeData(seu_brain, verbose = FALSE) \%>\%
-             Seurat::FindVariableFeatures(nfeatures = 3000L, verbose = FALSE)
+             Seurat::FindVariableFeatures(nfeatures = 1000L, verbose = FALSE)
 seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
                                                 naive.hvgs = Seurat::VariableFeatures(seu_brain),
                                                 kernel = "matern",
@@ -49,10 +49,10 @@ seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
                                                 algorithm = "meanfield",
                                                 n.cores = 1L,
                                                 save.model = TRUE) \%>\%
-             classifySVGs(n.SVG = 1000L)
+             classifySVGs(n.SVG = 300L)
 svg_clusters <- clusterSVGsBayes(seu_brain,
                                  svgs = Seurat::VariableFeatures(seu_brain),
-                                 n.clust = 3L,
+                                 n.clust = 2L,
                                  n.cores = 1L)
 seu_brain <- scoreSpatialModules(seu_brain,
                                  svg.clusters = svg_clusters,
