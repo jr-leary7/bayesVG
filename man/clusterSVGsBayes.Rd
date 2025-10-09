@@ -10,7 +10,7 @@ clusterSVGsBayes(
   n.clust = 5L,
   n.PCs = 30L,
   algorithm = "meanfield",
-  n.iter = 3000,
+  n.iter = 3000L,
   n.draws = 1000L,
   elbo.samples = NULL,
   opencl.params = NULL,
@@ -54,9 +54,10 @@ This downstream analysis function clusters identified SVGs into modules via an a
 \itemize{
 \item The soft clustering algorithm is a Gaussian mixture model (GMM), thus each cluster is modeled by a multivariate normal distribution with diagonal covariance. The diagonal covariance assumption is appropriate because each PC is orthogonal to the others.
 \item The mixing proportions for each cluster are specified with a Dirichlet prior, while the mean follows a Gaussian distribution and the standard deviation a HalfGaussian.
-\item Due to the architecture of the model, it is necessary for the user to supply a number of clusters via the \code{n.clust} argument. It s difficult to know the correct value to provide beforehand, but luckily the clustering model is quick to run and so multiple values of \code{n.clust} can be fitted and visualized in order to find the "best" value.
+\item Due to the architecture of the model, it is necessary for the user to supply a number of clusters via the \code{n.clust} argument. It's difficult to know the correct value to provide beforehand, but luckily the clustering model is quick to run and so multiple values of \code{n.clust} can be fitted and visualized in order to find the "best" value.
 \item After modeling, the per-cluster assignment probabilities are computed for each gene. The cluster with the highest probability is then defined as the hard cluster for each gene.
-\item The cluster model also estimated the log-likelihood per-gene, per-draw. This is then used to estimate the overall log-likelihood of the model as well as the corresponding Bayesian information criterion (BIC). The BIC can be used to compare multiple runs of the model, and thus choose the best value of the number of clusters \code{n.clust}.
+\item The clustering model also estimates the log-likelihood per-gene, per-draw. This is then used to estimate the overall log-likelihood of the model as well as the corresponding Bayesian information criterion (BIC). The BIC can be used to compare multiple runs of the model, and thus choose the best value of the number of clusters \code{n.clust}.
+\item When using the fullrank algorithm, it's generally necessary to increase the number of iterations using the \code{n.iter} argument. While the meanfield algorithm generally converges within 1000 iterations, the fullrank algorithm might need e.g., 30,000 iterations. Luckily, the Stan code is very fast so even with 30,000 iterations the clustering should be relatively quick. 
 }
 }
 \examples{
