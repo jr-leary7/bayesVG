@@ -42,9 +42,6 @@ model {
   mu_amplitude ~ normal(0, 2);
   sigma_amplitude ~ std_normal();
   sigma_y ~ normal(0, 2);
-  for (i in 1:k) {
-    alpha_t[i] ~ normal(mu_alpha[i], sigma_alpha[i]);
-  }
   amplitude ~ lognormal(mu_amplitude, sigma_amplitude);
   y ~ normal(beta0 + beta1 * gene_depths[gene_id] + amplitude_sq[gene_id] .* w, sigma_y);
 }
