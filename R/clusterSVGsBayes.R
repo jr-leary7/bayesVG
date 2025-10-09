@@ -79,9 +79,9 @@ clusterSVGsBayes <- function(sp.obj = NULL,
   if (!algorithm %in% c("meanfield", "fullrank", "pathfinder")) { cli::cli_abort("Please provide a valid variational inference approximation algorithm.") }
   if (is.null(elbo.samples)) {
     if (algorithm == "pathfinder") {
-      elbo.samples <- 50L
+      elbo.samples <- 100L
     } else {
-      elbo.samples <- 150L
+      elbo.samples <- 300L
     }
   }
   if (!is.null(opencl.params) && (!is.double(opencl.params) || !length(opencl.params) == 2)) { cli::cli_abort("Argument {.field opencl.params} must be a double vector of length 2 if non-NULL.") }
@@ -114,7 +114,7 @@ clusterSVGsBayes <- function(sp.obj = NULL,
   expr_mtx <- as.matrix(expr_mtx[svgs, ])
   expr_mtx <- t(scale(t(expr_mtx)))
   attributes(expr_mtx)[3:4] <- NULL
-  # run PCA on the normalized data
+  # run PCA on the normalized, scaled data
   svg_mtx_pca <- irlba::prcomp_irlba(expr_mtx,
                                      n = n.PCs,
                                      center = FALSE,

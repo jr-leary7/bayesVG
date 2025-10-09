@@ -2,7 +2,8 @@ Package: bayesVG
 Type: Package
 Title: Identify Variable Genes via Bayesian Inference
 Version: 0.0.6
-Authors@R: c(person(given = c("Jack", "R."), family = "Leary", email = "j.leary@ufl.edu", role = c("aut", "cre"), comment = c(ORCID = "0009-0004-8821-3269")))
+Authors@R: c(person(given = c("Jack", "R."), family = "Leary", email = "j.leary@ufl.edu", role = c("aut", "cre"), comment = c(ORCID = "0009-0004-8821-3269")), 
+             person(given = "Rhonda", family = "Bacher", email = "rbacher@ufl.edu", role = c("fnd"), comment = c(ORCID = "0000-0001-5787-476X")))
 Description: Our method implements efficient highly and spatially variable gene identification in scRNA-seq and spatial transcriptomics data using approximate Bayesian hierarchical models.
 License: MIT
 Encoding: UTF-8
