@@ -31,7 +31,7 @@
 #'                                                 algorithm = "meanfield",
 #'                                                 n.cores = 1L,
 #'                                                 save.model = TRUE) %>%
-#'              classifySVGs(n.SVG = 300L)
+#'              classifySVGs(n.SVG = 200L)
 
 classifySVGs <- function(sp.obj = NULL,
                          selection.method = "rank",
@@ -54,8 +54,7 @@ classifySVGs <- function(sp.obj = NULL,
       gene_summary <- sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]]@meta.data
     }
   } else {
-    gene_summary <- SummarizedExperiment::rowData(sp.obj) %>%
-                    as.data.frame()
+    gene_summary <- as.data.frame(SummarizedExperiment::rowData(sp.obj))
   }
   # identify HVGs based on user-specified method
   if (selection.method == "rank") {

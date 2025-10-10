@@ -102,6 +102,14 @@ clusterSVGsBayes <- function(sp.obj = NULL,
     }
   }
   if (n.cores > unname(parallelly::availableCores())) { cli::cli_abort("The number of requested cores is greater than the number of available cores.") }
+  if (verbose) {
+    startup_message <- paste0("Starting {.pkg bayesVG} clustering of ",
+                              length(svgs), 
+                              " spatially variable genes using the ", 
+                              ifelse(algorithm == "meanfield", "meanfield", ifelse(algorithm == "fullrank", "fullrank", "Pathfinder")), 
+                              " VI algorithm.")
+    cli::cli_alert_info(startup_message)
+  }
   # start time tracking
   time_start <- Sys.time()
   # extract matrix of normalized gene expression & scale it

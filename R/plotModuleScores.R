@@ -36,7 +36,7 @@
 #'                                                 algorithm = "meanfield",
 #'                                                 n.cores = 1L,
 #'                                                 save.model = TRUE) %>%
-#'              classifySVGs(n.SVG = 300L)
+#'              classifySVGs(n.SVG = 200L)
 #' svg_clusters <- clusterSVGsBayes(seu_brain,
 #'                                  svgs = Seurat::VariableFeatures(seu_brain),
 #'                                  n.clust = 2L,
