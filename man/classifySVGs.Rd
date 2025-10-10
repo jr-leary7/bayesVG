@@ -32,7 +32,7 @@ After estimating per-gene spatial variation statistics, classify genes as spatia
 \examples{
 data(seu_brain)
 seu_brain <- Seurat::NormalizeData(seu_brain, verbose = FALSE) \%>\% 
-             Seurat::FindVariableFeatures(nfeatures = 3000L, verbose = FALSE)
+             Seurat::FindVariableFeatures(nfeatures = 1000L, verbose = FALSE)
 seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
                                                 naive.hvgs = Seurat::VariableFeatures(seu_brain),
                                                 kernel = "matern",
@@ -40,7 +40,7 @@ seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
                                                 algorithm = "meanfield",
                                                 n.cores = 1L,
                                                 save.model = TRUE) \%>\%
-             classifySVGs(n.SVG = 1000L)
+             classifySVGs(n.SVG = 300L)
 }
 \seealso{
 \code{\link{findSpatiallyVariableFeaturesBayes}}

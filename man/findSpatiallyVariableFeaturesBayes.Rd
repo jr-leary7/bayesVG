@@ -91,7 +91,7 @@ This function implements SVG estimation using Bayesian variational inference to 
 \examples{
 data(seu_brain)
 seu_brain <- Seurat::NormalizeData(seu_brain, verbose = FALSE) \%>\% 
-             Seurat::FindVariableFeatures(nfeatures = 3000L, verbose = FALSE)
+             Seurat::FindVariableFeatures(nfeatures = 1000L, verbose = FALSE)
 seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
                                                 naive.hvgs = Seurat::VariableFeatures(seu_brain),
                                                 kernel = "matern",

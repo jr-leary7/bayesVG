@@ -13,23 +13,28 @@ data {
 parameters {
   real beta0;  // global intercept
   real beta1;  // coefficient for gene library size
-  matrix[k, G] alpha_t;  // transposed matrix of gene-specific coefficients for each basis function
   real<lower=0> sigma_y;  // observation noise of response variable
   vector<lower=0>[G] amplitude;  // vector of gene-specific amplitudes of the approximate GP
   real mu_amplitude;  // mean for the amplitude
   real<lower=0> sigma_amplitude;  // SD for the amplitude
   vector[k] mu_alpha;  // vector of means for the basis function coefficients
   vector<lower=0>[k] sigma_alpha;  // vector of SDs for the basis function coefficients
+  matrix[k, G] z_alpha_t;  // standard normal RV for basis function coefficients
+}
+
+transformed parameters {
+  vector[G] amplitude_sq = square(amplitude);
 }
 
 model {
-  matrix[M, G] phi_alpha;
-  phi_alpha = phi * alpha_t;
+  matrix[k, G] alpha_t;
+  alpha_t = rep_matrix(mu_alpha, G) + diag_pre_multiply(sigma_alpha, z_alpha_t);
+  matrix[M, G] phi_alpha = phi * alpha_t;
   vector[N] w;
   for (i in 1:N) {
     w[i] = phi_alpha[spot_id[i], gene_id[i]];
   }
-  vector[G] amplitude_sq = square(amplitude);
+  to_vector(z_alpha_t) ~ std_normal();
   beta0 ~ normal(0, 2);
   beta1 ~ normal(0, 2);
   mu_alpha ~ normal(0, 2);
@@ -37,21 +42,6 @@ model {
   mu_amplitude ~ normal(0, 2);
   sigma_amplitude ~ std_normal();
   sigma_y ~ normal(0, 2);
-  for (i in 1:k) {
-    alpha_t[i] ~ normal(mu_alpha[i], sigma_alpha[i]);
-  }
   amplitude ~ lognormal(mu_amplitude, sigma_amplitude);
   y ~ normal(beta0 + beta1 * gene_depths[gene_id] + amplitude_sq[gene_id] .* w, sigma_y);
 }
-
-// generated quantities {
-//   matrix[M, G] phi_alpha;
-//   phi_alpha = phi * alpha_t;
-//   vector[G] amplitude_sq = square(amplitude);
-//   array[N] real log_lik;
-//   for (i in 1:N) {
-//     real mu_i;
-//     mu_i = beta0 + beta1 * gene_depths[gene_id[i]] + amplitude_sq[gene_id[i]] * phi_alpha[spot_id[i], gene_id[i]];
-//     log_lik[i] = normal_lpdf(y[i] | mu_i, sigma_y);
-//   }
-// }

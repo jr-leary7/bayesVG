@@ -23,6 +23,6 @@ maternKernel <- function(d = NULL,
   # compute Matern kernel values
   res <- sigma^2 * (2^(1 - nu) / gamma(nu)) * (scaled_distance)^nu * besselK(scaled_distance, nu)
   # replace NA values with sigma^2
-  res[is.nan(res)] <- sigma^2
+  res[!is.finite(res)] <- sigma^2
   return(res)
 }

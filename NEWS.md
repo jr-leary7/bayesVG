@@ -4,6 +4,11 @@
 + Fixed failing tests related to `Seurat` to `SpatialExperiment` conversion. 
 + Updated spatial expression & attribute plotting functions to use `ggspavis::plotCoords()` as `ggspavis::plotSpots()` has been deprecated. 
 + Updated `plotModuleScores()` to account for changes to `ggplot2::geom_violin()` with respect to how quantiles are drawn. 
++ Changed some dependencies in docs & made the code in Examples more performant.
++ Updated CITATION file to use new `bibentry()` format. 
++ Added non-centered prior parameterizations to the two Gaussian SVG models' Stan code. This increases accuracy as well as speed.
++ Dramatically sped up the SVG clustering model. 
++ Sped up matrix distance computation via the `fields` package and matrix scaling via the `coop` package. 
 
 # bayesVG v0.0.5
 

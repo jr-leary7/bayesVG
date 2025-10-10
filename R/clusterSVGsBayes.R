@@ -7,10 +7,10 @@
 #' @param svgs A character vector containing the identified SVGs. Defaults to NULL.
 #' @param n.clust An integer specifying the number of clusters to fit to the data. Defaults to 5.
 #' @param n.PCs An integer specifying the number of principal components (PCs) to reduce the data to prior to clustering. Defaults to 30.
-#' @param algorithm A string specifying the variational inference (VI) approximation algorithm to be used. Must be one of "meanfield", "fullrank", or "pathfinder". Defaults to "meanfield".
-#' @param n.iter An integer specifying the maximum number of iterations. Defaults to 3000.
+#' @param algorithm A string specifying the variational inference (VI) approximation algorithm to be used. Must be one of "meanfield", "fullrank", or "pathfinder". Defaults to "fullrank".
+#' @param n.iter An integer specifying the maximum number of iterations. Defaults to 30000.
 #' @param n.draws An integer specifying the number of draws to be generated from the variational posterior. Defaults to 1000.
-#' @param elbo.samples An integer specifying the number of samples to be used to estimate the ELBO at every 100th iteration. Higher values will provide a more accurate estimate at the cost of computational complexity. Defaults to 150 when \code{algorithm} is one of "meanfield" or "fullrank", and 50 when \code{algorithm} is "pathfinder".
+#' @param elbo.samples An integer specifying the number of samples to be used to estimate the ELBO at every 100th iteration. Higher values will provide a more accurate estimate at the cost of computational complexity. Defaults to 300 when \code{algorithm} is one of "meanfield" or "fullrank", and 100 when \code{algorithm} is "pathfinder".
 #' @param opencl.params A two-element double vector specifying the platform and device IDs of the OpenCL GPU device. Most users should specify \code{c(0, 0)}. See \code{\link[brms]{opencl}} for more details. Defaults to NULL.
 #' @param n.cores An integer specifying the number of threads used in compiling and fitting the model and estimating the soft cluster assignment probabilities. Defaults to 2.
 #' @param random.seed A double specifying the random seed to be used when fitting and sampling from the model. Defaults to 312.
@@ -19,32 +19,33 @@
 #' \itemize{
 #' \item The soft clustering algorithm is a Gaussian mixture model (GMM), thus each cluster is modeled by a multivariate normal distribution with diagonal covariance. The diagonal covariance assumption is appropriate because each PC is orthogonal to the others.
 #' \item The mixing proportions for each cluster are specified with a Dirichlet prior, while the mean follows a Gaussian distribution and the standard deviation a HalfGaussian.
-#' \item Due to the architecture of the model, it is necessary for the user to supply a number of clusters via the \code{n.clust} argument. It s difficult to know the correct value to provide beforehand, but luckily the clustering model is quick to run and so multiple values of \code{n.clust} can be fitted and visualized in order to find the "best" value.
+#' \item Due to the architecture of the model, it is necessary for the user to supply a number of clusters via the \code{n.clust} argument. It's difficult to know the correct value to provide beforehand, but luckily the clustering model is quick to run and so multiple values of \code{n.clust} can be fitted and visualized in order to find the "best" value.
 #' \item After modeling, the per-cluster assignment probabilities are computed for each gene. The cluster with the highest probability is then defined as the hard cluster for each gene.
-#' \item The cluster model also estimated the log-likelihood per-gene, per-draw. This is then used to estimate the overall log-likelihood of the model as well as the corresponding Bayesian information criterion (BIC). The BIC can be used to compare multiple runs of the model, and thus choose the best value of the number of clusters \code{n.clust}.
+#' \item The clustering model also estimates the log-likelihood per-gene, per-draw. This is then used to estimate the overall log-likelihood of the model as well as the corresponding Bayesian information criterion (BIC). The BIC can be used to compare multiple runs of the model, and thus choose the best value of the number of clusters \code{n.clust}.
+#' \item When using the fullrank algorithm, it's generally necessary to increase the number of iterations using the \code{n.iter} argument. While the meanfield algorithm generally converges within 1000 iterations, the fullrank algorithm might need e.g., 30,000 iterations. Luckily, the Stan code is very fast so even with 30,000 iterations the clustering should be relatively quick. 
 #' }
 #' @import magrittr
-#' @importFrom cli cli_abort
+#' @importFrom cli cli_abort cli_alert_warning cli_alert_success cli_alert_info
 #' @importFrom parallelly availableCores
 #' @importFrom SingleCellExperiment logcounts
 #' @importFrom Seurat GetAssayData DefaultAssay
 #' @importFrom irlba prcomp_irlba
+#' @importFrom coop scaler
 #' @importFrom withr with_output_sink
 #' @importFrom posterior as_draws_df
 #' @importFrom dplyr select mutate rowwise c_across ungroup
 #' @importFrom tidyselect starts_with
-#' @importFrom mvtnorm dmvnorm
+#' @importFrom matrixStats rowMaxs
 #' @importFrom utils txtProgressBar setTxtProgressBar
 #' @importFrom foreach foreach %dopar% registerDoSEQ
 #' @importFrom doSNOW registerDoSNOW
 #' @importFrom parallel makeCluster stopCluster
-#' @importFrom cli cli_alert_success cli_alert_info
 #' @return A list containing the gene-level PCA embedding, a \code{data.frame} of the soft cluster assignments, the fitted model from \code{\link[cmdstanr]{cmdstan_model}}, and the estimated log-likelihood and BIC of the model.
 #' @export
 #' @examples
 #' data(seu_brain)
 #' seu_brain <- Seurat::NormalizeData(seu_brain, verbose = FALSE) %>% 
-#'              Seurat::FindVariableFeatures(nfeatures = 3000L, verbose = FALSE)
+#'              Seurat::FindVariableFeatures(nfeatures = 1000L, verbose = FALSE)
 #' seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
 #'                                                 naive.hvgs = Seurat::VariableFeatures(seu_brain),
 #'                                                 kernel = "matern",
@@ -52,18 +53,18 @@
 #'                                                 algorithm = "meanfield",
 #'                                                 n.cores = 1L,
 #'                                                 save.model = TRUE) %>%
-#'              classifySVGs(n.SVG = 1000L)
+#'              classifySVGs(n.SVG = 200L)
 #' svg_clusters <- clusterSVGsBayes(seu_brain,
 #'                                  svgs = Seurat::VariableFeatures(seu_brain),
-#'                                  n.clust = 3L,
+#'                                  n.clust = 2L,
 #'                                  n.cores = 1L)
 
 clusterSVGsBayes <- function(sp.obj = NULL,
                              svgs = NULL,
                              n.clust = 5L,
                              n.PCs = 30L,
-                             algorithm = "meanfield",
-                             n.iter = 3000,
+                             algorithm = "fullrank",
+                             n.iter = 30000L,
                              n.draws = 1000L,
                              elbo.samples = NULL,
                              opencl.params = NULL,
@@ -76,11 +77,12 @@ clusterSVGsBayes <- function(sp.obj = NULL,
   if (n.clust <= 1L) { cli::cli_abort("Please provide a valid number of clusters.") }
   algorithm <- tolower(algorithm)
   if (!algorithm %in% c("meanfield", "fullrank", "pathfinder")) { cli::cli_abort("Please provide a valid variational inference approximation algorithm.") }
+  if (algorithm == "meanfield") { cli::cli_alert_warning("The meanfield VI algorithm often does not perform well on clustering problems do to multi-modality and high correlation of the posterior. Use caution and consider utilizing the default fullrank VI algorithm instead.") }
   if (is.null(elbo.samples)) {
     if (algorithm == "pathfinder") {
-      elbo.samples <- 50L
+      elbo.samples <- 100L
     } else {
-      elbo.samples <- 150L
+      elbo.samples <- 300L
     }
   }
   if (!is.null(opencl.params) && (!is.double(opencl.params) || !length(opencl.params) == 2)) { cli::cli_abort("Argument {.field opencl.params} must be a double vector of length 2 if non-NULL.") }
@@ -111,9 +113,9 @@ clusterSVGsBayes <- function(sp.obj = NULL,
     expr_mtx <- SingleCellExperiment::logcounts(sp.obj)
   }
   expr_mtx <- as.matrix(expr_mtx[svgs, ])
-  expr_mtx <- t(scale(t(expr_mtx)))
+  expr_mtx <- t(coop::scaler(t(expr_mtx)))
   attributes(expr_mtx)[3:4] <- NULL
-  # run PCA on the normalized data
+  # run PCA on the normalized, scaled data
   svg_mtx_pca <- irlba::prcomp_irlba(expr_mtx,
                                      n = n.PCs,
                                      center = FALSE,
@@ -149,8 +151,8 @@ clusterSVGsBayes <- function(sp.obj = NULL,
                                draws = n.draws,
                                opencl_ids = opencl_IDs,
                                num_elbo_draws = elbo.samples,
-                               max_lbfgs_iters = 100L,
-                               history_size = 25L)
+                               max_lbfgs_iters = 500L,
+                               history_size = 100L)
     }
   } else {
     withr::with_output_sink(tempfile(), {
@@ -171,8 +173,8 @@ clusterSVGsBayes <- function(sp.obj = NULL,
                                  draws = n.draws,
                                  opencl_ids = opencl_IDs,
                                  num_elbo_draws = elbo.samples,
-                                 max_lbfgs_iters = 100L,
-                                 history_size = 25L)
+                                 max_lbfgs_iters = 500L,
+                                 history_size = 100L)
       }
     })
   }
@@ -190,23 +192,27 @@ clusterSVGsBayes <- function(sp.obj = NULL,
   K <- ncol(theta_draws)
   D <- ncol(mu_draws) / K
   N <- nrow(svg_mtx_pca$x)
+  mu_arr <- array(mu_draws, dim = c(n_draws, K, D))
+  sigma_arr <- array(sigma_draws, dim = c(n_draws, K, D))
+  const_term <- -0.5 * D * log(2 * pi)
   # define function used to compute per-gene, per-draw responsibility values via the log-sum-exp trick
-  computeResponsibility <- function(x = NULL,
-                                    theta_s = NULL,
-                                    mu_s = NULL,
-                                    sigma_s = NULL,
-                                    K = NULL,
-                                    D = NULL) {
-    log_probs <- vector("numeric", length = K)
-    for (i in seq(K)) {
-      idx <- ((i - 1) * D + 1):(i * D)
-      mu_i <- mu_s[idx]
-      sigma_i <- sigma_s[idx]
-      cov_i <- diag(sigma_i^2)
-      log_probs[i] <- log(theta_s[i]) + mvtnorm::dmvnorm(x, mean = mu_i, sigma = cov_i, log = TRUE)
+  computeResponsibility <- function(x_i = NULL, 
+                                    theta_arr = NULL, 
+                                    mu_arr = NULL, 
+                                    sigma_arr = NULL) {
+    log_probs <- matrix(NA_real_, nrow(theta_arr), ncol(theta_arr))
+    for (k in seq_len(ncol(theta_arr))) {
+      mu_k <- mu_arr[, k, ]
+      sigma_k <- sigma_arr[, k, ]
+      diff <- sweep(mu_k, 2, x_i, FUN = "-")
+      scaled_sq <- rowSums((diff / sigma_k)^2)
+      log_det <- 2 * rowSums(log(sigma_k))
+      log_probs[, k] <- log(theta_arr[, k]) - 0.5 * (log_det + scaled_sq)
     }
-    max_log <- max(log_probs)
-    probs <- exp(log_probs - (max_log + log(sum(exp(log_probs - max_log)))))
+    log_probs_centered <- log_probs - matrixStats::rowMaxs(log_probs)
+    probs <- exp(log_probs_centered)
+    probs <- probs / rowSums(probs)
+    probs <- colMeans(probs)
     return(probs)
   }
   # compute soft assignment probability for each cluster in parallel
@@ -228,27 +234,18 @@ clusterSVGsBayes <- function(sp.obj = NULL,
   } else {
     cl <- foreach::registerDoSEQ()
   }
-  soft_assignments <- foreach::foreach(i = seq(N),
-                                       .combine = rbind,
-                                       .multicombine = ifelse(N > 1, TRUE, FALSE),
-                                       .maxcombine = ifelse(N > 1, N, 2),
-                                       .inorder = TRUE,
-                                       .verbose = FALSE,
-                                       .options.snow = snow_opts) %dopar% {
-    x_i <- as.numeric(svg_mtx_pca$x[i, ])
-    resp_iter <- matrix(NA_real_, nrow = n_draws, ncol = K)
-    for (j in seq(n_draws)) {
-      theta_j <- theta_draws[j, ]
-      mu_j <- mu_draws[j, ]
-      sigma_j <- sigma_draws[j, ]
-      resp_iter[j, ] <- computeResponsibility(x_i,
-                                              theta_s = theta_j,
-                                              mu_s = mu_j,
-                                              sigma_s = sigma_j,
-                                              K = K,
-                                              D = D)
-    }
-    colMeans(resp_iter)
+  soft_assignments <- foreach(i = seq_len(N),
+                              .combine = rbind,
+                              .multicombine = ifelse(N > 1, TRUE, FALSE),
+                              .maxcombine = ifelse(N > 1, N, 2),
+                              .inorder = TRUE,
+                              .verbose = FALSE,
+                              .options.snow = snow_opts) %dopar% {
+    x_i <- svg_mtx_pca$x[i, ]
+    computeResponsibility(x_i = x_i, 
+                          theta_arr = theta_draws, 
+                          mu_arr = mu_arr, 
+                          sigma_arr = sigma_arr)
   }
   if (verbose && n.cores > 1L) {
     cat("\n")
