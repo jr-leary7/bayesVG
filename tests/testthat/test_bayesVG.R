@@ -36,6 +36,9 @@ for (i in seq(k)) {
   phi_matern[, i] <- maternKernel(d2, length.scale = lscale, nu = 2.5)
   phi_periodic[, i] <- periodicKernel(d2, length.scale = lscale, period = 100L)
 }
+phi_exp_quad <- qr.Q(qr(phi_exp_quad, LAPACK = TRUE))
+phi_matern <- qr.Q(qr(phi_matern, LAPACK = TRUE))
+phi_periodic <- qr.Q(qr(phi_periodic, LAPACK = TRUE))
 
 # fit spatial model, extract output, cluster SVGs, & run enrichment on SVG modules
 seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,

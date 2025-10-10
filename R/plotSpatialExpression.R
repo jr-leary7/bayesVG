@@ -19,7 +19,7 @@
 #' @importFrom ggplot2 ggplot aes geom_point scale_y_continuous labs scale_color_gradientn theme element_text
 #' @return An object of class \code{ggplot2}.
 #' @seealso \code{\link[Seurat]{SpatialFeaturePlot}}
-#' @seealso \code{\link[ggspavis]{plotSpots}}
+#' @seealso \code{\link[ggspavis]{plotCoords}}
 #' @export
 #' @examples
 #' data(seu_brain)

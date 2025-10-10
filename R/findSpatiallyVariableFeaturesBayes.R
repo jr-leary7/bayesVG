@@ -28,7 +28,7 @@
 #' \item Prior to running this function, it is necessary to identify a naive set of highly variable genes (HVGs). Use e.g., \code{\link[Seurat]{FindVariableFeatures}} or \code{\link[scran]{modelGeneVar}} depending on the class of \code{sp.obj}.
 #' \item There are two options when choosing a likelihood for gene expression - the Gaussian (which uses normalized, scaled data), and the Negative-binomial, which uses raw counts. Both options provide comparable results, with the Negative-binomial being perhaps a bit more accurate at the expense of slightly longer runtimes. First-time users should start with the Gaussian, while more experienced users should utilize the Negative-binomial. As always, it is a good idea to run both options and compare results if you're unsure of which is best for your data.
 #' \item This function utilizes an approximate multivariate hierarchical Gaussian process (GP) to model spatial variation in gene expression. The primary parameter of interest is the per-gene amplitude (marginal standard deviation) \eqn{\tau_g} of the GP, which can be interpreted as a scaling factor for how much spatial location contributes to mean expression.
-#' \item The term "approximate" in reference to the GP means that the the full GP is instead represented as a Hilbert space using basis functions. The basis function computation requires a kernel, here either the exponentiated quadratic (the default) or one of the Matern-family kernels. In short, the exponentiated quadratic kernel assumes infinite smoothness, while the Matern-family kernels assume varying degrees of roughness depending on the value of the smoothness parameter \eqn{\nu}.
+#' \item The term "approximate" in reference to the GP means that the the full GP is instead represented as a Hilbert space using basis functions. The basis function computation requires a kernel, here either the exponentiated quadratic (the default), one of the Matern-family kernels, or the periodic. In short, the exponentiated quadratic kernel assumes infinite smoothness, while the Matern-family kernels assume varying degrees of roughness depending on the value of the smoothness parameter \eqn{\nu}, and the periodic kernel is best for datasets with repeating spatial structures.
 #' \item The length-scale \eqn{\ell} can be estimated in two ways. The default method is to utilize k-means clustering on the spatial coordinates and take the median of the distances between centroids. The second method is to use aggregated variograms fit using \code{\link[gstat]{variogram}}; this method tends to be slightly slower, and generally estimates smaller values of \eqn{\ell}.
 #' \item The argument \code{mle.init} is used to specify whether or not optimization should be performed via the L-BFGS algorithm to attempt to find the (regularized) maximum likelihood estimate (MLE), which is then used as initialization for the VI algorithm. This is often unnecessary, but can help with convergence issues in large / complex datasets.
 #' \item While we have implemented GPU acceleration via OpenCL through the argument \code{opencl.params}, OpenCL acceleration is not supported on every machine. For example, Apple M-series chips do not support double-precision floating-points, which are necessary for Stan to compile with OpenCL support. For more information, see \href{https://discourse.mc-stan.org/t/gpus-on-mac-osx-apple-m1/23375/5}{this Stan forums thread}. In order to correctly specify the OpenCL platform and device IDs, use the \code{clinfo} command line utility.
@@ -163,8 +163,9 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
       expr_mtx <- BiocGenerics::counts(sp.obj)
     }
   }
+  expr_mtx <- expr_mtx[naive.hvgs, ]
   # convert expression matrix to long data.frame for modeling & post-process
-  expr_df <- as.data.frame(expr_mtx[naive.hvgs, ]) %>%
+  expr_df <- as.data.frame(expr_mtx) %>%
              dplyr::mutate(gene = rownames(.), .before = 1) %>%
              tidyr::pivot_longer(cols = !gene,
                                  names_to = "spot",
@@ -178,6 +179,9 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     expr_df <- dplyr::mutate(expr_df, gene_expression = as.integer(gene_expression))
   }
   expr_df <- as.data.frame(expr_df)
+  gene_mapping <- data.frame(gene = as.character(expr_df$gene),
+                             gene_id = as.character(as.integer(expr_df$gene))) %>%
+                  dplyr::distinct()
   # estimate global length-scale
   if (verbose) {
     cli::cli_alert_info(paste0("Estimating global length-scale using the ",
@@ -192,9 +196,9 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     dists_centers <- fields::rdist(kmeans_centers)
     lscale <- stats::median(dists_centers[upper.tri(dists_centers)])
   } else if (lscale.estimator == "variogram") {
-    spatial_df <- mutate(spatial_df,
-                         x = as.numeric(coop::scaler(x)),
-                         y = as.numeric(coop::scaler(y)))
+    spatial_df <- dplyr::mutate(spatial_df,
+                                x = as.numeric(coop::scaler(x)),
+                                y = as.numeric(coop::scaler(y)))
     if (verbose) {
       withr::with_output_sink(tempfile(), {
         pb <- utils::txtProgressBar(0, length(naive.hvgs), style = 3)
@@ -210,12 +214,13 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     } else {
       cl <- foreach::registerDoSEQ()
     }
-    vario_ranges <- foreach::foreach(g = seq(naive.hvgs),
+    vario_ranges <- foreach::foreach(g = seq_along(naive.hvgs),
                                      .combine = c,
                                      .multicombine = ifelse(length(naive.hvgs) > 1, TRUE, FALSE),
                                      .maxcombine = ifelse(length(naive.hvgs) > 1, length(naive.hvgs), 2),
                                      .inorder = TRUE,
                                      .verbose = FALSE,
+                                     .packages = c("sp", "gstat", "stats"), 
                                      .options.snow = snow_opts) %dopar% {
       gene_expr <- unname(expr_mtx[naive.hvgs[g], ])
       sp_df <- sp::SpatialPointsDataFrame(spatial_df, data = data.frame(z = gene_expr))
@@ -264,8 +269,13 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                  period = kernel.period)
     }
   }
-  # ensure basis functions are orthonormal i.e., mutually orthogonal with unit norms
-  phi <- qr.Q(qr(phi))
+  # ensure basis functions are orthonormal i.e., mutually orthogonal with unit norms using the QR decomposition
+  phi_ortho <- try({
+    qr.Q(qr(phi, LAPACK = TRUE))
+  }, silent = TRUE)
+  if (inherits(phi_ortho, "try-error")) {
+    phi_ortho <- qr.Q(qr(phi))
+  }
   # compute some constants
   N <- nrow(expr_df)
   G <- length(unique(expr_df$gene))
@@ -286,7 +296,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                       k = n.basis.fns,
                       spot_id = as.integer(expr_df$spot),
                       gene_id = as.integer(expr_df$gene),
-                      phi = phi,
+                      phi = phi_ortho,
                       gene_depths = gene_depths,
                       y = expr_df$gene_expression)
     if (likelihood == "gaussian") {
@@ -301,7 +311,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                       k = n.basis.fns,
                       spot_id = as.integer(expr_df$spot),
                       gene_id = as.integer(expr_df$gene),
-                      phi = phi,
+                      phi = phi_ortho,
                       y = expr_df$gene_expression)
     if (likelihood == "gaussian") {
       stan_file <- system.file("approxGP.stan", package = "bayesVG")
@@ -309,6 +319,8 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
       stan_file <- system.file("approxGP4.stan", package = "bayesVG")
     }
   }
+  # remove big objects to save memory
+  rm(expr_df, expr_mtx)
   # compile model
   mod <- cmdstan_model(stan_file, compile = FALSE)
   mod$compile(cpp_options = cpp_options,
@@ -392,9 +404,6 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     fit_vi$cmdstan_diagnose()
   }
   # summarize posterior
-  gene_mapping <- data.frame(gene = as.character(expr_df$gene),
-                             gene_id = as.character(as.integer(expr_df$gene))) %>%
-                  dplyr::distinct()
   amplitude_summary <- fit_vi$summary(variables = "amplitude") %>%
                        dplyr::rename_with(~paste0("amplitude_", .), .cols = -1) %>%
                        dplyr::rename(amplitude_ci_ll = amplitude_q5,

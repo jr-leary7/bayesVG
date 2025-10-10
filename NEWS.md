@@ -1,3 +1,10 @@
+# bayesVG v0.0.7
+
++ Fixed a tiny bug in the Matern kernel code. 
++ Sped up QR decomposition of basis functions via conditional usage of LAPACK. 
++ Updated docs and made some functions less brittle. 
++ Updated some tests.
+
 # bayesVG v0.0.6 
 
 + Updated dependencies for R 4.5.1. 
