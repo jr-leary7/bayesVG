@@ -11,6 +11,7 @@
 #' @import magrittr
 #' @importFrom cli cli_abort
 #' @importFrom Seurat GetAssayData DefaultAssay GetTissueCoordinates
+#' @importFrom coop scaler
 #' @importFrom dplyr select mutate
 #' @importFrom SummarizedExperiment rowData
 #' @importFrom S4Vectors DataFrame
@@ -39,14 +40,14 @@ plotSpatialExpression <- function(sp.obj = NULL,
   if (!gene.plot %in% rownames(sp.obj)) { cli::cli_abort("{.field gene.plot} must exist in the rownames of {.field sp.obj}.") }
   # generate plot
   if (inherits(sp.obj, "Seurat")) {
-    expr_vector <- Seurat::GetAssayData(sp.obj, 
-                                        assay = Seurat::DefaultAssay(sp.obj), 
+    expr_vector <- Seurat::GetAssayData(sp.obj,
+                                        assay = Seurat::DefaultAssay(sp.obj),
                                         layer = ifelse(use.norm, "data", "counts"))[gene.plot, ]
     coord_df <- Seurat::GetTissueCoordinates(sp.obj) %>%
                 dplyr::select(1:2) %>%
                 magrittr::set_colnames(c("x", "y")) %>%
                 as.matrix() %>%
-                scale() %>%
+                coop::scaler() %>%
                 as.data.frame() %>%
                 dplyr::mutate(gene_expr = expr_vector)
     p <- ggplot2::ggplot(coord_df, ggplot2::aes(x = y, y = x, color = gene_expr)) +
@@ -79,6 +80,7 @@ plotSpatialExpression <- function(sp.obj = NULL,
   }
   p <- p +
        theme_bayesVG(spatial = TRUE) +
-       ggplot2::theme(legend.title = ggplot2::element_text(face = "italic"))
+       ggplot2::theme(legend.title = ggplot2::element_text(face = "italic"),
+                      plot.title = ggplot2::element_text(face = "italic"))
   return(p)
 }

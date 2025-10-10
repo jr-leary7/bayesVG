@@ -9,6 +9,7 @@
 + Added non-centered prior parameterizations to the two Gaussian SVG models' Stan code. This increases accuracy as well as speed.
 + Dramatically sped up the SVG clustering model. 
 + Sped up matrix distance computation via the `fields` package and matrix scaling via the `coop` package. 
++ Made some of the Examples faster in order to speed up R CMD check. 
 
 # bayesVG v0.0.5
 

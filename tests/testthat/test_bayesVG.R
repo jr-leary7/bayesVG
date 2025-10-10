@@ -23,11 +23,11 @@ seu_brain <- suppressWarnings({
 })
 
 # fit each kernel to spatial coordinates matrix
-spatial_mtx <- scale(as.matrix(dplyr::select(Seurat::GetTissueCoordinates(seu_brain), -cell)))
+spatial_mtx <- coop::scaler(as.matrix(dplyr::select(Seurat::GetTissueCoordinates(seu_brain), -cell)))
 M <- nrow(spatial_mtx)
 k <- 20
 kmeans_centers <- stats::kmeans(spatial_mtx, centers = k, iter.max = 100L)$centers
-dists_centers <- as.matrix(stats::dist(kmeans_centers))
+dists_centers <- as.matrix(fields::rdist(kmeans_centers))
 lscale <- stats::median(dists_centers[upper.tri(dists_centers)])
 phi_exp_quad <- phi_matern <- phi_periodic <- matrix(0, nrow = M, ncol = k)
 for (i in seq(k)) {
