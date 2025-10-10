@@ -1,14 +1,23 @@
+# bayesVG v0.0.7
+
++ Fixed a tiny bug in the Matern kernel code. 
++ Sped up QR decomposition of basis functions via conditional usage of LAPACK. 
++ Updated docs and made some functions less brittle. 
++ Updated some tests.
++ Updated the README. 
+
 # bayesVG v0.0.6 
 
 + Updated dependencies for R 4.5.1. 
 + Fixed failing tests related to `Seurat` to `SpatialExperiment` conversion. 
 + Updated spatial expression & attribute plotting functions to use `ggspavis::plotCoords()` as `ggspavis::plotSpots()` has been deprecated. 
-+ Updated `plotModuleScores()` to account for changes to `ggplot2::geom_violin()` with respect to how quantiles are drawn. 
++ Updated `plotModuleScores()` to account for changes to `ggplot2::geom_violin()` in `ggplot2` v4.0 with respect to how quantiles are drawn. 
 + Changed some dependencies in docs & made the code in Examples more performant.
 + Updated CITATION file to use new `bibentry()` format. 
 + Added non-centered prior parameterizations to the two Gaussian SVG models' Stan code. This increases accuracy as well as speed.
 + Dramatically sped up the SVG clustering model. 
 + Sped up matrix distance computation via the `fields` package and matrix scaling via the `coop` package. 
++ Made some of the Examples faster in order to speed up R CMD check. 
 
 # bayesVG v0.0.5
 
@@ -17,10 +26,10 @@
 + Changed the way basis functions are generated so that they are orthonormal (mutually orthogonal and having unit norm) via a QR decomposition.
 + Added function `enrichSpatialModules()` to perform GSEA on clusters of SVGs using `gProfiler2` under the hood.
 + Made the default option to adjust for differing means among genes to be a hierarchical prior on the intercept instead of a fixed effect for gene depth. 
-+ Added option to use the Negative-binomial likelihood for gene expression to `findSpatiallyvariableFeaturesBayes()`, along with accompanying Stan code. The relevant parameter is denoted `likelihood`. 
++ Added option to use the Negative-binomial likelihood for gene expression to `findSpatiallyVariableFeaturesBayes()`, along with accompanying Stan code. The relevant parameter is denoted `likelihood`. 
 + Updated test suite. 
 + Added function `plotModuleScores()` to generate spatial scatterplots, embedding scatterplots, and violin plots of spatial module scores.
-+ Added alternative method of estimating global length-scale within `findSpatiallyvariableFeaturesBayes()` using aggregated variograms. 
++ Added alternative method of estimating global length-scale within `findSpatiallyVariableFeaturesBayes()` using aggregated variograms. 
 
 # bayesVG v0.0.4 
 

@@ -22,11 +22,12 @@
 plotTissueImage <- function(seu.obj = NULL, image.name = NULL) {
   # check inputs 
   if (is.null(seu.obj)) { cli::cli_abort("Please provide all inputs to plotTissueImage().") }
+  if (!is.null(image.name) && !image.name %in% names(seu.obj@images)) { cli::cli_abort("Please provide a valid image name.") }
   # extract image array & reorder 
   img <- Seurat::GetImage(seu.obj, 
                           mode = "raw", 
                           image = image.name)
-  img_xy <- aperm(img, c(2, 1, 3)) 
+  img_xy <- aperm(img, perm = c(2, 1, 3)) 
   # generate tissue image plot 
   img_df <- expand.grid(x = seq_len(dim(img)[2]), y = seq_len(dim(img)[1])) %>%
             dplyr::mutate(r = as.vector(img_xy[, , 1]),

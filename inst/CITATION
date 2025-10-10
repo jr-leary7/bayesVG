@@ -5,6 +5,6 @@ bibentry(
   title = "bayesVG: Identify HVGs and SVGs in scRNA-seq and Spatial Transcriptomics Data",
   author = "Jack R. Leary and Rhonda Bacher",
   year = "2025",
-  note = "R package version 0.0.6",
+  note = "R package version 0.0.7",
   url = "https://github.com/jr-leary7/bayesVG"
 )

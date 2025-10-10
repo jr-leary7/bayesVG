@@ -19,7 +19,7 @@ maternKernel <- function(d = NULL,
   # check inputs
   if (is.null(d) || is.null(length.scale) || is.null(nu)) { cli::cli_abort("All parameters must be provided.") }
   # compute scaled distances
-  scaled_distance <- sqrt(2 * nu) * d / length.scale
+  scaled_distance <- sqrt(2 * nu) * sqrt(d) / length.scale
   # compute Matern kernel values
   res <- sigma^2 * (2^(1 - nu) / gamma(nu)) * (scaled_distance)^nu * besselK(scaled_distance, nu)
   # replace NA values with sigma^2

@@ -5,8 +5,8 @@
 #' @description This function implements SVG estimation using Bayesian variational inference to approximate the posterior distribution of each gene's expression while accounting for spatial trends.
 #' @param sp.obj An object of class \code{Seurat} containing spatial data. Defaults to NULL.
 #' @param naive.hvgs A vector containing genes that have been classified as naive HVGs from which SVGs will be detected. Defaults to NULL.
-#' @param likelihood A string specifying the likelihood to be used when fitting the model. Must be one of "gaussian" or "nb" (for Negative-binomial). Defaults to "gaussian". 
-#' @param lscale.estimator A string specifying how the global length-scale should be estimated. Must be one of "kmeans" or "variogram". Defaults to "kmeans". 
+#' @param likelihood A string specifying the likelihood to be used when fitting the model. Must be one of "gaussian" or "nb" (for Negative-binomial). Defaults to "gaussian".
+#' @param lscale.estimator A string specifying how the global length-scale should be estimated. Must be one of "kmeans" or "variogram". Defaults to "kmeans".
 #' @param n.iter An integer specifying the maximum number of iterations. Defaults to 3000.
 #' @param kernel A string specifying the covariance kernel to be used when fitting the GP. Must be one of "exp_quad", "matern", or "periodic". Defaults to "exp_quad".
 #' @param kernel.smoothness A double specifying the smoothness parameter \eqn{\nu} used when computing the Matern kernel. Must be one of 0.5, 1.5, or 2.5. Using 0.5 corresponds to the exponential kernel. Defaults to 1.5.
@@ -15,7 +15,7 @@
 #' @param algorithm A string specifying the variational inference (VI) approximation algorithm to be used. Must be one of "meanfield", "fullrank", or "pathfinder". Defaults to "meanfield".
 #' @param mle.init A Boolean specifying whether the the VI algorithm should be initialized using the MLE for each parameter. In general, this isn't strictly necessary but can help if the VI algorithm struggles to converge when provided with the default initialization (zero). Cannot be used when the Pathfinder algorithm is specified. Defaults to TRUE.
 #' @param mle.iter An integer specifying the maximum number of optimization iterations used when \code{mle.init = TRUE}. Defaults to 1000.
-#' @param gene.depth.adjust A Boolean specifying whether the model should include a fixed effect term for total gene expression. Defaults to FALSE. 
+#' @param gene.depth.adjust A Boolean specifying whether the model should include a fixed effect term for total gene expression. Defaults to FALSE.
 #' @param n.draws An integer specifying the number of draws to be generated from the variational posterior. Defaults to 1000.
 #' @param elbo.samples An integer specifying the number of samples to be used to estimate the ELBO at every 100th iteration. Higher values will provide a more accurate estimate at the cost of computational complexity. Defaults to 150 when \code{algorithm} is one of "meanfield" or "fullrank", 50 when \code{algorithm} is "pathfinder".
 #' @param opencl.params A two-element double vector specifying the platform and device IDs of the OpenCL GPU device. Most users should specify \code{c(0, 0)}. See \code{\link[brms]{opencl}} for more details. Defaults to NULL.
@@ -28,8 +28,8 @@
 #' \item Prior to running this function, it is necessary to identify a naive set of highly variable genes (HVGs). Use e.g., \code{\link[Seurat]{FindVariableFeatures}} or \code{\link[scran]{modelGeneVar}} depending on the class of \code{sp.obj}.
 #' \item There are two options when choosing a likelihood for gene expression - the Gaussian (which uses normalized, scaled data), and the Negative-binomial, which uses raw counts. Both options provide comparable results, with the Negative-binomial being perhaps a bit more accurate at the expense of slightly longer runtimes. First-time users should start with the Gaussian, while more experienced users should utilize the Negative-binomial. As always, it is a good idea to run both options and compare results if you're unsure of which is best for your data.
 #' \item This function utilizes an approximate multivariate hierarchical Gaussian process (GP) to model spatial variation in gene expression. The primary parameter of interest is the per-gene amplitude (marginal standard deviation) \eqn{\tau_g} of the GP, which can be interpreted as a scaling factor for how much spatial location contributes to mean expression.
-#' \item The term "approximate" in reference to the GP means that the the full GP is instead represented as a Hilbert space using basis functions. The basis function computation requires a kernel, here either the exponentiated quadratic (the default) or one of the Matern-family kernels. In short, the exponentiated quadratic kernel assumes infinite smoothness, while the Matern-family kernels assume varying degrees of roughness depending on the value of the smoothness parameter \eqn{\nu}.
-#' \item The length-scale \eqn{\ell} can be estimated in two ways. The default method is to utilize k-means clustering on the spatial coordinates and take the median of the distances between centroids. The second method is to use aggregated variograms fit using \code{\link[gstat]{variogram}}; this method tends to be slightly slower, and generally estimates smaller values of \eqn{\ell}. 
+#' \item The term "approximate" in reference to the GP means that the the full GP is instead represented as a Hilbert space using basis functions. The basis function computation requires a kernel, here either the exponentiated quadratic (the default), one of the Matern-family kernels, or the periodic. In short, the exponentiated quadratic kernel assumes infinite smoothness, while the Matern-family kernels assume varying degrees of roughness depending on the value of the smoothness parameter \eqn{\nu}, and the periodic kernel is best for datasets with repeating spatial structures.
+#' \item The length-scale \eqn{\ell} can be estimated in two ways. The default method is to utilize k-means clustering on the spatial coordinates and take the median of the distances between centroids. The second method is to use aggregated variograms fit using \code{\link[gstat]{variogram}}; this method tends to be slightly slower, and generally estimates smaller values of \eqn{\ell}.
 #' \item The argument \code{mle.init} is used to specify whether or not optimization should be performed via the L-BFGS algorithm to attempt to find the (regularized) maximum likelihood estimate (MLE), which is then used as initialization for the VI algorithm. This is often unnecessary, but can help with convergence issues in large / complex datasets.
 #' \item While we have implemented GPU acceleration via OpenCL through the argument \code{opencl.params}, OpenCL acceleration is not supported on every machine. For example, Apple M-series chips do not support double-precision floating-points, which are necessary for Stan to compile with OpenCL support. For more information, see \href{https://discourse.mc-stan.org/t/gpus-on-mac-osx-apple-m1/23375/5}{this Stan forums thread}. In order to correctly specify the OpenCL platform and device IDs, use the \code{clinfo} command line utility.
 #' \item The user can specify which VI algorithm to use to fit the model via the argument \code{algorithm}. For further details, see \href{https://www.jmlr.org/papers/volume18/16-107/16-107.pdf}{this paper} comparing the meanfield and fullrank algorithms, and \href{https://doi.org/10.48550/arXiv.2108.03782}{this preprint} that introduced the Pathfinder algorithm. For a primer on automatic differentiation variational inference (ADVI), see \href{https://doi.org/10.48550/arXiv.1506.03431}{this preprint}. Lastly, \href{https://discourse.mc-stan.org/t/issues-with-differences-between-mcmc-and-pathfinder-results-how-to-make-pathfinder-or-something-else-more-accurate/35992}{this Stan forums thread} lays out some practical differences between the algorithms.
@@ -49,7 +49,7 @@
 #' @importFrom dplyr relocate mutate rename rename_with with_groups select inner_join desc filter distinct arrange left_join bind_rows
 #' @importFrom tidyr pivot_longer
 #' @importFrom stats kmeans median var
-#' @importFrom fields rdist 
+#' @importFrom fields rdist
 #' @importFrom coop scaler
 #' @importFrom withr with_output_sink
 #' @importFrom utils txtProgressBar setTxtProgressBar
@@ -65,7 +65,7 @@
 #' @export
 #' @examples
 #' data(seu_brain)
-#' seu_brain <- Seurat::NormalizeData(seu_brain, verbose = FALSE) %>% 
+#' seu_brain <- Seurat::NormalizeData(seu_brain, verbose = FALSE) %>%
 #'              Seurat::FindVariableFeatures(nfeatures = 1000L, verbose = FALSE)
 #' seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
 #'                                                 naive.hvgs = Seurat::VariableFeatures(seu_brain),
@@ -77,8 +77,8 @@
 
 findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                                naive.hvgs = NULL,
-                                               likelihood = "gaussian", 
-                                               lscale.estimator = "kmeans", 
+                                               likelihood = "gaussian",
+                                               lscale.estimator = "kmeans",
                                                n.iter = 3000L,
                                                kernel = "exp_quad",
                                                kernel.smoothness = 1.5,
@@ -132,12 +132,12 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   }
   if (n.cores > unname(parallelly::availableCores())) { cli::cli_abort("The number of requested cores is greater than the number of available cores.") }
   if (verbose) {
-    startup_message <- paste0("Starting {.pkg bayesVG} modeling of spatial variation using the ", 
-                              ifelse(likelihood == "gaussian", "Gaussian", "Negative-binomial"), 
-                              " likelihood, the ", 
-                              ifelse(kernel == "exp_quad", "exponentiated quadratic", ifelse(kernel == "matern", "Matern", "periodic")), 
-                              " kernel, and the ", 
-                              ifelse(algorithm == "meanfield", "meanfield", ifelse(algorithm == "fullrank", "fullrank", "Pathfinder")), 
+    startup_message <- paste0("Starting {.pkg bayesVG} modeling of spatial variation using the ",
+                              ifelse(likelihood == "gaussian", "Gaussian", "Negative-binomial"),
+                              " likelihood, the ",
+                              ifelse(kernel == "exp_quad", "exponentiated quadratic", ifelse(kernel == "matern", "Matern", "periodic")),
+                              " kernel, and the ",
+                              ifelse(algorithm == "meanfield", "meanfield", ifelse(algorithm == "fullrank", "fullrank", "Pathfinder")),
                               " VI algorithm.")
     cli::cli_alert_info(startup_message)
   }
@@ -145,14 +145,12 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   time_start <- Sys.time()
   # extract spatial coordinates & scale them
   if (inherits(sp.obj, "Seurat")) {
-    spatial_df <- Seurat::GetTissueCoordinates(sp.obj) %>%
-                  dplyr::select(1:2)
+    spatial_df <- dplyr::select(Seurat::GetTissueCoordinates(sp.obj), 1:2)
   } else {
-   spatial_df <- SpatialExperiment::spatialCoords(sp.obj) %>%
-                 as.data.frame()
+   spatial_df <- as.data.frame(SpatialExperiment::spatialCoords(sp.obj))
   }
   colnames(spatial_df) <- c("x", "y")
-  spatial_mtx <- scale(as.matrix(spatial_df))
+  spatial_mtx <- coop::scaler(as.matrix(spatial_df))
   # extract matrix of (raw or normalized) gene expression
   if (inherits(sp.obj, "Seurat")) {
     expr_mtx <- Seurat::GetAssayData(sp.obj,
@@ -165,8 +163,9 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
       expr_mtx <- BiocGenerics::counts(sp.obj)
     }
   }
+  expr_mtx <- expr_mtx[naive.hvgs, ]
   # convert expression matrix to long data.frame for modeling & post-process
-  expr_df <- as.data.frame(expr_mtx[naive.hvgs, ]) %>%
+  expr_df <- as.data.frame(expr_mtx) %>%
              dplyr::mutate(gene = rownames(.), .before = 1) %>%
              tidyr::pivot_longer(cols = !gene,
                                  names_to = "spot",
@@ -180,23 +179,26 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     expr_df <- dplyr::mutate(expr_df, gene_expression = as.integer(gene_expression))
   }
   expr_df <- as.data.frame(expr_df)
+  gene_mapping <- data.frame(gene = as.character(expr_df$gene),
+                             gene_id = as.character(as.integer(expr_df$gene))) %>%
+                  dplyr::distinct()
   # estimate global length-scale
   if (verbose) {
-    cli::cli_alert_info(paste0("Estimating global length-scale using the ", 
-                               ifelse(lscale.estimator == "kmeans", "k-means", "variogram"), 
+    cli::cli_alert_info(paste0("Estimating global length-scale using the ",
+                               ifelse(lscale.estimator == "kmeans", "k-means", "variogram"),
                                " method..."))
   }
-  kmeans_centers <- stats::kmeans(spatial_mtx, 
-                                  centers = n.basis.fns, 
+  kmeans_centers <- stats::kmeans(spatial_mtx,
+                                  centers = n.basis.fns,
                                   iter.max = 100L)
   kmeans_centers <- kmeans_centers$centers
   if (lscale.estimator == "kmeans") {
     dists_centers <- fields::rdist(kmeans_centers)
     lscale <- stats::median(dists_centers[upper.tri(dists_centers)])
   } else if (lscale.estimator == "variogram") {
-    spatial_df <- mutate(spatial_df, 
-                         x = as.numeric(coop::scaler(x)), 
-                         y = as.numeric(coop::scaler(y)))
+    spatial_df <- dplyr::mutate(spatial_df,
+                                x = as.numeric(coop::scaler(x)),
+                                y = as.numeric(coop::scaler(y)))
     if (verbose) {
       withr::with_output_sink(tempfile(), {
         pb <- utils::txtProgressBar(0, length(naive.hvgs), style = 3)
@@ -212,12 +214,13 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     } else {
       cl <- foreach::registerDoSEQ()
     }
-    vario_ranges <- foreach::foreach(g = seq(naive.hvgs),
+    vario_ranges <- foreach::foreach(g = seq_along(naive.hvgs),
                                      .combine = c,
                                      .multicombine = ifelse(length(naive.hvgs) > 1, TRUE, FALSE),
                                      .maxcombine = ifelse(length(naive.hvgs) > 1, length(naive.hvgs), 2),
                                      .inorder = TRUE,
                                      .verbose = FALSE,
+                                     .packages = c("sp", "gstat", "stats"), 
                                      .options.snow = snow_opts) %dopar% {
       gene_expr <- unname(expr_mtx[naive.hvgs[g], ])
       sp_df <- sp::SpatialPointsDataFrame(spatial_df, data = data.frame(z = gene_expr))
@@ -226,7 +229,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
       init_model <- gstat::vgm(gene_var * 0.8,
                                model = "Mat",
                                range = stats::median(emp_vario$dist, na.rm = TRUE),
-                               nugget = gene_var * 0.2, 
+                               nugget = gene_var * 0.2,
                                kappa = kernel.smoothness)
       vario_fit <- try({
         gstat::fit.variogram(emp_vario, init_model)
@@ -266,8 +269,13 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                  period = kernel.period)
     }
   }
-  # ensure basis functions are orthonormal i.e., mutually orthogonal with unit norms
-  phi <- qr.Q(qr(phi))
+  # ensure basis functions are orthonormal i.e., mutually orthogonal with unit norms using the QR decomposition
+  phi_ortho <- try({
+    qr.Q(qr(phi, LAPACK = TRUE))
+  }, silent = TRUE)
+  if (inherits(phi_ortho, "try-error")) {
+    phi_ortho <- qr.Q(qr(phi))
+  }
   # compute some constants
   N <- nrow(expr_df)
   G <- length(unique(expr_df$gene))
@@ -288,7 +296,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                       k = n.basis.fns,
                       spot_id = as.integer(expr_df$spot),
                       gene_id = as.integer(expr_df$gene),
-                      phi = phi,
+                      phi = phi_ortho,
                       gene_depths = gene_depths,
                       y = expr_df$gene_expression)
     if (likelihood == "gaussian") {
@@ -303,7 +311,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                       k = n.basis.fns,
                       spot_id = as.integer(expr_df$spot),
                       gene_id = as.integer(expr_df$gene),
-                      phi = phi,
+                      phi = phi_ortho,
                       y = expr_df$gene_expression)
     if (likelihood == "gaussian") {
       stan_file <- system.file("approxGP.stan", package = "bayesVG")
@@ -311,6 +319,8 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
       stan_file <- system.file("approxGP4.stan", package = "bayesVG")
     }
   }
+  # remove big objects to save memory
+  rm(expr_df, expr_mtx)
   # compile model
   mod <- cmdstan_model(stan_file, compile = FALSE)
   mod$compile(cpp_options = cpp_options,
@@ -347,7 +357,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                num_threads = n.cores,
                                draws = n.draws,
                                opencl_ids = opencl_IDs,
-                               num_paths = n.cores, 
+                               num_paths = n.cores,
                                max_lbfgs_iters = 200L,
                                num_elbo_draws = elbo.samples,
                                history_size = 25L)
@@ -382,7 +392,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                  num_threads = n.cores,
                                  draws = n.draws,
                                  opencl_ids = opencl_IDs,
-                                 num_paths = n.cores, 
+                                 num_paths = n.cores,
                                  max_lbfgs_iters = 200L,
                                  num_elbo_draws = elbo.samples,
                                  history_size = 25L)
@@ -394,9 +404,6 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     fit_vi$cmdstan_diagnose()
   }
   # summarize posterior
-  gene_mapping <- data.frame(gene = as.character(expr_df$gene),
-                             gene_id = as.character(as.integer(expr_df$gene))) %>%
-                  dplyr::distinct()
   amplitude_summary <- fit_vi$summary(variables = "amplitude") %>%
                        dplyr::rename_with(~paste0("amplitude_", .), .cols = -1) %>%
                        dplyr::rename(amplitude_ci_ll = amplitude_q5,

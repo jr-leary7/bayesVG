@@ -25,7 +25,7 @@
 #'                                                 algorithm = "meanfield",
 #'                                                 n.cores = 1L,
 #'                                                 save.model = TRUE) %>% 
-#'              classifySVGs(n.SVG = 300L) 
+#'              classifySVGs(n.SVG = 200L) 
 #' gene_stats <- getBayesianGeneStats(seu_brain)
 
 getBayesianGeneStats <- function(obj = NULL, sort.values = TRUE) {

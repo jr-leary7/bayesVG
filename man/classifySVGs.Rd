@@ -40,7 +40,7 @@ seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
                                                 algorithm = "meanfield",
                                                 n.cores = 1L,
                                                 save.model = TRUE) \%>\%
-             classifySVGs(n.SVG = 300L)
+             classifySVGs(n.SVG = 200L)
 }
 \seealso{
 \code{\link{findSpatiallyVariableFeaturesBayes}}

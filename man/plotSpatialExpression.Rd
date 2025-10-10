@@ -38,7 +38,7 @@ plotSpatialExpression(seu_brain,
 \seealso{
 \code{\link[Seurat]{SpatialFeaturePlot}}
 
-\code{\link[ggspavis]{plotSpots}}
+\code{\link[ggspavis]{plotCoords}}
 }
 \author{
 Jack R. Leary

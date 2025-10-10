@@ -15,9 +15,10 @@
 #' @importFrom cli cli_abort
 #' @importFrom rlang sym
 #' @importFrom Seurat Reductions GetTissueCoordinates Embeddings
-#' @importFrom dplyr select mutate
-#' @importFrom SingleCellExperiment reducedDimNames reducedDim
+#' @importFrom dplyr select mutate 
+#' @importFrom SingleCellExperiment reducedDimNames reducedDim colData
 #' @importFrom SpatialExperiment spatialCoords
+#' @importFrom coop scaler
 #' @importFrom ggplot2 ggplot aes geom_point geom_violin scale_y_continuous labs scale_color_gradientn scale_color_manual scale_fill_manual
 #' @importFrom utils packageVersion
 #' @return An object of class \code{ggplot2}.
@@ -36,7 +37,7 @@
 #'                                                 algorithm = "meanfield",
 #'                                                 n.cores = 1L,
 #'                                                 save.model = TRUE) %>%
-#'              classifySVGs(n.SVG = 300L)
+#'              classifySVGs(n.SVG = 200L)
 #' svg_clusters <- clusterSVGsBayes(seu_brain,
 #'                                  svgs = Seurat::VariableFeatures(seu_brain),
 #'                                  n.clust = 2L,
@@ -62,7 +63,7 @@ plotModuleScores <- function(sp.obj = NULL,
   if (inherits(sp.obj, "Seurat")) {
     meta_df <- sp.obj@meta.data
   } else if (inherits(sp.obj, "SpatialExperiment")) {
-    meta_df <- as.data.frame(sp.obj@metadata)
+    meta_df <- as.data.frame(SingleCellExperiment::colData(sp.obj))
   }
   module_name <- paste0("svg_cluster_", module.plot, "_UCell")
   module_name_sym <- rlang::sym(module_name)
@@ -89,7 +90,7 @@ plotModuleScores <- function(sp.obj = NULL,
     coord_df <- dplyr::select(coord_df, 1:2) %>%
                 magrittr::set_colnames(c("x", "y")) %>%
                 as.matrix() %>%
-                scale() %>%
+                coop::scaler() %>%
                 as.data.frame() %>%
                 dplyr::mutate(module_score = meta_df[[module_name]])
     p <- ggplot2::ggplot(coord_df, ggplot2::aes(x = y, y = x, color = module_score)) +

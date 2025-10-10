@@ -6,6 +6,7 @@
   - [HVG detection](#hvg-detection)
   - [SVG detection](#svg-detection)
 - [Contact information](#contact-information)
+- [References](#references)
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
@@ -54,7 +55,7 @@ data("seu_pbmc")
 ### Modeling
 
 Now we’re able to model gene expression, summarize the posterior
-distribution of variance for each gene, and classify the top 3000
+distribution of variance for each gene, and classify the top 3,000
 most-variable genes as HVGs. The `findVariableFeaturesBayes()` function
 can take as input either a `Seurat` or a `SingleCellExperiment` object.
 
@@ -66,14 +67,22 @@ seu_pbmc <- findVariableFeaturesBayes(seu_pbmc,
             classifyHVGs(n.HVG = 3000L)
 ```
 
-We can extract the summary table (which is sorted by default) and
-classify the top 3,000 genes as HVGs like so. These genes can then be
-used as the basis for downstream analyses such as PCA, clustering, UMAP
-visualization, etc.
+We can generate the summary table (which is sorted by default) and
+extract the HVGs like so. These genes can then be used as the basis for
+downstream analyses such as PCA, clustering, UMAP visualization, etc.
 
 ``` r
 summary_hvg <- getBayesianGeneStats(seu_pbmc)
 top3k_hvgs <- summary_hvg$gene[1:3000]
+```
+
+The `extractModel()` function pulls out the fitted `brms` model from the
+object’s unstructured metadata, allowing the user to perform posterior
+predictive checks (PPCs) and other diagnostics. Note: this requires that
+the HVG identification function be run with `save.model = TRUE`.
+
+``` r
+hvg_model <- extractModel(seu_pbmc)
 ```
 
 ## SVG detection
@@ -98,7 +107,7 @@ seu_brain <- NormalizeData(seu_brain, verbose = FALSE) %>%
 
 Now we can model gene expression with an approximate multivariate
 hierarchical Gaussian process (GP), summarize the spatial component of
-variance for each gene, and classify the top 1000 most spatially
+variance for each gene, and classify the top 1,000 most spatially
 variable genes as SVGs. The `findSpatiallyVariableFeaturesBayes()`
 function can take as input either a `Seurat` or a `SpatialExperiment`
 object.
@@ -115,16 +124,23 @@ seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
 ```
 
 We can extract the summary table (which, like the HVG summary table is
-sorted by default) and classify the top 1,000 genes as SVGs like so.
-These genes can then be used as the basis for downstream analyses such
-as PCA, clustering, UMAP visualization, etc.
+sorted by default) and extract the top 1,000 SVGs like so. These genes
+can then be used as the basis for downstream analyses such as PCA,
+spatial clustering, UMAP visualization, etc.
 
 ``` r
 summary_svg <- getBayesianGeneStats(seu_brain)
 top1k_svgs <- summary_svg$gene[1:1000]
 ```
 
-We can cluster the SVG set (using a Bayesian Gaussian mixture model)
+Since we ran the SVG identification model function with
+`save.model = TRUE`, we can extract the `cmdstanr` fit like so:
+
+``` r
+svg_model <- extractModel(seu_brain)
+```
+
+We can cluster the SVG set (using a modified Gaussian mixture model)
 into spatial modules as shown below. The clustering function returns a
 PCA embedding of the SVGs, a table of the soft cluster assignment
 probabilities, and the log-likelihood and Bayesian information criterion
@@ -133,14 +149,26 @@ probabilities, and the log-likelihood and Bayesian information criterion
 ``` r
 svg_clusters <- clusterSVGsBayes(seu_brain, 
                                  svgs = top1k_svgs, 
-                                 n.clust = 5L)
+                                 n.clust = 5L, 
+                                 n.cores = 4L)
 ```
 
-Lastly, we can score the SVG clusters using `UCell` under the hood.
-These scores can then be visualized using e.g., violin plots or UMAPs.
+Next, we can score the SVG clusters using
+[`UCell`](https://github.com/carmonalab/UCell) under the hood. These
+scores can then be visualized using e.g., violin plots or UMAPs.
 
 ``` r
 seu_brain <- scoreSpatialModules(seu_brain, svg.clusters = svg_clusters)
+```
+
+Lastly, with our spatial modules identified and scores we can perform
+gene set enrichment analysis (GSEA) on each module; this is done
+internally using [`gProfiler2`](https://biit.cs.ut.ee/gprofiler/page/r).
+All you need to do is provide the results from `clusterSVGsBayes()` and
+specify the correct species.
+
+``` r
+enrich_res <- enrichSpatialModules(svg_clusters, species = "mmusculus")
 ```
 
 # Contact information
@@ -149,3 +177,28 @@ This package is developed & maintained by Jack R. Leary. Feel free to
 reach out by [opening an
 issue](https://github.com/jr-leary7/bayesVG/issues) or by email
 (<j.leary@ufl.edu>) if more detailed assistance is needed.
+
+# References
+
+1.  Jordan, M. *et al*. [An Introduction to Variational Methods for
+    Graphical Models](https://doi.org/10.1023/A:1007665907178). *Machine
+    Learning* (1999).
+
+2.  Burkner, P. [Bayesian Item Response Modeling in R with brms and
+    Stan](https://www.jstatsoft.org/v100/i05/). *Journal of Statistical
+    Software* (2021).
+
+3.  Gabry, J. *et al*. [cmdstanr: R Interface to
+    CmdStan](https://mc-stan.org/cmdstanr/). (2024).
+
+4.  Rasmussen, C. and Williams, C. [Gaussian Processes for Machine
+    Learning](https://direct.mit.edu/books/book/2320/Gaussian-Processes-for-Machine-Learning).
+    *The MIT Press* (2005).
+
+5.  Riutort-Mayol, G. *et al*. [Practical Hilbert Space Approximate
+    Bayesian Gaussian Processes for Probabilistic
+    Programming](https://arxiv.org/abs/2004.11408). *arXiv* (2020).
+
+6.  Carpenter, B. *et al*. [Stan: A Probabilistic Programming
+    Language](http://www.jstatsoft.org/v76/i01/). *Journal of
+    Statistical Software* (2017).
