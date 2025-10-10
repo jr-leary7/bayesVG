@@ -72,11 +72,17 @@ seu_pbmc <- findVariableFeaturesBayes(seu_pbmc,
             classifyHVGs(n.HVG = 3000L)
 ```
 
-We can extract the summary table (which is sorted by default) and extract the HVGs like so. These genes can then be used as the basis for downstream analyses such as PCA, clustering, UMAP visualization, etc. 
+We can generate the summary table (which is sorted by default) and extract the HVGs like so. These genes can then be used as the basis for downstream analyses such as PCA, clustering, UMAP visualization, etc. 
 
 ```{r, eval=FALSE}
 summary_hvg <- getBayesianGeneStats(seu_pbmc)
 top3k_hvgs <- summary_hvg$gene[1:3000]
+```
+
+The `extractModel()` function pulls out the fitted `brms` model from the object's unstructured metadata, allowing the user to perform posterior predictive checks (PPCs) and other diagnostics. Note: this requires that the HVG identification function be run with `save.model = TRUE`. 
+
+```{r, eval=FALSE}
+hvg_model <- extractModel(seu_pbmc)
 ```
 
 ## SVG detection 
@@ -118,6 +124,12 @@ summary_svg <- getBayesianGeneStats(seu_brain)
 top1k_svgs <- summary_svg$gene[1:1000]
 ```
 
+Since we ran the SVG identification model function with `save.model = TRUE`, we can extract the `cmdstanr` fit like so:
+
+```{r, eval=FALSE}
+svg_model <- extractModel(seu_brain)
+```
+
 We can cluster the SVG set (using a modified Gaussian mixture model) into spatial modules as shown below. The clustering function returns a PCA embedding of the SVGs, a table of the soft cluster assignment probabilities, and the log-likelihood and Bayesian information criterion (BIC) of the clustering.
 
 ```{r, eval=FALSE}
@@ -143,3 +155,17 @@ enrich_res <- enrichSpatialModules(svg_clusters, species = "mmusculus")
 # Contact information 
 
 This package is developed & maintained by Jack R. Leary. Feel free to reach out by [opening an issue](https://github.com/jr-leary7/bayesVG/issues) or by email (j.leary@ufl.edu) if more detailed assistance is needed.
+
+# References 
+
+1. Jordan, M. *et al*. [An Introduction to Variational Methods for Graphical Models](https://doi.org/10.1023/A:1007665907178). *Machine Learning* (1999). 
+
+2. Burkner, P. [Bayesian Item Response Modeling in R with brms and Stan](https://www.jstatsoft.org/v100/i05/). *Journal of Statistical Software* (2021). 
+
+3. Gabry, J. *et al*. [cmdstanr: R Interface to CmdStan](https://mc-stan.org/cmdstanr/). (2024). 
+
+4. Rasmussen, C. and Williams, C. [Gaussian Processes for Machine Learning](https://direct.mit.edu/books/book/2320/Gaussian-Processes-for-Machine-Learning). *The MIT Press* (2005).
+
+5. Riutort-Mayol, G. *et al*. [Practical Hilbert Space Approximate Bayesian Gaussian Processes for Probabilistic Programming](https://arxiv.org/abs/2004.11408). *arXiv* (2020). 
+
+6. Carpenter, B. *et al*. [Stan: A Probabilistic Programming Language](http://www.jstatsoft.org/v76/i01/). *Journal of Statistical Software* (2017). 
