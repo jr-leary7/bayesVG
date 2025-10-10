@@ -9,8 +9,8 @@ clusterSVGsBayes(
   svgs = NULL,
   n.clust = 5L,
   n.PCs = 30L,
-  algorithm = "meanfield",
-  n.iter = 3000L,
+  algorithm = "fullrank",
+  n.iter = 30000L,
   n.draws = 1000L,
   elbo.samples = NULL,
   opencl.params = NULL,
@@ -28,9 +28,9 @@ clusterSVGsBayes(
 
 \item{n.PCs}{An integer specifying the number of principal components (PCs) to reduce the data to prior to clustering. Defaults to 30.}
 
-\item{algorithm}{A string specifying the variational inference (VI) approximation algorithm to be used. Must be one of "meanfield", "fullrank", or "pathfinder". Defaults to "meanfield".}
+\item{algorithm}{A string specifying the variational inference (VI) approximation algorithm to be used. Must be one of "meanfield", "fullrank", or "pathfinder". Defaults to "fullrank".}
 
-\item{n.iter}{An integer specifying the maximum number of iterations. Defaults to 3000.}
+\item{n.iter}{An integer specifying the maximum number of iterations. Defaults to 30000.}
 
 \item{n.draws}{An integer specifying the number of draws to be generated from the variational posterior. Defaults to 1000.}
 

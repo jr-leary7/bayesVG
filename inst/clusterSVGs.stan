@@ -12,9 +12,9 @@ parameters {
 }
 
 model {
-  to_vector(mu) ~ normal(0, 2);
+  to_vector(mu) ~ normal(0, 7);
   for (i in 1:K) {
-    sigma[i] ~ std_normal();
+    sigma[i] ~ normal(0, 3);
   }
   theta ~ dirichlet(rep_vector(2, K));
   vector[K] log_theta_const;
