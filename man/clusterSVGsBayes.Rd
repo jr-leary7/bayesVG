@@ -34,7 +34,7 @@ clusterSVGsBayes(
 
 \item{n.draws}{An integer specifying the number of draws to be generated from the variational posterior. Defaults to 1000.}
 
-\item{elbo.samples}{An integer specifying the number of samples to be used to estimate the ELBO at every 100th iteration. Higher values will provide a more accurate estimate at the cost of computational complexity. Defaults to 150 when \code{algorithm} is one of "meanfield" or "fullrank", and 50 when \code{algorithm} is "pathfinder".}
+\item{elbo.samples}{An integer specifying the number of samples to be used to estimate the ELBO at every 100th iteration. Higher values will provide a more accurate estimate at the cost of computational complexity. Defaults to 300 when \code{algorithm} is one of "meanfield" or "fullrank", and 100 when \code{algorithm} is "pathfinder".}
 
 \item{opencl.params}{A two-element double vector specifying the platform and device IDs of the OpenCL GPU device. Most users should specify \code{c(0, 0)}. See \code{\link[brms]{opencl}} for more details. Defaults to NULL.}
 

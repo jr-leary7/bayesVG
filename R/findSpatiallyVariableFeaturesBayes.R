@@ -48,7 +48,9 @@
 #' @importFrom SummarizedExperiment rowData
 #' @importFrom dplyr relocate mutate rename rename_with with_groups select inner_join desc filter distinct arrange left_join bind_rows
 #' @importFrom tidyr pivot_longer
-#' @importFrom stats kmeans dist median var
+#' @importFrom stats kmeans median var
+#' @importFrom fields rdist 
+#' @importFrom coop scaler
 #' @importFrom withr with_output_sink
 #' @importFrom utils txtProgressBar setTxtProgressBar
 #' @importFrom parallel makeCluster stopCluster
@@ -173,7 +175,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
              dplyr::mutate(gene = factor(gene, levels = unique(gene)),
                            spot = factor(spot, levels = unique(spot)))
   if (likelihood == "gaussian") {
-    expr_df <- dplyr::mutate(expr_df, gene_expression = as.numeric(scale(gene_expression)))
+    expr_df <- dplyr::mutate(expr_df, gene_expression = as.numeric(coop::scaler(gene_expression)))
   } else if (likelihood == "nb") {
     expr_df <- dplyr::mutate(expr_df, gene_expression = as.integer(gene_expression))
   }
@@ -184,14 +186,17 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                ifelse(lscale.estimator == "kmeans", "k-means", "variogram"), 
                                " method..."))
   }
-  kmeans_centers <- stats::kmeans(spatial_mtx, centers = n.basis.fns, iter.max = 100L)$centers
+  kmeans_centers <- stats::kmeans(spatial_mtx, 
+                                  centers = n.basis.fns, 
+                                  iter.max = 100L)
+  kmeans_centers <- kmeans_centers$centers
   if (lscale.estimator == "kmeans") {
-    dists_centers <- as.matrix(stats::dist(kmeans_centers))
+    dists_centers <- fields::rdist(kmeans_centers)
     lscale <- stats::median(dists_centers[upper.tri(dists_centers)])
   } else if (lscale.estimator == "variogram") {
     spatial_df <- mutate(spatial_df, 
-                         x = as.numeric(scale(x)), 
-                         y = as.numeric(scale(y)))
+                         x = as.numeric(coop::scaler(x)), 
+                         y = as.numeric(coop::scaler(y)))
     if (verbose) {
       withr::with_output_sink(tempfile(), {
         pb <- utils::txtProgressBar(0, length(naive.hvgs), style = 3)

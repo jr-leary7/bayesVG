@@ -10,7 +10,7 @@
 #' @param algorithm A string specifying the variational inference (VI) approximation algorithm to be used. Must be one of "meanfield", "fullrank", or "pathfinder". Defaults to "fullrank".
 #' @param n.iter An integer specifying the maximum number of iterations. Defaults to 30000.
 #' @param n.draws An integer specifying the number of draws to be generated from the variational posterior. Defaults to 1000.
-#' @param elbo.samples An integer specifying the number of samples to be used to estimate the ELBO at every 100th iteration. Higher values will provide a more accurate estimate at the cost of computational complexity. Defaults to 150 when \code{algorithm} is one of "meanfield" or "fullrank", and 50 when \code{algorithm} is "pathfinder".
+#' @param elbo.samples An integer specifying the number of samples to be used to estimate the ELBO at every 100th iteration. Higher values will provide a more accurate estimate at the cost of computational complexity. Defaults to 300 when \code{algorithm} is one of "meanfield" or "fullrank", and 100 when \code{algorithm} is "pathfinder".
 #' @param opencl.params A two-element double vector specifying the platform and device IDs of the OpenCL GPU device. Most users should specify \code{c(0, 0)}. See \code{\link[brms]{opencl}} for more details. Defaults to NULL.
 #' @param n.cores An integer specifying the number of threads used in compiling and fitting the model and estimating the soft cluster assignment probabilities. Defaults to 2.
 #' @param random.seed A double specifying the random seed to be used when fitting and sampling from the model. Defaults to 312.
@@ -25,11 +25,12 @@
 #' \item When using the fullrank algorithm, it's generally necessary to increase the number of iterations using the \code{n.iter} argument. While the meanfield algorithm generally converges within 1000 iterations, the fullrank algorithm might need e.g., 30,000 iterations. Luckily, the Stan code is very fast so even with 30,000 iterations the clustering should be relatively quick. 
 #' }
 #' @import magrittr
-#' @importFrom cli cli_abort cli_alert_warning
+#' @importFrom cli cli_abort cli_alert_warning cli_alert_success cli_alert_info
 #' @importFrom parallelly availableCores
 #' @importFrom SingleCellExperiment logcounts
 #' @importFrom Seurat GetAssayData DefaultAssay
 #' @importFrom irlba prcomp_irlba
+#' @importFrom coop scaler
 #' @importFrom withr with_output_sink
 #' @importFrom posterior as_draws_df
 #' @importFrom dplyr select mutate rowwise c_across ungroup
@@ -39,7 +40,6 @@
 #' @importFrom foreach foreach %dopar% registerDoSEQ
 #' @importFrom doSNOW registerDoSNOW
 #' @importFrom parallel makeCluster stopCluster
-#' @importFrom cli cli_alert_success cli_alert_info
 #' @return A list containing the gene-level PCA embedding, a \code{data.frame} of the soft cluster assignments, the fitted model from \code{\link[cmdstanr]{cmdstan_model}}, and the estimated log-likelihood and BIC of the model.
 #' @export
 #' @examples
@@ -113,7 +113,7 @@ clusterSVGsBayes <- function(sp.obj = NULL,
     expr_mtx <- SingleCellExperiment::logcounts(sp.obj)
   }
   expr_mtx <- as.matrix(expr_mtx[svgs, ])
-  expr_mtx <- t(scale(t(expr_mtx)))
+  expr_mtx <- t(coop::scaler(t(expr_mtx)))
   attributes(expr_mtx)[3:4] <- NULL
   # run PCA on the normalized, scaled data
   svg_mtx_pca <- irlba::prcomp_irlba(expr_mtx,
@@ -242,10 +242,10 @@ clusterSVGsBayes <- function(sp.obj = NULL,
                               .verbose = FALSE,
                               .options.snow = snow_opts) %dopar% {
     x_i <- svg_mtx_pca$x[i, ]
-    computeResponsibilityFast(x_i = x_i, 
-                              theta_arr = theta_draws, 
-                              mu_arr = mu_arr, 
-                              sigma_arr = sigma_arr)
+    computeResponsibility(x_i = x_i, 
+                          theta_arr = theta_draws, 
+                          mu_arr = mu_arr, 
+                          sigma_arr = sigma_arr)
   }
   if (verbose && n.cores > 1L) {
     cat("\n")

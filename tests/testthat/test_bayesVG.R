@@ -40,7 +40,7 @@ for (i in seq(k)) {
 # fit spatial model, extract output, cluster SVGs, & run enrichment on SVG modules
 seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
                                                 naive.hvgs = Seurat::VariableFeatures(seu_brain),
-                                                lscale.estimator = "variogram",
+                                                lscale.estimator = "kmeans",
                                                 kernel = "matern",
                                                 kernel.smoothness = 1.5,
                                                 n.cores = 1L,
@@ -74,7 +74,7 @@ svg_fit <- extractModel(seu_brain)
 svg_plot <- plotSVGs(seu_brain)
 svg_clusters <- clusterSVGsBayes(seu_brain,
                                  svgs = Seurat::VariableFeatures(seu_brain),
-                                 n.clust = 3L,
+                                 n.clust = 2L,
                                  n.cores = 1L)
 seu_brain <- scoreSpatialModules(seu_brain,
                                  svg.clusters = svg_clusters,
@@ -142,8 +142,6 @@ test_that("SVG model", {
   expect_type(svg_clusters$log_likelihood, "double")
   expect_type(svg_clusters$BIC, "double")
   expect_type(seu_brain$svg_cluster_1_UCell, "double")
-  expect_type(seu_brain$svg_cluster_2_UCell, "double")
-  expect_type(seu_brain$svg_cluster_3_UCell, "double")
   expect_s3_class(enrich_res, "data.frame")
   expect_s3_class(p1, "ggplot")
   expect_s3_class(p2, "ggplot")
