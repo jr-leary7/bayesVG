@@ -8,6 +8,7 @@
 + Updated CITATION file to use new `bibentry()` format. 
 + Added non-centered prior parameterizations to the two Gaussian SVG models' Stan code. This increases accuracy as well as speed.
 + Dramatically sped up the SVG clustering model. 
++ Sped up matrix distance computation via the `fields` package and matrix scaling via the `coop` package. 
 
 # bayesVG v0.0.5
 
