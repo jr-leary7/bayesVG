@@ -5,6 +5,7 @@
 + Updated docs and made some functions less brittle. 
 + Updated some tests.
 + Updated the README. 
++ Added naive HVG fetching function. 
 
 # bayesVG v0.0.6 
 

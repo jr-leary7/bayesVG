@@ -28,7 +28,7 @@ findSpatiallyVariableFeaturesBayes(
 )
 }
 \arguments{
-\item{sp.obj}{An object of class \code{Seurat} containing spatial data. Defaults to NULL.}
+\item{sp.obj}{An object of class \code{Seurat} or \code{SpatialExperiment} containing spatial data. Defaults to NULL.}
 
 \item{naive.hvgs}{A vector containing genes that have been classified as naive HVGs from which SVGs will be detected. Defaults to NULL.}
 

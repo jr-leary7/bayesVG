@@ -3,7 +3,7 @@
 #' @name findSpatiallyVariableFeaturesBayes
 #' @author Jack R. Leary
 #' @description This function implements SVG estimation using Bayesian variational inference to approximate the posterior distribution of each gene's expression while accounting for spatial trends.
-#' @param sp.obj An object of class \code{Seurat} containing spatial data. Defaults to NULL.
+#' @param sp.obj An object of class \code{Seurat} or \code{SpatialExperiment} containing spatial data. Defaults to NULL.
 #' @param naive.hvgs A vector containing genes that have been classified as naive HVGs from which SVGs will be detected. Defaults to NULL.
 #' @param likelihood A string specifying the likelihood to be used when fitting the model. Must be one of "gaussian" or "nb" (for Negative-binomial). Defaults to "gaussian".
 #' @param lscale.estimator A string specifying how the global length-scale should be estimated. Must be one of "kmeans" or "variogram". Defaults to "kmeans".
