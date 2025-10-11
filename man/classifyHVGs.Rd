@@ -39,7 +39,7 @@ seu_pbmc <- findVariableFeaturesBayes(seu_pbmc,
                                       algorithm = "meanfield",
                                       n.cores.per.chain = 1L,
                                       save.model = TRUE) \%>\%
-            classifyHVGs(n.HVG = 3000L)
+            classifyHVGs(n.HVG = 500L)
 }
 \seealso{
 \code{\link{findVariableFeaturesBayes}}

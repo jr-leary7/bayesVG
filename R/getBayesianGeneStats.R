@@ -21,7 +21,7 @@
 #'                                       algorithm = "meanfield",
 #'                                       n.cores.per.chain = 1L,
 #'                                       save.model = TRUE) %>% 
-#'              classifyHVGs(n.HVG = 200L) 
+#'              classifyHVGs(n.HVG = 100L) 
 #' gene_stats <- getBayesianGeneStats(seu_pbmc)
 
 getBayesianGeneStats <- function(obj = NULL, sort.values = TRUE) {

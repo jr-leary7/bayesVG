@@ -117,7 +117,7 @@ seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
              classifySVGs(n.SVG = 1000L)
 ```
 
-We can extract the summary table (which, like the HVG summary table is sorted by default)  and extract the top 1,000 SVGs like so. These genes can then be used as the basis for downstream analyses such as PCA, spatial clustering, UMAP visualization, etc. 
+We can extract the summary table (which like the HVG summary table is sorted by default)  and extract the top 1,000 SVGs like so. These genes can then be used as the basis for downstream analyses such as PCA, spatial clustering, UMAP visualization, etc. 
 
 ```{r, eval=FALSE}
 summary_svg <- getBayesianGeneStats(seu_brain)

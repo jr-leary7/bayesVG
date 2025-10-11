@@ -6,6 +6,7 @@
 + Updated some tests.
 + Updated the README. 
 + Added naive HVG fetching function. 
++ Made most of the Examples faster by decreasing the number of HVGs / SVGs. 
 
 # bayesVG v0.0.6 
 

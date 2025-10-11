@@ -20,36 +20,36 @@ plotSVGs(
 
 \item{pt.alpha}{A double specifying the opacity of the points on the plot. Defaults to 0.6.}
 
-\item{add.smooth}{A Boolean specifying whether a GAM smoother should be overlaid in order to show the overall relationship between the (log) mean and (log) dispersion of gene expression. Defaults to TRUE.}
+\item{add.smooth}{A Boolean specifying whether a GAM smoother should be overlaid in order to show the overall relationship between the (log) mean and (log) amplitude of gene expression. Defaults to TRUE.}
 
-\item{n.genes.label}{An integer specifying the number of top HVGs to label on the plot using \code{\link[ggrepel]{geom_label_repel}}. If equal to 0, no genes will be labelled. Defaults to 10.}
+\item{n.genes.label}{An integer specifying the number of top SVGs to label on the plot using \code{\link[ggrepel]{geom_label_repel}}. If equal to 0, no genes will be labelled. Defaults to 10.}
 
-\item{label.text.size}{A double specifying the size of the text for each top HVG's label. Defaults to 3.}
+\item{label.text.size}{A double specifying the size of the text for each top SVG's label. Defaults to 3.}
 }
 \value{
 An object of class \code{ggplot2}.
 }
 \description{
-This function plots the (log) mean versus the (log) dispersion of gene expression in order to visualize the relationship between the two statistics for HVGs and non-HVGs.
+This function plots the (log) mean versus the (log) amplitude of gene expression in order to visualize the relationship between the two statistics for SVGs and non-SVGs.
 }
 \examples{
 data(seu_brain)
-seu_brain <- Seurat::NormalizeData(seu_brain, verbose = FALSE) \%>\% 
-             Seurat::FindVariableFeatures(nfeatures = 1000L, verbose = FALSE)
+seu_brain <- Seurat::NormalizeData(seu_brain, verbose = FALSE)
+naive_hvgs <- getNaiveHVGs(seu_brain, n.hvg = 500L)
 seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
-                                                naive.hvgs = Seurat::VariableFeatures(seu_brain),
+                                                naive.hvgs = naive_hvgs,
                                                 kernel = "matern",
                                                 kernel.smoothness = 1.5,
                                                 algorithm = "meanfield",
                                                 n.cores = 1L,
                                                 save.model = TRUE) \%>\% 
-             classifySVGs(n.SVG = 200L) 
+             classifySVGs(n.SVG = 100L) 
 plotSVGs(seu_brain)
 }
 \seealso{
-\code{\link{findVariableFeaturesBayes}}
+\code{\link{findSpatiallyVariableFeaturesBayes}}
 
-\code{\link{classifyHVGs}}
+\code{\link{classifySVGs}}
 
 \code{\link[Seurat]{VariableFeaturePlot}}
 }

@@ -46,7 +46,7 @@
 #' @importFrom BiocGenerics counts
 #' @importFrom Matrix rowSums
 #' @importFrom SummarizedExperiment rowData
-#' @importFrom dplyr relocate mutate rename rename_with with_groups select inner_join desc filter distinct arrange left_join bind_rows
+#' @importFrom dplyr relocate mutate rename rename_with with_groups select inner_join desc filter distinct arrange left_join bind_rows row_number
 #' @importFrom tidyr pivot_longer
 #' @importFrom stats kmeans median var
 #' @importFrom fields rdist
@@ -65,10 +65,10 @@
 #' @export
 #' @examples
 #' data(seu_brain)
-#' seu_brain <- Seurat::NormalizeData(seu_brain, verbose = FALSE) %>%
-#'              Seurat::FindVariableFeatures(nfeatures = 1000L, verbose = FALSE)
+#' seu_brain <- Seurat::NormalizeData(seu_brain, verbose = FALSE)
+#' naive_hvgs <- getNaiveHVGs(seu_brain, n.hvg = 500L)
 #' seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
-#'                                                 naive.hvgs = Seurat::VariableFeatures(seu_brain),
+#'                                                 naive.hvgs = naive_hvgs,
 #'                                                 kernel = "matern",
 #'                                                 kernel.smoothness = 1.5,
 #'                                                 algorithm = "meanfield",
@@ -408,13 +408,14 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                        dplyr::rename_with(~paste0("amplitude_", .), .cols = -1) %>%
                        dplyr::rename(amplitude_ci_ll = amplitude_q5,
                                      amplitude_ci_ul = amplitude_q95) %>%
-                       dplyr::mutate(gene_id = sub("^.*\\[(.*)\\].*$", "\\1", variable), .before = 1) %>%
+                       dplyr::mutate(gene_id = sub("^.*\\[(.*)\\].*$", "\\1", variable), 
+                                     .before = 1) %>%
                        dplyr::inner_join(gene_mapping, by = "gene_id") %>%
                        dplyr::relocate(gene) %>%
                        dplyr::select(-c(variable, gene_id)) %>%
                        dplyr::mutate(amplitude_dispersion = amplitude_sd^2 / amplitude_mean) %>%
                        dplyr::arrange(dplyr::desc(amplitude_mean)) %>%
-                       dplyr::mutate(amplitude_mean_rank = row_number()) %>%
+                       dplyr::mutate(amplitude_mean_rank = dplyr::row_number()) %>%
                        as.data.frame() %>%
                        magrittr::set_rownames(.$gene)
   if (verbose) {
@@ -461,8 +462,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
       }
     }
   } else {
-    amplitude_summary_s4 <- SummarizedExperiment::rowData(sp.obj) %>%
-                            as.data.frame() %>%
+    amplitude_summary_s4 <- as.data.frame(SummarizedExperiment::rowData(sp.obj)) %>% 
                             dplyr::mutate(gene = rownames(.), .before = 1) %>%
                             dplyr::left_join(amplitude_summary, by = "gene") %>%
                             S4Vectors::DataFrame()
