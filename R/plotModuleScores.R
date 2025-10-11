@@ -88,10 +88,10 @@ plotModuleScores <- function(sp.obj = NULL,
       coord_df <- SpatialExperiment::spatialCoords(sp.obj)
     }
     coord_df <- dplyr::select(coord_df, 1:2) %>%
-                magrittr::set_colnames(c("x", "y")) %>%
                 as.matrix() %>%
                 coop::scaler() %>%
                 as.data.frame() %>%
+                magrittr::set_colnames(c("x", "y")) %>%
                 dplyr::mutate(module_score = meta_df[[module_name]])
     p <- ggplot2::ggplot(coord_df, ggplot2::aes(x = y, y = x, color = module_score)) +
          ggplot2::geom_point(size = pt.size,
