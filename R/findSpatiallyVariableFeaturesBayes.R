@@ -304,6 +304,8 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     } else if (likelihood == "nb") {
       stan_file <- system.file("approxGP3.stan", package = "bayesVG")
     }
+    # save memory by removing counts matrix
+    rm(expr_tmp)
   } else {
     data_list <- list(M = M,
                       N = N,

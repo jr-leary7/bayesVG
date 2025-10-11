@@ -280,7 +280,7 @@ findVariableFeaturesBayes <- function(sc.obj = NULL,
                                          sigma2_ci_ll = stats::quantile(sigma2, 0.025),
                                          sigma2_ci_ul = stats::quantile(sigma2, 0.975),
                                          dispersion_mean = mean(dispersion),
-                                         dispersion_var = var(dispersion),
+                                         dispersion_var = stats::var(dispersion),
                                          dispersion_ci_ll = stats::quantile(dispersion, 0.025),
                                          dispersion_ci_ul = stats::quantile(dispersion, 0.975))
     gene_summary <- dplyr::inner_join(mu_summary,
@@ -301,7 +301,7 @@ findVariableFeaturesBayes <- function(sc.obj = NULL,
                                          sigma2_ci_ll = stats::quantile(sigma2, 0.025),
                                          sigma2_ci_ul = stats::quantile(sigma2, 0.975),
                                          dispersion_mean = mean(dispersion),
-                                         dispersion_var = var(dispersion),
+                                         dispersion_var = stats::var(dispersion),
                                          dispersion_ci_ll = stats::quantile(dispersion, 0.025),
                                          dispersion_ci_ul = stats::quantile(dispersion, 0.975))
     gene_summary <- dplyr::inner_join(mu_summary,
@@ -316,8 +316,7 @@ findVariableFeaturesBayes <- function(sc.obj = NULL,
   # add gene-level estimates to object metadata
   if (is.null(subject.id)) {
     if (inherits(sc.obj, "SingleCellExperiment")) {
-      gene_summary_s4 <- SummarizedExperiment::rowData(sc.obj) %>%
-                         as.data.frame() %>%
+      gene_summary_s4 <- as.data.frame(SummarizedExperiment::rowData(sc.obj)) %>% 
                          dplyr::mutate(gene = rownames(.), .before = 1) %>%
                          dplyr::left_join(gene_summary, by = "gene") %>%
                          S4Vectors::DataFrame()
