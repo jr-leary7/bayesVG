@@ -192,20 +192,20 @@ issue](https://github.com/jr-leary7/bayesVG/issues) or by email
     Learning* (1999).
 
 2.  Burkner, P. [Bayesian Item Response Modeling in R with brms and
-    Stan](https://www.jstatsoft.org/v100/i05/). *Journal of Statistical
-    Software* (2021).
+    Stan](https://doi.org/10.18637/jss.v100.i05). *Journal of
+    Statistical Software* (2021).
 
 3.  Gabry, J. *et al*. [cmdstanr: R Interface to
     CmdStan](https://mc-stan.org/cmdstanr/). (2024).
 
 4.  Rasmussen, C. and Williams, C. [Gaussian Processes for Machine
-    Learning](https://direct.mit.edu/books/book/2320/Gaussian-Processes-for-Machine-Learning).
-    *The MIT Press* (2005).
+    Learning](https://doi.org/10.7551/mitpress/3206.003.0019). *The MIT
+    Press* (2005).
 
 5.  Riutort-Mayol, G. *et al*. [Practical Hilbert Space Approximate
     Bayesian Gaussian Processes for Probabilistic
     Programming](https://arxiv.org/abs/2004.11408). *arXiv* (2020).
 
 6.  Carpenter, B. *et al*. [Stan: A Probabilistic Programming
-    Language](http://www.jstatsoft.org/v76/i01/). *Journal of
+    Language](https://doi.org/10.18637/jss.v076.i01). *Journal of
     Statistical Software* (2017).

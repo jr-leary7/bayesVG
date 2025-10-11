@@ -55,3 +55,6 @@ inst/approxGP2
 inst/approxGP3
 inst/approxGP4
 inst/clusterSVGs
+
+# macOS bullshit 
+.DS_Store
