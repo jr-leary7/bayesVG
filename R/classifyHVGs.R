@@ -30,7 +30,7 @@
 #'                                       algorithm = "meanfield",
 #'                                       n.cores.per.chain = 1L,
 #'                                       save.model = TRUE) %>%
-#'             classifyHVGs(n.HVG = 500L)
+#'             classifyHVGs(n.HVG = 200L)
 
 classifyHVGs <- function(sc.obj = NULL,
                          selection.variable = "dispersion",

@@ -182,6 +182,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   gene_mapping <- data.frame(gene = as.character(expr_df$gene),
                              gene_id = as.character(as.integer(expr_df$gene))) %>%
                   dplyr::distinct()
+  non_tested_genes <- rownames(sp.obj)[!rownames(sp.obj) %in% unique(expr_df$gene)]
   # estimate global length-scale
   if (verbose) {
     cli::cli_alert_info(paste0("Estimating global length-scale using the ",
@@ -444,7 +445,6 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
         sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]]@meta.data <- new_metadata
       }
     } else {
-      non_tested_genes <- rownames(sp.obj)[!rownames(sp.obj) %in% unique(expr_df$gene)]
       null_df <- data.frame(gene = non_tested_genes,
                             amplitude_mean = NA_real_,
                             amplitude_median = NA_real_,
