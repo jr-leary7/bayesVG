@@ -13,16 +13,16 @@
 #' @export 
 #' @examples
 #' data(seu_brain)
-#' seu_brain <- Seurat::NormalizeData(seu_brain, verbose = FALSE) %>% 
-#'              Seurat::FindVariableFeatures(nfeatures = 1000L, verbose = FALSE)
+#' seu_brain <- Seurat::NormalizeData(seu_brain, verbose = FALSE)
+#' naive_hvgs <- getNaiveHVGs(seu_brain, n.hvg = 500L)
 #' seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
-#'                                                 naive.hvgs = Seurat::VariableFeatures(seu_brain),
+#'                                                 naive.hvgs = naive_hvgs,
 #'                                                 kernel = "matern",
 #'                                                 kernel.smoothness = 1.5,
 #'                                                 algorithm = "meanfield",
 #'                                                 n.cores = 1L,
 #'                                                 save.model = TRUE) %>%
-#'              classifySVGs(n.SVG = 200L)
+#'              classifySVGs(n.SVG = 100L)
 #' svg_clusters <- clusterSVGsBayes(seu_brain,
 #'                                  svgs = Seurat::VariableFeatures(seu_brain),
 #'                                  n.clust = 2L,

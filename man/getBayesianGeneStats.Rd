@@ -18,18 +18,14 @@ A \code{data.frame} containing the relevant Bayesian gene statistics.
 Given a user-provided object upon which the relevant HVG or SVG identification pipeline has been run, this function fetches the table of Bayesian gene statistics that is stored in the object's metadata.
 }
 \examples{
-data(seu_brain)
-seu_brain <- Seurat::NormalizeData(seu_brain, verbose = FALSE) \%>\% 
-             Seurat::FindVariableFeatures(nfeatures = 1000L, verbose = FALSE)
-seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
-                                                naive.hvgs = Seurat::VariableFeatures(seu_brain),
-                                                kernel = "matern",
-                                                kernel.smoothness = 1.5,
-                                                algorithm = "meanfield",
-                                                n.cores = 1L,
-                                                save.model = TRUE) \%>\% 
-             classifySVGs(n.SVG = 200L) 
-gene_stats <- getBayesianGeneStats(seu_brain)
+data(seu_pbmc)
+seu_pbmc <- findVariableFeaturesBayes(seu_pbmc,
+                                      n.cells.subsample = 500L,
+                                      algorithm = "meanfield",
+                                      n.cores.per.chain = 1L,
+                                      save.model = TRUE) \%>\% 
+             classifyHVGs(n.HVG = 100L) 
+gene_stats <- getBayesianGeneStats(seu_pbmc)
 }
 \author{
 Jack R. Leary

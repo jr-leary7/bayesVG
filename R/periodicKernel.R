@@ -17,7 +17,6 @@ periodicKernel <- function(d = NULL,
   # check inputs
   if (is.null(d) || is.null(length.scale)) { cli::cli_abort("All parameters must be provided.") }
   # compute periodic kernel values
-  d_sqrt <- sqrt(d)
-  res <- exp(-2 * sin(pi * d_sqrt / period)^2 / (length.scale^2))
+  res <- exp(-2 * sin(pi * sqrt(d) / period)^2 / (length.scale^2))
   return(res)
 }

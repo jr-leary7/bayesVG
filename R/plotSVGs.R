@@ -2,13 +2,13 @@
 #'
 #' @name plotSVGs
 #' @author Jack R. Leary
-#' @description This function plots the (log) mean versus the (log) dispersion of gene expression in order to visualize the relationship between the two statistics for HVGs and non-HVGs.
+#' @description This function plots the (log) mean versus the (log) amplitude of gene expression in order to visualize the relationship between the two statistics for SVGs and non-SVGs.
 #' @param sp.obj An object of class \code{Seurat} or \code{SpatialExperiment} upon which \code{\link{findSpatiallyVariableFeaturesBayes}} and \code{\link{classifySVGs}} have been run. Defaults to NULL.
 #' @param pt.size A double specifying the size of the points on the plot. Defaults to 1.
 #' @param pt.alpha A double specifying the opacity of the points on the plot. Defaults to 0.6.
-#' @param add.smooth A Boolean specifying whether a GAM smoother should be overlaid in order to show the overall relationship between the (log) mean and (log) dispersion of gene expression. Defaults to TRUE.
-#' @param n.genes.label An integer specifying the number of top HVGs to label on the plot using \code{\link[ggrepel]{geom_label_repel}}. If equal to 0, no genes will be labelled. Defaults to 10.
-#' @param label.text.size A double specifying the size of the text for each top HVG's label. Defaults to 3.
+#' @param add.smooth A Boolean specifying whether a GAM smoother should be overlaid in order to show the overall relationship between the (log) mean and (log) amplitude of gene expression. Defaults to TRUE.
+#' @param n.genes.label An integer specifying the number of top SVGs to label on the plot using \code{\link[ggrepel]{geom_label_repel}}. If equal to 0, no genes will be labelled. Defaults to 10.
+#' @param label.text.size A double specifying the size of the text for each top SVG's label. Defaults to 3.
 #' @import magrittr
 #' @importFrom cli cli_abort
 #' @importFrom methods slot
@@ -18,22 +18,22 @@
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth scale_color_manual labs guides guide_legend
 #' @importFrom ggrepel geom_label_repel
 #' @return An object of class \code{ggplot2}.
-#' @seealso \code{\link{findVariableFeaturesBayes}}
-#' @seealso \code{\link{classifyHVGs}}
+#' @seealso \code{\link{findSpatiallyVariableFeaturesBayes}}
+#' @seealso \code{\link{classifySVGs}}
 #' @seealso \code{\link[Seurat]{VariableFeaturePlot}}
 #' @export
 #' @examples
 #' data(seu_brain)
-#' seu_brain <- Seurat::NormalizeData(seu_brain, verbose = FALSE) %>% 
-#'              Seurat::FindVariableFeatures(nfeatures = 1000L, verbose = FALSE)
+#' seu_brain <- Seurat::NormalizeData(seu_brain, verbose = FALSE)
+#' naive_hvgs <- getNaiveHVGs(seu_brain, n.hvg = 500L)
 #' seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
-#'                                                 naive.hvgs = Seurat::VariableFeatures(seu_brain),
+#'                                                 naive.hvgs = naive_hvgs,
 #'                                                 kernel = "matern",
 #'                                                 kernel.smoothness = 1.5,
 #'                                                 algorithm = "meanfield",
 #'                                                 n.cores = 1L,
 #'                                                 save.model = TRUE) %>% 
-#'              classifySVGs(n.SVG = 200L) 
+#'              classifySVGs(n.SVG = 100L) 
 #' plotSVGs(seu_brain)
 
 plotSVGs <- function(sp.obj = NULL,

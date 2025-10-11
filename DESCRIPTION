@@ -18,6 +18,7 @@ Imports:
     coop, 
     brms, 
     gstat, 
+    scran, 
     utils, 
     purrr, 
     withr, 

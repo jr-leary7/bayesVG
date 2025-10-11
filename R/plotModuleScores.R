@@ -28,16 +28,16 @@
 #' @export
 #' @examples
 #' data(seu_brain)
-#' seu_brain <- Seurat::NormalizeData(seu_brain, verbose = FALSE) %>%
-#'              Seurat::FindVariableFeatures(nfeatures = 1000L, verbose = FALSE)
+#' seu_brain <- Seurat::NormalizeData(seu_brain, verbose = FALSE)
+#' naive_hvgs <- getNaiveHVGs(seu_brain, n.hvg = 500L)
 #' seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
-#'                                                 naive.hvgs = Seurat::VariableFeatures(seu_brain),
+#'                                                 naive.hvgs = naive_hvgs,
 #'                                                 kernel = "matern",
 #'                                                 kernel.smoothness = 1.5,
 #'                                                 algorithm = "meanfield",
 #'                                                 n.cores = 1L,
 #'                                                 save.model = TRUE) %>%
-#'              classifySVGs(n.SVG = 200L)
+#'              classifySVGs(n.SVG = 100L)
 #' svg_clusters <- clusterSVGsBayes(seu_brain,
 #'                                  svgs = Seurat::VariableFeatures(seu_brain),
 #'                                  n.clust = 2L,
@@ -88,10 +88,10 @@ plotModuleScores <- function(sp.obj = NULL,
       coord_df <- SpatialExperiment::spatialCoords(sp.obj)
     }
     coord_df <- dplyr::select(coord_df, 1:2) %>%
-                magrittr::set_colnames(c("x", "y")) %>%
                 as.matrix() %>%
                 coop::scaler() %>%
                 as.data.frame() %>%
+                magrittr::set_colnames(c("x", "y")) %>%
                 dplyr::mutate(module_score = meta_df[[module_name]])
     p <- ggplot2::ggplot(coord_df, ggplot2::aes(x = y, y = x, color = module_score)) +
          ggplot2::geom_point(size = pt.size,

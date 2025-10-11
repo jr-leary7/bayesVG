@@ -28,7 +28,7 @@ findSpatiallyVariableFeaturesBayes(
 )
 }
 \arguments{
-\item{sp.obj}{An object of class \code{Seurat} containing spatial data. Defaults to NULL.}
+\item{sp.obj}{An object of class \code{Seurat} or \code{SpatialExperiment} containing spatial data. Defaults to NULL.}
 
 \item{naive.hvgs}{A vector containing genes that have been classified as naive HVGs from which SVGs will be detected. Defaults to NULL.}
 
@@ -90,10 +90,10 @@ This function implements SVG estimation using Bayesian variational inference to 
 }
 \examples{
 data(seu_brain)
-seu_brain <- Seurat::NormalizeData(seu_brain, verbose = FALSE) \%>\%
-             Seurat::FindVariableFeatures(nfeatures = 1000L, verbose = FALSE)
+seu_brain <- Seurat::NormalizeData(seu_brain, verbose = FALSE)
+naive_hvgs <- getNaiveHVGs(seu_brain, n.hvg = 500L)
 seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
-                                                naive.hvgs = Seurat::VariableFeatures(seu_brain),
+                                                naive.hvgs = naive_hvgs,
                                                 kernel = "matern",
                                                 kernel.smoothness = 1.5,
                                                 algorithm = "meanfield",

@@ -96,11 +96,11 @@ data("seu_brain")
 ```
 
 Before running `bayesVG` for SVG detection it’s necessary to normalize
-the expression data and identify a set of naive HVGs.
+the expression data and identify a set of 3,000 naive HVGs.
 
 ``` r
-seu_brain <- NormalizeData(seu_brain, verbose = FALSE) %>% 
-             FindVariableFeatures(nfeatures = 3000L, verbose = FALSE)
+seu_brain <- NormalizeData(seu_brain, verbose = FALSE)
+naive_hvgs <- getNaiveHVGs(seu_brain)
 ```
 
 ### Modeling
@@ -114,7 +114,7 @@ object.
 
 ``` r
 seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain, 
-                                                naive.hvgs = VariableFeatures(seu_brain), 
+                                                naive.hvgs = naive_hvgs, 
                                                 kernel = "matern", 
                                                 kernel.smoothness = 1.5, 
                                                 algorithm = "meanfield", 
@@ -123,7 +123,7 @@ seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
              classifySVGs(n.SVG = 1000L)
 ```
 
-We can extract the summary table (which, like the HVG summary table is
+We can extract the summary table (which like the HVG summary table is
 sorted by default) and extract the top 1,000 SVGs like so. These genes
 can then be used as the basis for downstream analyses such as PCA,
 spatial clustering, UMAP visualization, etc.
