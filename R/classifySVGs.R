@@ -62,7 +62,7 @@ classifySVGs <- function(sp.obj = NULL,
             dplyr::slice_head(n = n.SVG) %>%
             dplyr::pull(gene)
   } else if (selection.method == "quantile") {
-    quantile_cutoff <- as.numeric(stats::quantile(gene_summary[, "amplitude_mean"], quantile.HVG))
+    quantile_cutoff <- as.numeric(stats::quantile(gene_summary[, "amplitude_mean"], quantile.SVG))
     svgs <- dplyr::arrange(gene_summary, amplitude_mean_rank) %>%
             dplyr::filter(mean >= quantile_cutoff) %>%
             dplyr::pull(gene)

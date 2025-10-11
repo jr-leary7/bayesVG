@@ -191,7 +191,8 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   }
   kmeans_centers <- stats::kmeans(spatial_mtx,
                                   centers = n.basis.fns,
-                                  iter.max = 100L)
+                                  iter.max = 100L, 
+                                  nstart = 10L)
   kmeans_centers <- kmeans_centers$centers
   if (lscale.estimator == "kmeans") {
     dists_centers <- fields::rdist(kmeans_centers)

@@ -8,10 +8,10 @@
 utils::globalVariables(c(
   "gene", 
   "amplitude_mean_rank",
-  "quantile.HVG", 
   "amplitude_mean", 
   "i", 
-  "p_value.", 
+  "p_value",
+  ".", 
   "spot", 
   "gene_expression", 
   "x", 

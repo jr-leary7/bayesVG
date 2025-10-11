@@ -86,6 +86,7 @@ enrich_res <- enrichSpatialModules(svg_clusters, species = "mmusculus")
 
 # compute naive gene statistics
 gene_stats_naive <- computeNaiveGeneStatistics(seu_pbmc, use.norm = TRUE)
+naive_hvgs <- getNaiveHVGs(seu_brain)
 
 # convert seu_brain to SpatialExperiment from Seurat
 spe_brain <- suppressWarnings(convertToSpatialExperiment(seu_brain, sample.id = "anterior1"))
@@ -160,6 +161,9 @@ test_that("naive gene statistics", {
   expect_s3_class(gene_stats_naive, "data.frame")
   expect_equal(ncol(gene_stats_naive), 4)
   expect_equal(nrow(gene_stats_naive), 100)
+  expect_type(naive_hvgs, "character")
+  expect_length(naive_hvgs, 3000)
+  
 })
 
 # run spatialexperiment conversion tests

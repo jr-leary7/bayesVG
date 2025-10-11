@@ -22,6 +22,10 @@ parameters {
   vector<lower=0>[k] sigma_alpha;  // vector of SDs for the basis function coefficients
 }
 
+transformed parameters {
+  vector[G] amplitude_sq = square(amplitude);
+}
+
 model {
   matrix[M, G] phi_alpha;
   phi_alpha = phi * alpha_t;
@@ -35,7 +39,6 @@ model {
   mu_amplitude ~ normal(0, 2);
   sigma_amplitude ~ std_normal();
   amplitude ~ lognormal(mu_amplitude, sigma_amplitude);
-  vector[G] amplitude_sq = square(amplitude); 
   phi_nb ~ cauchy(0, 2) T[0, ];
   vector[N] w;
   for (i in 1:N) {
