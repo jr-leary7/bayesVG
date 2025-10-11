@@ -10,16 +10,16 @@ data {
 }
 
 parameters {
-  real mu_beta0;
-  real<lower=0> sigma_beta0;
-  vector[G] z_beta0;
-  real mu_amplitude;
-  real<lower=0> sigma_amplitude;
-  vector<lower=0>[G] amplitude;
-  vector[k] mu_alpha;
-  vector<lower=0>[k] sigma_alpha;
-  matrix[k, G] z_alpha_t;
-  real<lower=0> sigma_y;
+  real mu_beta0;  // mean for the global intercepts
+  real<lower=0> sigma_beta0;  // SD for the global intercepts 
+  vector[G] z_beta0;  // vector of standard normal RVs for the global intercepts 
+  real mu_amplitude;  // mean for the amplitude
+  real<lower=0> sigma_amplitude;  // SD for the amplitude
+  vector<lower=0>[G] amplitude;  // vector of gene-specific amplitudes of the approximate GP
+  vector[k] mu_alpha;  // vector of means for the basis function coefficients
+  vector<lower=0>[k] sigma_alpha;  // vector of SDs for the basis function coefficients
+  matrix[k, G] z_alpha_t;  // standard normal RV for basis function coefficients
+  real<lower=0> sigma_y;  // observation noise of response variable
 }
 
 transformed parameters {

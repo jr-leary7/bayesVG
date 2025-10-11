@@ -45,10 +45,10 @@ plotSpatialExpression <- function(sp.obj = NULL,
                                         layer = ifelse(use.norm, "data", "counts"))[gene.plot, ]
     coord_df <- Seurat::GetTissueCoordinates(sp.obj) %>%
                 dplyr::select(1:2) %>%
-                magrittr::set_colnames(c("x", "y")) %>%
                 as.matrix() %>%
                 coop::scaler() %>%
                 as.data.frame() %>%
+                magrittr::set_colnames(c("x", "y")) %>%
                 dplyr::mutate(gene_expr = expr_vector)
     p <- ggplot2::ggplot(coord_df, ggplot2::aes(x = y, y = x, color = gene_expr)) +
          ggplot2::geom_point(size = pt.size, stroke = 0) +
