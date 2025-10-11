@@ -7,6 +7,7 @@
 + Updated the README. 
 + Added naive HVG fetching function. 
 + Made most of the Examples faster by decreasing the number of HVGs / SVGs. 
++ Removed a NOTE from R CMD check by declaring global variables used throughout the package.
 
 # bayesVG v0.0.6 
 

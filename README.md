@@ -14,6 +14,7 @@
 
 <!-- badges: start -->
 
+[![Language](https://img.shields.io/badge/-R?logo=R&logoColor=white)](https://github.com/topics/r)
 ![release](https://img.shields.io/github/v/release/jr-leary7/bayesVG?color=purple)
 [![R-CMD-check](https://github.com/jr-leary7/bayesVG/actions/workflows/R-CMD-CHECK.yaml/badge.svg)](https://github.com/jr-leary7/bayesVG/actions/workflows/R-CMD-CHECK.yaml)
 ![last
@@ -54,10 +55,11 @@ data("seu_pbmc")
 
 ### Modeling
 
-Now we’re able to model gene expression, summarize the posterior
-distribution of variance for each gene, and classify the top 3,000
-most-variable genes as HVGs. The `findVariableFeaturesBayes()` function
-can take as input either a `Seurat` or a `SingleCellExperiment` object.
+Now we’re able to model gene expression using variational inference,
+summarize the approximate posterior distribution of variance for each
+gene, and classify the top 3,000 most-variable genes as HVGs. The
+`findVariableFeaturesBayes()` function can take as input either a
+`Seurat` or a `SingleCellExperiment` object.
 
 ``` r
 seu_pbmc <- findVariableFeaturesBayes(seu_pbmc, 
@@ -89,7 +91,8 @@ hvg_model <- extractModel(seu_pbmc)
 
 ### Data
 
-First, we load the 10X Genomics anterior mouse brain dataset.
+First, we load the 10X Genomics anterior mouse brain dataset that we’ve
+included in the package.
 
 ``` r
 data("seu_brain")
@@ -100,21 +103,22 @@ the expression data and identify a set of 3,000 naive HVGs.
 
 ``` r
 seu_brain <- NormalizeData(seu_brain, verbose = FALSE)
-naive_hvgs <- getNaiveHVGs(seu_brain)
+naive_hvgs <- getNaiveHVGs(seu_brain, n.hvg = 3000L)
 ```
 
 ### Modeling
 
 Now we can model gene expression with an approximate multivariate
-hierarchical Gaussian process (GP), summarize the spatial component of
-variance for each gene, and classify the top 1,000 most spatially
-variable genes as SVGs. The `findSpatiallyVariableFeaturesBayes()`
-function can take as input either a `Seurat` or a `SpatialExperiment`
-object.
+hierarchical Gaussian process (GP) via variational inference, summarize
+the spatial component of variance for each gene, and classify the top
+1,000 most spatially variable genes as SVGs. The
+`findSpatiallyVariableFeaturesBayes()` function can take as input either
+a `Seurat` or a `SpatialExperiment` object.
 
 ``` r
 seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain, 
                                                 naive.hvgs = naive_hvgs, 
+                                                likelihood = "gaussian", 
                                                 kernel = "matern", 
                                                 kernel.smoothness = 2.5, 
                                                 algorithm = "meanfield", 
