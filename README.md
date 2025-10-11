@@ -116,7 +116,7 @@ object.
 seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain, 
                                                 naive.hvgs = naive_hvgs, 
                                                 kernel = "matern", 
-                                                kernel.smoothness = 1.5, 
+                                                kernel.smoothness = 2.5, 
                                                 algorithm = "meanfield", 
                                                 n.cores = 4L, 
                                                 save.model = TRUE) %>% 
@@ -140,11 +140,13 @@ Since we ran the SVG identification model function with
 svg_model <- extractModel(seu_brain)
 ```
 
-We can cluster the SVG set (using a modified Gaussian mixture model)
-into spatial modules as shown below. The clustering function returns a
-PCA embedding of the SVGs, a table of the soft cluster assignment
-probabilities, and the log-likelihood and Bayesian information criterion
-(BIC) of the clustering.
+We can cluster the SVG set (using a very fast modified Gaussian mixture
+model) into spatial modules as shown below. The clustering function
+returns a PCA embedding of the SVGs, a table of the soft cluster
+assignment probabilities, and the log-likelihood and Bayesian
+information criterion (BIC) of the clustering. The clustering code uses
+the fullrank VI algorithm by default due to the multi-modality and high
+correlation of the posterior distribution.
 
 ``` r
 svg_clusters <- clusterSVGsBayes(seu_brain, 
@@ -165,7 +167,8 @@ Lastly, with our spatial modules identified and scores we can perform
 gene set enrichment analysis (GSEA) on each module; this is done
 internally using [`gProfiler2`](https://biit.cs.ut.ee/gprofiler/page/r).
 All you need to do is provide the results from `clusterSVGsBayes()` and
-specify the correct species.
+specify the correct genus & species e.g., “hsapiens” for human or
+“mmusculus” for mouse.
 
 ``` r
 enrich_res <- enrichSpatialModules(svg_clusters, species = "mmusculus")
