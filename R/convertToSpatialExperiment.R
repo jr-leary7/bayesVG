@@ -5,7 +5,7 @@
 #' @description This function converts a \code{Seurat} object to a \code{SpatialExperiment} object while retaining all assays, metadata, and images.
 #' @param seu.obj An object of class \code{Seurat}. Defaults to NULL.
 #' @param sample.id A string specifying the sample ID corresponding to the image saved in \code{seu.obj}.
-#' @param scale.coords A Boolean specifying whether the spatial coordinates matrix should be scaled. Defaults to FALSE.
+#' @param scale.coords A Boolean specifying whether the spatial coordinates matrix should be scaled. Defaults to TRUE. 
 #' @importFrom cli cli_abort
 #' @importFrom Seurat as.SingleCellExperiment GetTissueCoordinates
 #' @importFrom S4Vectors DataFrame metadata
@@ -14,6 +14,7 @@
 #' @importFrom SummarizedExperiment assays rowData colData
 #' @importFrom SingleCellExperiment reducedDims altExps
 #' @importFrom dplyr select
+#' @importFrom coop scaler
 #' @return An object of class \code{SpatialExperiment}.
 #' @seealso \code{\link[Seurat]{as.SingleCellExperiment}}
 #' @seealso \code{\link[SpatialExperiment]{SpatialExperiment}}
@@ -24,7 +25,7 @@
 
 convertToSpatialExperiment <- function(seu.obj = NULL,
                                        sample.id = NULL,
-                                       scale.coords = FALSE) {
+                                       scale.coords = TRUE) {
   # check inputs
   if (!inherits(seu.obj, "Seurat")) { cli::cli_abort("Please provide an object of class {.pkg Seurat}.") }
   if (!sample.id %in% names(seu.obj@images)) { cli::cli_abort("Please provide a valid {.field sample.id} value.") }
@@ -38,8 +39,8 @@ convertToSpatialExperiment <- function(seu.obj = NULL,
   # extract spatial coordinates and optionally scale them
   spatial_coords <- as.matrix(dplyr::select(Seurat::GetTissueCoordinates(seu.obj), 1:2))
   if (scale.coords) {
-    spatial_coords <- scale(spatial_coords)
-    attributes(spatial_coords)[2:3] <- NULL
+    spatial_coords <- coop::scaler(spatial_coords)
+    attributes(spatial_coords)[3:4] <- NULL
   }
   # create spatialexperiment object
   spe <- SpatialExperiment::SpatialExperiment(assays = SummarizedExperiment::assays(sce),

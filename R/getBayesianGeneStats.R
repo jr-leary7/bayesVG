@@ -30,7 +30,9 @@ getBayesianGeneStats <- function(obj = NULL, sort.values = TRUE) {
   if (!(inherits(obj, "SingleCellExperiment") || inherits(obj, "Seurat") || inherits(obj, "SpatialExperiment"))) { cli::cli_abort("Please provide an object of class {.pkg Seurat}, {.pkg SingleCellExperiment}, or {.pkg SpatialExperiment}.") }
   # extract HVG or SVG summary table
   if (inherits(obj, "SingleCellExperiment")) {
-    multi_subject_flag <- ifelse(is.null(obj@metadata$gene_stats_bayes), FALSE, TRUE)
+    multi_subject_flag <- ifelse(is.null(obj@metadata$gene_stats_bayes), 
+                                 FALSE, 
+                                 TRUE)
     if (multi_subject_flag) {
       gene_summary <- purrr::reduce(obj@metadata$gene_stats_bayes, rbind)
     } else {

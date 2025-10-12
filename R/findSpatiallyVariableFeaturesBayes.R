@@ -106,7 +106,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   if (kernel == "matern" && !kernel.smoothness %in% c(0.5, 1.5, 2.5)) { cli::cli_abort("When utilizing the Matern kernel you must provide a valid smoothness parameter value.") }
   algorithm <- tolower(algorithm)
   if (!algorithm %in% c("meanfield", "fullrank", "pathfinder")) { cli::cli_abort("Please provide a valid variational inference approximation algorithm.") }
-  if (mle.init && algorithm == "pathfinder") { cli::cli_alert_warning("Initialization at the MLE is not supported when using the Pathfinder algorithm.") }
+  if (mle.init && algorithm == "pathfinder") { cli::cli_alert_warning("Initialization at the regularized MLE is not supported when using the Pathfinder algorithm.") }
   if (is.null(elbo.samples)) {
     if (algorithm == "pathfinder") {
       elbo.samples <- 50L
@@ -114,7 +114,8 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
       elbo.samples <- 150L
     }
   }
-  if (!is.null(opencl.params) && (!is.double(opencl.params) || !length(opencl.params) == 2)) { cli::cli_abort("Argument {.field opencl.params} must be a double vector of length 2 if non-NULL.") }
+  opencl.params <- as.double(opencl.params)
+  if (!is.null(opencl.params) && length(opencl.params) != 2) { cli::cli_abort("Argument {.field opencl.params} must be a double vector of length 2 if non-NULL.") }
   if (is.null(opencl.params)) {
     opencl_IDs <- NULL
     if (algorithm == "pathfinder") {
@@ -151,6 +152,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   }
   colnames(spatial_df) <- c("x", "y")
   spatial_mtx <- coop::scaler(as.matrix(spatial_df))
+  attributes(spatial_mtx)[2:3] <- NULL
   # extract matrix of (raw or normalized) gene expression
   if (inherits(sp.obj, "Seurat")) {
     expr_mtx <- Seurat::GetAssayData(sp.obj,
@@ -189,12 +191,12 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                ifelse(lscale.estimator == "kmeans", "k-means", "variogram"),
                                " method..."))
   }
-  kmeans_centers <- stats::kmeans(spatial_mtx,
-                                  centers = n.basis.fns,
-                                  iter.max = 100L, 
-                                  nstart = 10L)
-  kmeans_centers <- kmeans_centers$centers
   if (lscale.estimator == "kmeans") {
+    kmeans_centers <- stats::kmeans(spatial_mtx,
+                                    centers = n.basis.fns,
+                                    iter.max = 100L, 
+                                    nstart = 10L)
+    kmeans_centers <- kmeans_centers$centers
     dists_centers <- fields::rdist(kmeans_centers)
     lscale <- stats::median(dists_centers[upper.tri(dists_centers)])
   } else if (lscale.estimator == "variogram") {

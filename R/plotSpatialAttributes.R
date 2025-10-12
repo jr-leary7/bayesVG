@@ -11,6 +11,7 @@
 #' @importFrom cli cli_abort
 #' @importFrom Seurat GetTissueCoordinates
 #' @importFrom dplyr select mutate
+#' @importFrom coop scaler
 #' @importFrom SingleCellExperiment colData
 #' @importFrom SpatialExperiment spatialCoords
 #' @importFrom ggplot2 ggplot aes geom_point scale_y_continuous labs scale_color_manual
@@ -40,10 +41,10 @@ plotSpatialAttributes <- function(sp.obj = NULL,
   if (inherits(sp.obj, "Seurat")) {
     coord_df <- Seurat::GetTissueCoordinates(sp.obj) %>%
                 dplyr::select(1:2) %>%
-                magrittr::set_colnames(c("x", "y")) %>%
                 as.matrix() %>%
-                scale() %>%
+                coop::scaler() %>%
                 as.data.frame() %>%
+                magrittr::set_colnames(c("x", "y")) %>%
                 dplyr::mutate(meta_vec = meta_df[, attribute.plot])
     p <- ggplot2::ggplot(coord_df, ggplot2::aes(x = y, y = x, color = meta_vec)) +
          ggplot2::geom_point(size = pt.size, stroke = 0) +
