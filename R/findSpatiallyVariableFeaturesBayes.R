@@ -114,8 +114,12 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
       elbo.samples <- 150L
     }
   }
-  opencl.params <- as.double(opencl.params)
-  if (!is.null(opencl.params) && length(opencl.params) != 2) { cli::cli_abort("Argument {.field opencl.params} must be a double vector of length 2 if non-NULL.") }
+  if (!is.null(opencl.params)) {
+    opencl.params <- as.double(opencl.params)
+    if (length(opencl.params) != 2) {
+      cli::cli_abort("Argument {.field opencl.params} must be a double vector of length 2 if non-NULL.")
+    }
+  }
   if (is.null(opencl.params)) {
     opencl_IDs <- NULL
     if (algorithm == "pathfinder") {
