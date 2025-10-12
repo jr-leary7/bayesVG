@@ -7,7 +7,7 @@
 convertToSpatialExperiment(
   seu.obj = NULL,
   sample.id = NULL,
-  scale.coords = FALSE
+  scale.coords = TRUE
 )
 }
 \arguments{
@@ -15,7 +15,7 @@ convertToSpatialExperiment(
 
 \item{sample.id}{A string specifying the sample ID corresponding to the image saved in \code{seu.obj}.}
 
-\item{scale.coords}{A Boolean specifying whether the spatial coordinates matrix should be scaled. Defaults to FALSE.}
+\item{scale.coords}{A Boolean specifying whether the spatial coordinates matrix should be scaled. Defaults to TRUE.}
 }
 \value{
 An object of class \code{SpatialExperiment}.

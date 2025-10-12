@@ -3,6 +3,7 @@ load(system.file("data/seu_pbmc.rda", package = "bayesVG"))
 set.seed(312)
 genes_test_sc <- sample(rownames(seu_pbmc), size = 100L)
 seu_pbmc <- subset(seu_pbmc, features = genes_test_sc)
+sce_pbmc <- suppressWarnings(Seurat::as.SingleCellExperiment(seu_pbmc))
 
 # fit scRNA-seq model & extract output
 seu_pbmc <- findVariableFeaturesBayes(seu_pbmc,
@@ -12,22 +13,36 @@ seu_pbmc <- findVariableFeaturesBayes(seu_pbmc,
                                       save.model = TRUE) %>%
             classifyHVGs(n.HVG = 50L)
 hvg_metadata <- getBayesianGeneStats(seu_pbmc)
-hvg_fit <- extractModel(seu_pbmc)
+hvg_fit_seu <- extractModel(seu_pbmc)
 hvg_plot <- plotHVGs(seu_pbmc)
+sce_pbmc <- findVariableFeaturesBayes(sce_pbmc,
+                                      n.cells.subsample = 500L,
+                                      algorithm = "meanfield",
+                                      n.cores.per.chain = 1L,
+                                      save.model = TRUE) %>%
+            classifyHVGs(n.HVG = 50L)
+hvg_fit_sce <- extractModel(sce_pbmc)
 
-# load spatial data & preprocess
+# load spatial data & preprocess + convert to SpatialExperiment
 load(system.file("data/seu_brain.rda", package = "bayesVG"))
 seu_brain <- suppressWarnings({
   Seurat::NormalizeData(seu_brain, verbose = FALSE) %>%
   Seurat::FindVariableFeatures(nfeatures = 1000L, verbose = FALSE)
 })
 
+# convert seu_brain to SpatialExperiment from Seurat
+spe_brain <- suppressWarnings(
+  convertToSpatialExperiment(seu_brain, 
+                             sample.id = "anterior1", 
+                             scale.coords = TRUE)
+)
+
 # fit each kernel to spatial coordinates matrix
 spatial_mtx <- coop::scaler(as.matrix(dplyr::select(Seurat::GetTissueCoordinates(seu_brain), -cell)))
 M <- nrow(spatial_mtx)
 k <- 20
-kmeans_centers <- stats::kmeans(spatial_mtx, centers = k, iter.max = 100L)$centers
-dists_centers <- as.matrix(fields::rdist(kmeans_centers))
+kmeans_centers <- stats::kmeans(spatial_mtx, centers = k, iter.max = 100L, nstart = 10L)$centers
+dists_centers <- fields::rdist(kmeans_centers)
 lscale <- stats::median(dists_centers[upper.tri(dists_centers)])
 phi_exp_quad <- phi_matern <- phi_periodic <- matrix(0, nrow = M, ncol = k)
 for (i in seq(k)) {
@@ -86,10 +101,8 @@ enrich_res <- enrichSpatialModules(svg_clusters, species = "mmusculus")
 
 # compute naive gene statistics
 gene_stats_naive <- computeNaiveGeneStatistics(seu_pbmc, use.norm = TRUE)
-naive_hvgs <- getNaiveHVGs(seu_brain)
-
-# convert seu_brain to SpatialExperiment from Seurat
-spe_brain <- suppressWarnings(convertToSpatialExperiment(seu_brain, sample.id = "anterior1"))
+naive_hvgs_seu <- getNaiveHVGs(seu_brain)
+naive_hvgs_spe <- getNaiveHVGs(spe_brain)
 
 # run downstream plotting utilities
 p1 <- plotSpatialExpression(seu_brain, gene.plot = "Nrgn")
@@ -112,9 +125,11 @@ p7 <- plotModuleScores(seu_brain,
 test_that("HVG model", {
   expect_s4_class(seu_pbmc, "Seurat")
   expect_s3_class(hvg_metadata, "data.frame")
+  expect_s4_class(sce_pbmc, "SingleCellExperiment")
   expect_equal(ncol(hvg_metadata), 20)
   expect_equal(nrow(hvg_metadata), 100)
-  expect_s3_class(hvg_fit, "brmsfit")
+  expect_s3_class(hvg_fit_seu, "brmsfit")
+  expect_s3_class(hvg_fit_sce, "brmsfit")
   expect_s3_class(hvg_plot, "ggplot")
 })
 
@@ -161,9 +176,10 @@ test_that("naive gene statistics", {
   expect_s3_class(gene_stats_naive, "data.frame")
   expect_equal(ncol(gene_stats_naive), 4)
   expect_equal(nrow(gene_stats_naive), 100)
-  expect_type(naive_hvgs, "character")
-  expect_length(naive_hvgs, 3000)
-  
+  expect_type(naive_hvgs_seu, "character")
+  expect_length(naive_hvgs_seu, 3000)
+  expect_type(naive_hvgs_spe, "character")
+  expect_length(naive_hvgs_spe, 3000)
 })
 
 # run spatialexperiment conversion tests

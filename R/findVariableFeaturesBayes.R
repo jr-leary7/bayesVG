@@ -118,7 +118,8 @@ findVariableFeaturesBayes <- function(sc.obj = NULL,
                                    cols = !gene,
                                    names_to = "cell",
                                    values_to = "gene_expression") %>%
-               dplyr::mutate(subject = rep(subject_vec, times = nrow(.) / length(subject_vec)), .before = 1) %>%
+               dplyr::mutate(subject = rep(subject_vec, times = nrow(.) / length(subject_vec)), 
+                             .before = 1) %>%
                dplyr::with_groups(c(gene, subject),
                                   dplyr::mutate,
                                   quintile = dplyr::ntile(gene_expression, 5)) %>%
