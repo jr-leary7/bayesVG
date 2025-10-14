@@ -29,6 +29,8 @@ jobs:
         with:
           extra-packages: any::covr, any::xml2
           needs: coverage
+          cache-version: 2
+          use-public-rspm: true
       - name: Install CmdStan
         id: cmdstan
         run: |

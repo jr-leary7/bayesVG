@@ -5,7 +5,7 @@
 #' @description This function converts a \code{Seurat} object to a \code{SpatialExperiment} object while retaining all assays, metadata, and images.
 #' @param seu.obj An object of class \code{Seurat}. Defaults to NULL.
 #' @param sample.id A string specifying the sample ID corresponding to the image saved in \code{seu.obj}.
-#' @param scale.coords A Boolean specifying whether the spatial coordinates matrix should be scaled. Defaults to TRUE. 
+#' @param scale.coords A Boolean specifying whether the spatial coordinates matrix should be scaled. Defaults to FALSE. 
 #' @importFrom cli cli_abort
 #' @importFrom Seurat as.SingleCellExperiment GetTissueCoordinates
 #' @importFrom S4Vectors DataFrame metadata
@@ -25,7 +25,7 @@
 
 convertToSpatialExperiment <- function(seu.obj = NULL,
                                        sample.id = NULL,
-                                       scale.coords = TRUE) {
+                                       scale.coords = FALSE) {
   # check inputs
   if (!inherits(seu.obj, "Seurat")) { cli::cli_abort("Please provide an object of class {.pkg Seurat}.") }
   if (!sample.id %in% names(seu.obj@images)) { cli::cli_abort("Please provide a valid {.field sample.id} value.") }
@@ -42,6 +42,9 @@ convertToSpatialExperiment <- function(seu.obj = NULL,
     spatial_coords <- coop::scaler(spatial_coords)
     attributes(spatial_coords)[3:4] <- NULL
   }
+  # make sure to retain correct dimnames
+  colnames(spatial_coords) <- c("x", "y")
+  rownames(spatial_coords) <- colnames(seu.obj)
   # create spatialexperiment object
   spe <- SpatialExperiment::SpatialExperiment(assays = SummarizedExperiment::assays(sce),
                                               rowData = SummarizedExperiment::rowData(sce),

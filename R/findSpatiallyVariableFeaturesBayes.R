@@ -195,12 +195,12 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                ifelse(lscale.estimator == "kmeans", "k-means", "variogram"),
                                " method..."))
   }
+  kmeans_centers <- stats::kmeans(spatial_mtx,
+                                  centers = n.basis.fns,
+                                  iter.max = 100L, 
+                                  nstart = 10L)
+  kmeans_centers <- kmeans_centers$centers
   if (lscale.estimator == "kmeans") {
-    kmeans_centers <- stats::kmeans(spatial_mtx,
-                                    centers = n.basis.fns,
-                                    iter.max = 100L, 
-                                    nstart = 10L)
-    kmeans_centers <- kmeans_centers$centers
     dists_centers <- fields::rdist(kmeans_centers)
     lscale <- stats::median(dists_centers[upper.tri(dists_centers)])
   } else if (lscale.estimator == "variogram") {
@@ -240,7 +240,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                nugget = gene_var * 0.2,
                                kappa = kernel.smoothness)
       vario_fit <- try({
-        gstat::fit.variogram(emp_vario, init_model)
+        gstat::fit.variogram(emp_vario, model = init_model)
       }, silent = TRUE)
       if (inherits(vario_fit, "try-error")) {
         res <- NA_real_
