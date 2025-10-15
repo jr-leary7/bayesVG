@@ -49,7 +49,6 @@ jobs:
           extra-packages: any::rcmdcheck
           needs: check
           cache-version: 2
-          use-public-rspm: true
       - name: Install CmdStan
         id: cmdstan
         run: |
