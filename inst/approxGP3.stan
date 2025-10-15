@@ -13,13 +13,13 @@ data {
 parameters {
   real beta0;  // global intercept
   real beta1;  // coefficient for gene library size
-  matrix[k, G] alpha_t;  // transposed matrix of gene-specific coefficients for each basis function
   real<lower=0> phi_nb;  // negative-binomial overdispersion parameter 
   vector<lower=0>[G] amplitude;  // vector of gene-specific amplitudes of the approximate GP
   real mu_amplitude;  // mean for the amplitude
   real<lower=0> sigma_amplitude;  // SD for the amplitude
   vector[k] mu_alpha;  // vector of means for the basis function coefficients
   vector<lower=0>[k] sigma_alpha;  // vector of SDs for the basis function coefficients
+  matrix[k, G] z_alpha_t;  // standard normal RV for basis function coefficients
 }
 
 transformed parameters {
@@ -27,15 +27,14 @@ transformed parameters {
 }
 
 model {
-  matrix[M, G] phi_alpha;
-  phi_alpha = phi * alpha_t;
   beta0 ~ normal(0, 2);
   beta1 ~ normal(0, 2);
+  matrix[k, G] alpha_t;
+  alpha_t = rep_matrix(mu_alpha, G) + diag_pre_multiply(sigma_alpha, z_alpha_t);
+  matrix[M, G] phi_alpha = phi * alpha_t;
+  to_vector(z_alpha_t) ~ std_normal();
   mu_alpha ~ normal(0, 2);
   sigma_alpha ~ std_normal();
-  for (i in 1:k) {
-    alpha_t[i] ~ normal(mu_alpha[i], sigma_alpha[i]);
-  }
   mu_amplitude ~ normal(0, 2);
   sigma_amplitude ~ std_normal();
   amplitude ~ lognormal(mu_amplitude, sigma_amplitude);

@@ -9,6 +9,8 @@
 + Made most of the Examples faster by decreasing the number of HVGs / SVGs. 
 + Removed a NOTE from R CMD check by declaring global variables used throughout the package.
 + Fixed some other minor bugs. 
++ Updated more tests. 
++ Added non-centered priors to all NB models. 
 
 # bayesVG v0.0.6 
 
