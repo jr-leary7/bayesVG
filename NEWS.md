@@ -10,7 +10,7 @@
 + Removed a NOTE from R CMD check by declaring global variables used throughout the package.
 + Fixed some other minor bugs. 
 + Updated more tests. 
-+ Added non-centered priors to NB model (with global gene intercept). 
++ Added non-centered priors to all NB models. 
 
 # bayesVG v0.0.6 
 
