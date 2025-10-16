@@ -21,7 +21,7 @@ plotSpatialExpression(
 
 \item{pt.size}{A double specifying the size of the points to be plotted. Defaults to 2.}
 
-\item{color.palette}{A vector containing colors that are passed to \code{\link[ggplot2]{scale_color_gradientn}} and \code{\link[ggplot2]{scale_fill_gradientn}} and thus used to color the spots. Defaults to NULL.}
+\item{color.palette}{A vector containing colors that are passed to \code{\link[ggplot2]{scale_color_gradientn}} and thus used to color the spots. Defaults to NULL.}
 }
 \value{
 An object of class \code{ggplot2}.
@@ -37,8 +37,6 @@ plotSpatialExpression(seu_brain,
 }
 \seealso{
 \code{\link[Seurat]{SpatialFeaturePlot}}
-
-\code{\link[ggspavis]{plotCoords}}
 }
 \author{
 Jack R. Leary

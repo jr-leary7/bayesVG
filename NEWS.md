@@ -11,6 +11,7 @@
 + Fixed some other minor bugs. 
 + Updated more tests. 
 + Added non-centered priors to all NB models. 
++ Removed dependency on `ggspavis`. 
 
 # bayesVG v0.0.6 
 

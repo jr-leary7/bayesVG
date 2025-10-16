@@ -33,8 +33,6 @@ plotSpatialAttributes(seu_brain, attribute.plot = "region")
 \seealso{
 \code{\link[Seurat]{SpatialDimPlot}}
 
-\code{\link[ggspavis]{plotCoords}}
-
 \code{\link{plotSpatialExpression}}
 }
 \author{
