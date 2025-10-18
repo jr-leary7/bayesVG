@@ -26,9 +26,9 @@ hvg_fit_sce <- extractModel(sce_pbmc)
 # load spatial data & preprocess + convert to SpatialExperiment
 load(system.file("data/seu_brain.rda", package = "bayesVG"))
 seu_brain <- suppressWarnings({
-  Seurat::NormalizeData(seu_brain, verbose = FALSE) %>%
-  Seurat::FindVariableFeatures(nfeatures = 1000L, verbose = FALSE)
+  Seurat::NormalizeData(seu_brain, verbose = FALSE)
 })
+seu_brain_nb <- seu_brain
 
 # convert seu_brain to SpatialExperiment from Seurat
 spe_brain <- suppressWarnings(
@@ -56,8 +56,8 @@ phi_matern <- qr.Q(qr(phi_matern, LAPACK = TRUE))
 phi_periodic <- qr.Q(qr(phi_periodic, LAPACK = TRUE))
 
 # fit spatial model, extract output, cluster SVGs, & run enrichment on SVG modules
-naive_hvgs_seu <- getNaiveHVGs(seu_brain, n.hvg = 1000L)
-naive_hvgs_spe <- getNaiveHVGs(spe_brain, n.hvg = 1000L)
+naive_hvgs_seu <- getNaiveHVGs(seu_brain, n.hvg = 750L)
+naive_hvgs_spe <- getNaiveHVGs(spe_brain, n.hvg = 750L)
 seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
                                                 naive.hvgs = naive_hvgs_seu,
                                                 lscale.estimator = "kmeans",
@@ -66,6 +66,15 @@ seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
                                                 n.cores = 1L,
                                                 save.model = TRUE) %>%
              classifySVGs(n.SVG = 300L)
+seu_brain_nb <- findSpatiallyVariableFeaturesBayes(seu_brain_nb,
+                                                   naive.hvgs = naive_hvgs_seu,
+                                                   likelihood = "nb",
+                                                   lscale.estimator = "kmeans",
+                                                   kernel = "matern",
+                                                   kernel.smoothness = 1.5,
+                                                   n.cores = 1L,
+                                                   save.model = TRUE) %>%
+                classifySVGs(n.SVG = 300L)
 spe_brain <- findSpatiallyVariableFeaturesBayes(spe_brain,
                                                 naive.hvgs = naive_hvgs_spe,
                                                 lscale.estimator = "kmeans",
@@ -98,8 +107,10 @@ seu_brain <- suppressWarnings({
                   verbose = FALSE)
 })
 svg_metadata_seu <- getBayesianGeneStats(seu_brain)
+svg_metadata_seu_nb <- getBayesianGeneStats(seu_brain_nb)
 svg_metadata_spe <- getBayesianGeneStats(spe_brain)
 svg_fit_seu <- extractModel(seu_brain)
+svg_fit_seu_nb <- extractModel(seu_brain_nb)
 svg_fit_spe <- extractModel(spe_brain)
 svg_plot <- plotSVGs(seu_brain)
 svg_clusters <- clusterSVGsBayes(seu_brain,
@@ -159,14 +170,19 @@ test_that("kernels", {
 # run SVG tests
 test_that("SVG model", {
   expect_s4_class(seu_brain, "Seurat")
+  expect_s4_class(seu_brain_nb, "Seurat")
   expect_s4_class(spe_brain, "SpatialExperiment")
   expect_s3_class(svg_metadata_seu, "data.frame")
+  expect_s3_class(svg_metadata_seu_nb, "data.frame")
   expect_s3_class(svg_metadata_spe, "data.frame")
   expect_equal(ncol(svg_metadata_seu), 18)
-  expect_equal(nrow(svg_metadata_seu), 1000)
+  expect_equal(nrow(svg_metadata_seu), 750)
+  expect_equal(ncol(svg_metadata_seu_nb), 18)
+  expect_equal(nrow(svg_metadata_seu_nb), 750)
   expect_equal(ncol(svg_metadata_spe), 10)
-  expect_equal(nrow(svg_metadata_spe), 1000)
+  expect_equal(nrow(svg_metadata_spe), 750)
   expect_s3_class(svg_fit_seu, "CmdStanVB")
+  expect_s3_class(svg_fit_seu_nb, "CmdStanVB")
   expect_s3_class(svg_fit_spe, "CmdStanVB")
   expect_s3_class(svg_plot, "ggplot")
   expect_type(svg_clusters, "list")
@@ -192,9 +208,9 @@ test_that("naive gene statistics", {
   expect_equal(ncol(gene_stats_naive), 4)
   expect_equal(nrow(gene_stats_naive), 100)
   expect_type(naive_hvgs_seu, "character")
-  expect_length(naive_hvgs_seu, 1000)
+  expect_length(naive_hvgs_seu, 750)
   expect_type(naive_hvgs_spe, "character")
-  expect_length(naive_hvgs_spe, 1000)
+  expect_length(naive_hvgs_spe, 750)
 })
 
 # run spatialexperiment conversion tests
