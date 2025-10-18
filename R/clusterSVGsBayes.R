@@ -85,7 +85,12 @@ clusterSVGsBayes <- function(sp.obj = NULL,
       elbo.samples <- 300L
     }
   }
-  if (!is.null(opencl.params) && (!is.double(opencl.params) || !length(opencl.params) == 2)) { cli::cli_abort("Argument {.field opencl.params} must be a double vector of length 2 if non-NULL.") }
+  if (!is.null(opencl.params)) {
+    opencl.params <- as.double(opencl.params)
+    if (length(opencl.params) != 2) {
+      cli::cli_abort("Argument {.field opencl.params} must be a double vector of length 2 if non-NULL.")
+    }
+  }
   if (is.null(opencl.params)) {
     opencl_IDs <- NULL
     if (algorithm == "pathfinder") {
@@ -106,7 +111,8 @@ clusterSVGsBayes <- function(sp.obj = NULL,
     startup_message <- paste0("Starting {.pkg bayesVG} clustering of ",
                               length(svgs), 
                               " spatially variable genes using the ", 
-                              ifelse(algorithm == "meanfield", "meanfield", ifelse(algorithm == "fullrank", "fullrank", "Pathfinder")), 
+                              ifelse(algorithm == "meanfield", "meanfield", 
+                                     ifelse(algorithm == "fullrank", "fullrank", "Pathfinder")), 
                               " VI algorithm.")
     cli::cli_alert_info(startup_message)
   }
@@ -208,11 +214,16 @@ clusterSVGsBayes <- function(sp.obj = NULL,
                                     theta_arr = NULL, 
                                     mu_arr = NULL, 
                                     sigma_arr = NULL) {
-    log_probs <- matrix(NA_real_, nrow(theta_arr), ncol(theta_arr))
+    log_probs <- matrix(NA_real_, 
+                        nrow = nrow(theta_arr), 
+                        ncol = ncol(theta_arr))
     for (k in seq_len(ncol(theta_arr))) {
       mu_k <- mu_arr[, k, ]
       sigma_k <- sigma_arr[, k, ]
-      diff <- sweep(mu_k, 2, x_i, FUN = "-")
+      diff <- sweep(mu_k, 
+                    MARGIN = 2, 
+                    STATS = x_i, 
+                    FUN = "-")
       scaled_sq <- rowSums((diff / sigma_k)^2)
       log_det <- 2 * rowSums(log(sigma_k))
       log_probs[, k] <- log(theta_arr[, k]) - 0.5 * (log_det + scaled_sq)
@@ -242,15 +253,15 @@ clusterSVGsBayes <- function(sp.obj = NULL,
   } else {
     cl <- foreach::registerDoSEQ()
   }
-  soft_assignments <- foreach(i = seq_len(N),
-                              .combine = rbind,
-                              .multicombine = ifelse(N > 1, TRUE, FALSE),
-                              .maxcombine = ifelse(N > 1, N, 2),
-                              .inorder = TRUE,
-                              .verbose = FALSE,
-                              .options.snow = snow_opts) %dopar% {
-    x_i <- svg_mtx_pca$x[i, ]
-    computeResponsibility(x_i = x_i, 
+  soft_assignments <- foreach::foreach(i = seq_len(N),
+                                       .combine = rbind,
+                                       .multicombine = ifelse(N > 1, TRUE, FALSE),
+                                       .maxcombine = ifelse(N > 1, N, 2),
+                                       .inorder = TRUE,
+                                       .packages = "matrixStats", 
+                                       .verbose = FALSE,
+                                       .options.snow = snow_opts) %dopar% {
+    computeResponsibility(svg_mtx_pca$x[i, ], 
                           theta_arr = theta_draws, 
                           mu_arr = mu_arr, 
                           sigma_arr = sigma_arr)

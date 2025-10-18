@@ -140,9 +140,11 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     startup_message <- paste0("Starting {.pkg bayesVG} modeling of spatial variation using the ",
                               ifelse(likelihood == "gaussian", "Gaussian", "Negative-binomial"),
                               " likelihood, the ",
-                              ifelse(kernel == "exp_quad", "exponentiated quadratic", ifelse(kernel == "matern", "Matern", "periodic")),
+                              ifelse(kernel == "exp_quad", "exponentiated quadratic", 
+                                     ifelse(kernel == "matern", "Matern", "periodic")),
                               " kernel, and the ",
-                              ifelse(algorithm == "meanfield", "meanfield", ifelse(algorithm == "fullrank", "fullrank", "Pathfinder")),
+                              ifelse(algorithm == "meanfield", "meanfield", 
+                                     ifelse(algorithm == "fullrank", "fullrank", "Pathfinder")),
                               " VI algorithm.")
     cli::cli_alert_info(startup_message)
   }

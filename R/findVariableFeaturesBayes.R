@@ -28,7 +28,7 @@
 #' }
 #' @import cmdstanr
 #' @import magrittr
-#' @importFrom cli cli_abort cli_alert_warning cli_alert_success
+#' @importFrom cli cli_abort cli_alert_warning cli_alert_success cli_alert_info
 #' @importFrom parallelly availableCores
 #' @importFrom SingleCellExperiment colData logcounts
 #' @importFrom SummarizedExperiment rowData
@@ -90,6 +90,14 @@ findVariableFeaturesBayes <- function(sc.obj = NULL,
                       brms::set_prior("student_t(3, 0, 2)", class = "sd", dpar = "mu"),
                       brms::set_prior("normal(0, 2)", class = "Intercept", dpar = "shape"),
                       brms::set_prior("student_t(3, 0, 2)", class = "sd", dpar = "shape"))
+  }
+  if (verbose) {
+    startup_message <- paste0("Starting {.pkg bayesVG} modeling of overall variation using the ", 
+                              ifelse(algorithm == "sampling", "NUTS", 
+                                     ifelse(algorithm == "meanfield", "meanfield", 
+                                            ifelse(algorithm == "pathfinder", "Pathfinder", "Laplace approximation"))), 
+                              " algorithm.")
+    cli::cli_alert_info(startup_message)
   }
   # start time tracking
   time_start <- Sys.time()
