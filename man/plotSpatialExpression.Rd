@@ -8,6 +8,7 @@ plotSpatialExpression(
   sp.obj = NULL,
   gene.plot = NULL,
   use.norm = TRUE,
+  scale.expression = NULL,
   pt.size = 2,
   color.palette = NULL
 )
@@ -15,9 +16,11 @@ plotSpatialExpression(
 \arguments{
 \item{sp.obj}{An object of class \code{Seurat} or \code{SpatialExperiment} containing spatial data. Defaults to NULL.}
 
-\item{gene.plot}{A character specifying the gene whose expression will be used to color the spots. Defaults to NULL.}
+\item{gene.plot}{A character or character vector specifying the gene(s) whose expression will be used to color the spots. Defaults to NULL.}
 
 \item{use.norm}{A Boolean specifying whether the raw or normalized counts should be plotted. Defaults to TRUE.}
+
+\item{scale.expression}{A Boolean specifying whether expression should be scaled prior to plotting. Mostly relevant for when \code{gene.plot} contains more than one value. Defaults to TRUE when \code{length(gene.plot) > 1} and FALSE otherwise.}
 
 \item{pt.size}{A double specifying the size of the points to be plotted. Defaults to 2.}
 
