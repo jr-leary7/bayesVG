@@ -25,9 +25,7 @@ hvg_fit_sce <- extractModel(sce_pbmc)
 
 # load spatial data & preprocess + convert to SpatialExperiment
 load(system.file("data/seu_brain.rda", package = "bayesVG"))
-seu_brain <- suppressWarnings({
-  Seurat::NormalizeData(seu_brain, verbose = FALSE)
-})
+seu_brain <- suppressWarnings(Seurat::NormalizeData(seu_brain, verbose = FALSE))
 seu_brain_nb <- seu_brain
 
 # convert seu_brain to SpatialExperiment from Seurat
@@ -60,7 +58,7 @@ naive_hvgs_seu <- getNaiveHVGs(seu_brain, n.hvg = 750L)
 naive_hvgs_spe <- getNaiveHVGs(spe_brain, n.hvg = 750L)
 seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
                                                 naive.hvgs = naive_hvgs_seu,
-                                                lscale.estimator = "kmeans",
+                                                lscale.estimator = "variogram",
                                                 kernel = "matern",
                                                 kernel.smoothness = 1.5,
                                                 n.cores = 1L,
