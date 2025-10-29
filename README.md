@@ -1,6 +1,8 @@
 
 - [`bayesVG`](#bayesvg)
 - [Installation](#installation)
+  - [R package](#r-package)
+  - [Stan-related dependencies](#stan-related-dependencies)
 - [Usage](#usage)
   - [Libraries](#libraries)
   - [HVG detection](#hvg-detection)
@@ -27,10 +29,29 @@ MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.or
 
 # Installation
 
+## R package
+
 You can install the most recent version of `bayesVG` using:
 
 ``` r
 remotes::install_github("jr-leary7/bayesVG")
+```
+
+## Stan-related dependencies
+
+Two primary dependencies of `bayesVG` are [the `CmdStan`
+software](https://github.com/stan-dev/cmdstan) and [the `cmdstanr` R
+package](https://mc-stan.org/cmdstanr/). These must be installed
+manually like so, making sure to compile the underlying C++ code with
+the appropriate optimizations:
+
+``` r
+install.packages("cmdstanr", repos = c("https://stan-dev.r-universe.dev", getOption("repos")))
+library(cmdstanr)
+install_cmdstan(cores = 4L,
+                overwrite = TRUE,
+                cpp_options = list("CXXFLAGS += -O3 -march=native -mtune=native"))
+check_cmdstan_toolchain()
 ```
 
 # Usage
@@ -55,11 +76,11 @@ data("seu_pbmc")
 
 ### Modeling
 
-Now we’re able to model gene expression using variational inference,
-summarize the approximate posterior distribution of variance for each
-gene, and classify the top 3,000 most-variable genes as HVGs. The
-`findVariableFeaturesBayes()` function can take as input either a
-`Seurat` or a `SingleCellExperiment` object.
+Now we’re able to model gene expression using the meanfield variational
+inference (VI) algorithm, summarize the approximate posterior
+distribution of variance for each gene, and classify the top 3,000
+most-variable genes as HVGs. The `findVariableFeaturesBayes()` function
+can take as input either a `Seurat` or a `SingleCellExperiment` object.
 
 ``` r
 seu_pbmc <- findVariableFeaturesBayes(seu_pbmc, 
@@ -109,9 +130,9 @@ naive_hvgs <- getNaiveHVGs(seu_brain, n.hvg = 3000L)
 ### Modeling
 
 Now we can model gene expression with an approximate multivariate
-hierarchical Gaussian process (GP) via variational inference, summarize
-the spatial component of variance for each gene, and classify the top
-1,000 most spatially variable genes as SVGs. The
+hierarchical Gaussian process (GP) via the meanfield VI algorithm,
+summarize the spatial component of variance for each gene, and classify
+the top 1,000 most spatially variable genes as SVGs. The
 `findSpatiallyVariableFeaturesBayes()` function can take as input either
 a `Seurat` or a `SpatialExperiment` object.
 
@@ -144,13 +165,13 @@ Since we ran the SVG identification model function with
 svg_model <- extractModel(seu_brain)
 ```
 
-We can cluster the SVG set (using a very fast modified Gaussian mixture
-model) into spatial modules as shown below. The clustering function
-returns a PCA embedding of the SVGs, a table of the soft cluster
-assignment probabilities, and the log-likelihood and Bayesian
+We can cluster the SVG set (using a very fast modified Bayesian Gaussian
+mixture model) into spatial modules as shown below. The clustering
+function returns a PCA embedding of the SVGs, a table of the soft
+cluster assignment probabilities, and the log-likelihood and Bayesian
 information criterion (BIC) of the clustering. The clustering code uses
 the fullrank VI algorithm by default due to the multi-modality and high
-correlation of the posterior distribution.
+correlations of the approximate posterior distribution.
 
 ``` r
 svg_clusters <- clusterSVGsBayes(seu_brain, 
@@ -161,7 +182,8 @@ svg_clusters <- clusterSVGsBayes(seu_brain,
 
 Next, we can score the SVG clusters using
 [`UCell`](https://github.com/carmonalab/UCell) under the hood. These
-scores can then be visualized using e.g., violin plots or UMAPs.
+scores can then be visualized using e.g., spatial scatterplots, violin
+plots, or UMAPs.
 
 ``` r
 seu_brain <- scoreSpatialModules(seu_brain, svg.clusters = svg_clusters)
