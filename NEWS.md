@@ -13,6 +13,7 @@
 + Added non-centered priors to all NB models. 
 + Removed dependency on `ggspavis`. 
 + Added support for plotting multiple genes at once to `plotSpatialExpression()`. 
++ Added support for `SaptialExperiment` objects to `plotTissueImage()`. 
 
 # bayesVG v0.0.6 
 

@@ -53,7 +53,8 @@ install.packages("cmdstanr", repos = c("https://stan-dev.r-universe.dev", getOpt
 library(cmdstanr)
 install_cmdstan(cores = 4L,
                 overwrite = TRUE,
-                cpp_options = list("CXXFLAGS += -O3 -march=native -mtune=native"))
+                cpp_options = list("CXXFLAGS += -O3 -march=native -mtune=native -ffast-math"), 
+                check_toolchain = FALSE)
 check_cmdstan_toolchain()
 ```
 
