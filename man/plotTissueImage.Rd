@@ -2,20 +2,20 @@
 % Please edit documentation in R/plotTissueImage.R
 \name{plotTissueImage}
 \alias{plotTissueImage}
-\title{Generate a plot of the tissue image given a \code{Seurat} object.}
+\title{Generate a plot of the tissue image without any annotations.}
 \usage{
-plotTissueImage(seu.obj = NULL, image.name = NULL)
+plotTissueImage(sp.obj = NULL, image.name = NULL)
 }
 \arguments{
-\item{seu.obj}{An object of class \code{Seurat} containing spatial data. Defaults to NULL.}
+\item{sp.obj}{An object of class \code{Seurat} or \code{SpatialExperiment} containing spatial image data. Defaults to NULL.}
 
-\item{image.name}{A string specifying the name of the image to extract from \code{seu.obj}. If left unspecified, an attempt will be made to select the correct image automatically. Defaults to NULL.}
+\item{image.name}{A string specifying the name of the image to extract when \code{sp.obj} is of class \code{Seurat}. If left unspecified, an attempt will be made to select the correct image automatically. Defaults to NULL.}
 }
 \value{
 An object of class \code{ggplot2}.
 }
 \description{
-Given a \code{Seurat} object, plot a high-definition visual of the tissue image without any annotations.
+Given a \code{Seurat} or \code{SpatialExperiment} object, plot a high-definition visual of the tissue image without any annotations.
 }
 \examples{
 data(seu_brain)
@@ -25,6 +25,8 @@ plotTissueImage(seu_brain)
 \code{\link[Seurat]{GetImage}}
 
 \code{\link[Seurat]{SpatialFeaturePlot}}
+
+\code{\link[SpatialExperiment]{imgRaster}}
 }
 \author{
 Jack R. Leary
