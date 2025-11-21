@@ -15,8 +15,9 @@
 #' @importFrom cli cli_abort
 #' @importFrom rlang sym
 #' @importFrom Seurat Reductions GetTissueCoordinates Embeddings
-#' @importFrom dplyr select mutate 
-#' @importFrom SingleCellExperiment reducedDimNames reducedDim colData
+#' @importFrom dplyr select mutate
+#' @importFrom SingleCellExperiment reducedDimNames reducedDim altExps
+#' @importFrom SummarizedExperiment assays
 #' @importFrom SpatialExperiment spatialCoords
 #' @importFrom coop scaler
 #' @importFrom ggplot2 ggplot aes geom_point geom_violin scale_y_continuous labs scale_color_gradientn scale_color_manual scale_fill_manual
@@ -63,7 +64,8 @@ plotModuleScores <- function(sp.obj = NULL,
   if (inherits(sp.obj, "Seurat")) {
     meta_df <- sp.obj@meta.data
   } else if (inherits(sp.obj, "SpatialExperiment")) {
-    meta_df <- as.data.frame(SingleCellExperiment::colData(sp.obj))
+    ucell_assay <- which(names(SummarizedExperiment::assays(SingleCellExperiment::altExps(sp.obj)$UCell)) == "UCell")
+    meta_df <- as.data.frame(t(SummarizedExperiment::assays(SingleCellExperiment::altExps(sp.obj)$UCell)[[ucell_assay]]))
   }
   module_name <- paste0("svg_cluster_", module.plot, "_UCell")
   module_name_sym <- rlang::sym(module_name)
@@ -85,7 +87,7 @@ plotModuleScores <- function(sp.obj = NULL,
     if (inherits(sp.obj, "Seurat")) {
       coord_df <- Seurat::GetTissueCoordinates(sp.obj)
     } else if (inherits(sp.obj, "SpatialExperiment")) {
-      coord_df <- SpatialExperiment::spatialCoords(sp.obj)
+      coord_df <- as.data.frame(SpatialExperiment::spatialCoords(sp.obj))
     }
     coord_df <- dplyr::select(coord_df, 1:2) %>%
                 as.matrix() %>%
