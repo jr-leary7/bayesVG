@@ -14,6 +14,7 @@
 + Removed dependency on `ggspavis`. 
 + Added support for plotting multiple genes at once to `plotSpatialExpression()`. 
 + Added support for `SaptialExperiment` objects to `plotTissueImage()`. 
++ Fixed a bug in `plotModuleScores()` when a `SpatialExperiment` object is provided. 
 
 # bayesVG v0.0.6 
 
