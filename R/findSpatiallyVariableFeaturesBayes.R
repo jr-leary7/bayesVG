@@ -493,9 +493,11 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   if (save.basis.fns) {
     if (inherits(sp.obj, "Seurat")) {
       sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]]@misc$phi <- phi_ortho
+      sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]]@misc$phi_raw <- phi
       sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]]@misc$kmeans <- kmeans_res
     } else {
       sp.obj@metadata$phi <- phi_ortho
+      sp.obj@metadata$phi_raw <- phi
       sp.obj@metadata$kmeans <- kmeans_res
     }
   }
