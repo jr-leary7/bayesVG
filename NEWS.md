@@ -15,6 +15,8 @@
 + Added support for plotting multiple genes at once to `plotSpatialExpression()`. 
 + Added support for `SaptialExperiment` objects to `plotTissueImage()`. 
 + Fixed a bug in `plotModuleScores()` when a `SpatialExperiment` object is provided. 
++ Added option to save *k*-means results and estimated basis function matrix to unstructured metadata via parameter `save.basis.fns = TRUE`.
++ Related to the above, added function `plotBasisFunctions()` which can generate a variety of publication-ready plots concerning the *k*-means results and estimated basis functions.
 
 # bayesVG v0.0.6 
 
