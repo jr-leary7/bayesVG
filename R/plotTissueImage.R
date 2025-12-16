@@ -10,7 +10,7 @@
 #' @importFrom Seurat GetImage
 #' @importFrom dplyr mutate
 #' @importFrom grDevices rgb
-#' @importFrom ggplot2 ggplot aes geom_raster scale_fill_identity scale_y_continuous coord_fixed labs
+#' @importFrom ggplot2 ggplot aes geom_raster scale_fill_identity scale_y_continuous coord_cartesian labs
 #' @importFrom SpatialExperiment imgRaster
 #' @return An object of class \code{ggplot2}.
 #' @seealso \code{\link[Seurat]{GetImage}}
@@ -46,7 +46,7 @@ plotTissueImage <- function(sp.obj = NULL, image.name = NULL) {
          ggplot2::geom_raster() +
          ggplot2::scale_fill_identity() + 
          ggplot2::scale_y_continuous(trans = "reverse") + 
-         ggplot2::coord_fixed(expand = FALSE) + 
+         ggplot2::coord_cartesian(expand = FALSE) + 
          ggplot2::labs(x = "Spatial 1", y = "Spatial 2") + 
          theme_bayesVG(spatial = TRUE)
   } else if (inherits(sp.obj, "SpatialExperiment")) {
@@ -63,7 +63,7 @@ plotTissueImage <- function(sp.obj = NULL, image.name = NULL) {
          ggplot2::geom_raster() +
          ggplot2::scale_fill_identity() + 
          ggplot2::scale_y_continuous(trans = "reverse") + 
-         ggplot2::coord_fixed(expand = FALSE) + 
+         ggplot2::coord_cartesian(expand = FALSE) + 
          ggplot2::labs(x = "Spatial 1", y = "Spatial 2") + 
          theme_bayesVG(spatial = TRUE)
   }
