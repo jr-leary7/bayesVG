@@ -10,8 +10,8 @@
 #' @param color.palette A vector containing colors that are passed to \code{\link[ggplot2]{scale_color_gradientn}}, \code{\link[ggplot2]{scale_color_manual}}, \code{\link[ggplot2]{scale_fill_gradientn}}, depending on the value of \code{plot.type}. Defaults to NULL.
 #' @import magrittr
 #' @importFrom cli cli_abort
-#' @importFrom Seurat GetTissueCoordinates
-#' @importFrom dplyr select mutate bind_cols arrange
+#' @importFrom Seurat DefaultAssay GetTissueCoordinates
+#' @importFrom dplyr select mutate across bind_cols arrange
 #' @importFrom tidyr pivot_longer 
 #' @importFrom SpatialExperiment spatialCoords
 #' @importFrom coop scaler
@@ -69,6 +69,7 @@ plotBasisFunctions <- function(sp.obj = NULL,
   phi_df <- as.data.frame(phi) %>% 
             magrittr::set_colnames(paste0("Phi_", seq(ncol(.))))
   phi_df_long <- dplyr::bind_cols(spatial_df, phi_df) %>% 
+                 dplyr::mutate(dplyr::across(c(x, y), \(z) as.numeric(coop::scaler(z)))) %>% 
                  tidyr::pivot_longer(cols = !c(x, y), 
                                      names_to = "basis", 
                                      values_to = "value") %>% 
@@ -115,7 +116,7 @@ plotBasisFunctions <- function(sp.obj = NULL,
          ggplot2::scale_y_reverse() + 
          ggplot2::labs(x = "Spatial 1", 
                        y = "Spatial 2", 
-                       color = expression(phi[italic(j)](italic(s)[italic(i)]))) + 
+                       color = expression(abs~phi[italic(j)](italic(s)[italic(i)]))) + 
          theme_bayesVG(spatial = TRUE) + 
          ggplot2::theme(strip.clip = "on", 
                         strip.background = ggplot2::element_rect(linewidth = 2 * theme_bayesVG()$line$linewidth))
