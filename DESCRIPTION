@@ -8,6 +8,7 @@ Description: Our method implements efficient highly and spatially variable gene 
 License: MIT + file LICENSE
 Encoding: UTF-8
 RoxygenNote: 7.3.3
+LazyData: true
 Depends: 
   cmdstanr, 
   magrittr, 
@@ -50,6 +51,7 @@ Imports:
 Suggests: 
     covr, 
     UCell, 
+    usethis,
     gprofiler2, 
     testthat (>= 3.0.0)
 Additional_repositories: 

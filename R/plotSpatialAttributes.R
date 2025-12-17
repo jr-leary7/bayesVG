@@ -61,9 +61,9 @@ plotSpatialAttributes <- function(sp.obj = NULL,
   p <- p + ggplot2::labs(x = "Spatial 1",
                          y = "Spatial 2",
                          color = attribute.plot)
-  if (!is.null(color.palette)) {
+  if (is.null(color.palette)) {
     p <- p +
-         ggplot2::scale_color_manual(values = color.palette)
+         ggplot2::scale_color_manual(values = palette_cluster)
   }
   p <- p +
        theme_bayesVG(spatial = TRUE)

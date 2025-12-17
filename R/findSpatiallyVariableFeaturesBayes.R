@@ -174,7 +174,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     }
   }
   expr_mtx <- expr_mtx[naive.hvgs, ]
-  # convert expression matrix to long data.frame for modeling & post-process
+  # convert expression matrix to long data.frame for modeling & post-processing
   expr_df <- as.data.frame(expr_mtx) %>%
              dplyr::mutate(gene = rownames(.), .before = 1) %>%
              tidyr::pivot_longer(cols = !gene,
@@ -193,7 +193,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                              gene_id = as.character(as.integer(expr_df$gene))) %>%
                   dplyr::distinct()
   non_tested_genes <- rownames(sp.obj)[!rownames(sp.obj) %in% unique(expr_df$gene)]
-  # estimate global length-scale
+  # estimate global length-scale via either k-means or variogram method
   if (verbose) {
     cli::cli_alert_info(paste0("Estimating global length-scale using the ",
                                ifelse(lscale.estimator == "kmeans", "k-means", "variogram"),
@@ -267,7 +267,9 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   }
   M <- nrow(spatial_mtx)
   # estimate matrix of basis functions used to approximate GP with desired kernel
-  phi <- matrix(0, nrow = M, ncol = n.basis.fns)
+  phi <- matrix(0, 
+                nrow = M, 
+                ncol = n.basis.fns)
   for (i in seq(n.basis.fns)) {
     dist_vec <- rowSums((spatial_mtx - matrix(kmeans_centers[i, ], nrow = M, ncol = 2, byrow = TRUE))^2)
     if (kernel == "exp_quad") {
@@ -291,7 +293,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   }
   # compute some constants
   N <- nrow(expr_df)
-  G <- length(unique(expr_df$gene))
+  G <- length(naive.hvgs)
   # prepare data to be passed to cmdstan
   if (gene.depth.adjust) {
     if (inherits(sp.obj, "Seurat")) {
@@ -336,7 +338,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   }
   # remove big objects to save memory
   rm(expr_df, expr_mtx)
-  # compile model
+  # specify & compile model
   mod <- cmdstan_model(stan_file, compile = FALSE)
   mod$compile(cpp_options = cpp_options,
               stanc_options = list("O1"),
@@ -482,7 +484,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                             S4Vectors::DataFrame()
     SummarizedExperiment::rowData(sp.obj) <- amplitude_summary_s4
   }
-  # optionally save model fit to object's unstructured metadata
+  # optionally save model fit, basis functions, & k-means results to object's unstructured metadata
   if (save.model) {
     if (inherits(sp.obj, "Seurat")) {
       sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]]@misc$model_fit <- fit_vi
@@ -493,9 +495,11 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   if (save.basis.fns) {
     if (inherits(sp.obj, "Seurat")) {
       sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]]@misc$phi <- phi_ortho
+      sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]]@misc$phi_raw <- phi
       sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]]@misc$kmeans <- kmeans_res
     } else {
       sp.obj@metadata$phi <- phi_ortho
+      sp.obj@metadata$phi_raw <- phi
       sp.obj@metadata$kmeans <- kmeans_res
     }
   }

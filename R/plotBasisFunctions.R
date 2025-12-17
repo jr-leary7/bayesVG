@@ -10,14 +10,14 @@
 #' @param color.palette A vector containing colors that are passed to \code{\link[ggplot2]{scale_color_gradientn}}, \code{\link[ggplot2]{scale_color_manual}}, \code{\link[ggplot2]{scale_fill_gradientn}}, depending on the value of \code{plot.type}. Defaults to NULL.
 #' @import magrittr
 #' @importFrom cli cli_abort
-#' @importFrom Seurat GetTissueCoordinates
-#' @importFrom dplyr select mutate bind_cols arrange
+#' @importFrom Seurat DefaultAssay GetTissueCoordinates
+#' @importFrom dplyr select mutate across bind_cols arrange
 #' @importFrom tidyr pivot_longer 
 #' @importFrom SpatialExperiment spatialCoords
 #' @importFrom coop scaler
 #' @importFrom ggplot2 ggplot aes geom_point scale_y_reverse labs scale_color_gradientn scale_color_manual scale_fill_gradientn facet_wrap theme element_rect label_parsed element_text geom_tile scale_x_discrete scale_y_discrete
 #' @return An object of class \code{ggplot2}.
-#' @seealso \code{\link{plotSpatialModules}}
+#' @seealso \code{\link{plotModuleScores}}
 #' @seealso \code{\link{plotSpatialExpression}}
 #' @seealso \code{\link{plotSpatialAttributes}}
 #' @export
@@ -68,7 +68,8 @@ plotBasisFunctions <- function(sp.obj = NULL,
   # format dataframe of basis functions 
   phi_df <- as.data.frame(phi) %>% 
             magrittr::set_colnames(paste0("Phi_", seq(ncol(.))))
-  phi_df_long <- dplyr::bind_cols(spatial_df, phi_df) %>% 
+  phi_df_long <- dplyr::bind_cols(coord_df, phi_df) %>% 
+                 dplyr::mutate(dplyr::across(c(x, y), \(z) as.numeric(coop::scaler(z)))) %>% 
                  tidyr::pivot_longer(cols = !c(x, y), 
                                      names_to = "basis", 
                                      values_to = "value") %>% 
@@ -79,7 +80,7 @@ plotBasisFunctions <- function(sp.obj = NULL,
                  dplyr::mutate(basis_label = factor(basis_label, levels = unique(basis_label)))
   # generate plot 
   if (plot.type == "clustering") {
-    p <- dplyr::mutate(spatial_df, kmeans_cluster = as.factor(kmeans_res$cluster)) %>% 
+    p <- dplyr::mutate(coord_df, kmeans_cluster = as.factor(kmeans_res$cluster)) %>% 
          ggplot2::ggplot(ggplot2::aes(x = y, y = x, color = kmeans_cluster)) + 
          ggplot2::geom_point(size = pt.size) + 
          ggplot2::scale_y_reverse() + 
@@ -87,8 +88,8 @@ plotBasisFunctions <- function(sp.obj = NULL,
                        y = "Spatial 2", 
                        color = expression(paste(italic(k), "-means ID"))) + 
          theme_bayesVG(spatial = TRUE)
-    if (!is.null(color.palette)) {
-      p <- p + ggplot2::scale_color_manual(values = color.palette)
+    if (is.null(color.palette)) {
+      p <- p + ggplot2::scale_color_manual(values = palette_cluster)
     }
   } else if (plot.type == "basis_spatial") {
     p <- ggplot2::ggplot(phi_df_long, ggplot2::aes(x = y, y = x, color = value)) + 
@@ -103,8 +104,8 @@ plotBasisFunctions <- function(sp.obj = NULL,
          theme_bayesVG(spatial = TRUE) + 
          ggplot2::theme(strip.clip = "on", 
                         strip.background = ggplot2::element_rect(linewidth = 2 * theme_bayesVG()$line$linewidth))
-    if (!is.null(color.palette)) {
-      p <- p + ggplot2::scale_color_gradientn(colors = color.palette)
+    if (is.null(color.palette)) {
+      p <- p + ggplot2::scale_color_gradientn(colors = palette_heatmap)
     }
   } else if (plot.type == "basis_abs_spatial") {
     p <- ggplot2::ggplot(phi_df_long, ggplot2::aes(x = y, y = x, color = abs(value))) + 
@@ -115,12 +116,12 @@ plotBasisFunctions <- function(sp.obj = NULL,
          ggplot2::scale_y_reverse() + 
          ggplot2::labs(x = "Spatial 1", 
                        y = "Spatial 2", 
-                       color = expression(phi[italic(j)](italic(s)[italic(i)]))) + 
+                       color = expression(abs~phi[italic(j)](italic(s)[italic(i)]))) + 
          theme_bayesVG(spatial = TRUE) + 
          ggplot2::theme(strip.clip = "on", 
                         strip.background = ggplot2::element_rect(linewidth = 2 * theme_bayesVG()$line$linewidth))
-    if (!is.null(color.palette)) {
-      p <- p + ggplot2::scale_color_gradientn(colors = color.palette)
+    if (is.null(color.palette)) {
+      p <- p + ggplot2::scale_color_gradientn(colors = palette_heatmap)
     }
   } else if (plot.type == "basis_orthogonal") {
     p <- as.data.frame(as.table(crossprod(phi))) %>% 
@@ -137,8 +138,8 @@ plotBasisFunctions <- function(sp.obj = NULL,
          ggplot2::theme(axis.text.x = element_text(angle = 45, 
                                                    vjust = 1, 
                                                    hjust = 1))
-    if (!is.null(color.palette)) {
-      p <- p + ggplot2::scale_fill_gradientn(colors = color.palette)
+    if (is.null(color.palette)) {
+      p <- p + ggplot2::scale_fill_gradientn(colors = palette_heatmap)
     }
   }
   return(p)

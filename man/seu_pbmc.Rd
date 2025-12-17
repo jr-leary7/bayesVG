@@ -8,7 +8,7 @@
 An object of class \code{Seurat}.
 }
 \source{
-https://github.com/satijalab/seurat-data
+\url{https://github.com/satijalab/seurat-data}
 }
 \usage{
 data(seu_pbmc)

@@ -45,7 +45,7 @@ seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
 plotBasisFunctions(seu_brain, plot.type = "basis_spatial")
 }
 \seealso{
-\code{\link{plotSpatialModules}}
+\code{\link{plotModuleScores}}
 
 \code{\link{plotSpatialExpression}}
 
