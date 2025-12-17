@@ -12,4 +12,6 @@ seu_brain <- PercentageFeatureSet(seu_brain,
                                   pattern = "^mt-", 
                                   col.name = "percent_mito")
 seu_brain <- subset(seu_brain, subset = percent_mito < 20)
-save(seu_brain, file = "data/seu_brain.rda", compress = "xz")
+usethis::use_data(seu_brain, 
+                  overwrite = TRUE, 
+                  compress = "xz")
