@@ -17,7 +17,7 @@
 #' @importFrom coop scaler
 #' @importFrom ggplot2 ggplot aes geom_point scale_y_reverse labs scale_color_gradientn scale_color_manual scale_fill_gradientn facet_wrap theme element_rect label_parsed element_text geom_tile scale_x_discrete scale_y_discrete
 #' @return An object of class \code{ggplot2}.
-#' @seealso \code{\link{plotSpatialModules}}
+#' @seealso \code{\link{plotModuleScores}}
 #' @seealso \code{\link{plotSpatialExpression}}
 #' @seealso \code{\link{plotSpatialAttributes}}
 #' @export
@@ -68,7 +68,7 @@ plotBasisFunctions <- function(sp.obj = NULL,
   # format dataframe of basis functions 
   phi_df <- as.data.frame(phi) %>% 
             magrittr::set_colnames(paste0("Phi_", seq(ncol(.))))
-  phi_df_long <- dplyr::bind_cols(spatial_df, phi_df) %>% 
+  phi_df_long <- dplyr::bind_cols(coord_df, phi_df) %>% 
                  dplyr::mutate(dplyr::across(c(x, y), \(z) as.numeric(coop::scaler(z)))) %>% 
                  tidyr::pivot_longer(cols = !c(x, y), 
                                      names_to = "basis", 
@@ -80,7 +80,7 @@ plotBasisFunctions <- function(sp.obj = NULL,
                  dplyr::mutate(basis_label = factor(basis_label, levels = unique(basis_label)))
   # generate plot 
   if (plot.type == "clustering") {
-    p <- dplyr::mutate(spatial_df, kmeans_cluster = as.factor(kmeans_res$cluster)) %>% 
+    p <- dplyr::mutate(coord_df, kmeans_cluster = as.factor(kmeans_res$cluster)) %>% 
          ggplot2::ggplot(ggplot2::aes(x = y, y = x, color = kmeans_cluster)) + 
          ggplot2::geom_point(size = pt.size) + 
          ggplot2::scale_y_reverse() + 
