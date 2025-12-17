@@ -67,7 +67,8 @@ plotSVGs <- function(sp.obj = NULL,
     p <- p +
          ggplot2::geom_smooth(se = FALSE,
                               color = "dodgerblue",
-                              method = "gam")
+                              method = "gam", 
+                              formula = y ~ s(x, bs = "cs"))
   }
   if (n.genes.label > 0) {
     p <- p +
