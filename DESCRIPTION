@@ -50,6 +50,7 @@ Imports:
 Suggests: 
     covr, 
     UCell, 
+    usethis,
     gprofiler2, 
     testthat (>= 3.0.0)
 Additional_repositories: 

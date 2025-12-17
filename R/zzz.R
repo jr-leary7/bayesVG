@@ -50,5 +50,13 @@ utils::globalVariables(c(
   "meta_vec", 
   "gene_expr", 
   "b", 
-  "hex"
+  "hex", 
+  "basis", 
+  "basis_label", 
+  "kmeans_cluster", 
+  "value", 
+  "Var1", 
+  "Var2", 
+  "Freq", 
+  "fill"
 ))
