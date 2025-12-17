@@ -7,6 +7,9 @@
 \format{
 A character vector of hex color codes.
 }
+\source{
+\code{paletteer::paletteer_d("ggsci::default_igv")}
+}
 \usage{
 data(palette_cluster)
 }

@@ -7,6 +7,9 @@
 \format{
 A character vector of hex color codes.
 }
+\source{
+\code{paletteer::paletteer_d("MetBrewer::Hiroshige", direction = -1)}
+}
 \usage{
 data(palette_heatmap)
 }

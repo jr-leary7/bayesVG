@@ -3,7 +3,7 @@
 #' This file contains the anterior mouse brain data from 10X Genomics. 
 #'
 #' @format An object of class \code{Seurat}.
-#' @source https://github.com/satijalab/seurat-data
+#' @source \url{https://github.com/satijalab/seurat-data}
 #' @usage data(seu_brain)
 "seu_brain"
 
@@ -12,7 +12,7 @@
 #' This file contains the pbmc3k data from 10X Genomics. 
 #'
 #' @format An object of class \code{Seurat}.
-#' @source https://github.com/satijalab/seurat-data
+#' @source \url{https://github.com/satijalab/seurat-data}
 #' @usage data(seu_pbmc)
 "seu_pbmc"
 
@@ -21,6 +21,7 @@
 #' This color palette is useful for plotting cluster or domain IDs. 
 #' 
 #' @format A character vector of hex color codes.
+#' @source \code{paletteer::paletteer_d("ggsci::default_igv")}
 #' @usage data(palette_cluster)
 "palette_cluster"
 
@@ -29,5 +30,6 @@
 #' This color palette is useful for plotting heatmaps or gene expression / score values. 
 #' 
 #' @format A character vector of hex color codes.
+#' @source \code{paletteer::paletteer_d("MetBrewer::Hiroshige", direction = -1)}
 #' @usage data(palette_heatmap)
 "palette_heatmap"
