@@ -1,3 +1,8 @@
+# bayesVG v0.0.8
+
++ Added function `analyzeBasisFunctions()`, which enables users to select the optimal number of basis functions used in `findSpatiallyVariableFeaturesBayes()` via several plots and summary statistics.
++ Expanded mathematical notation throughout the functions' documentation. 
+
 # bayesVG v0.0.7
 
 + Fixed a tiny bug in the Matern kernel code. 
