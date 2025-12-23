@@ -114,9 +114,10 @@ plotSpatialExpression <- function(sp.obj = NULL,
                          color = ifelse(length(gene.plot) > 1, 
                                         "Scaled\nExpression", 
                                         gene.plot))
-  if (!is.null(color.palette)) {
-    p <- p +
-         ggplot2::scale_color_gradientn(colors = color.palette)
+  if (is.null(color.palette)) {
+    p <- p + ggplot2::scale_color_gradientn(colors = palette_heatmap)
+  } else {
+    p <- p + ggplot2::scale_color_gradientn(colors = color.palette)
   }
   p <- p +
        theme_bayesVG(spatial = TRUE) +

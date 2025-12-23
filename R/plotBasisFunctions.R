@@ -90,6 +90,8 @@ plotBasisFunctions <- function(sp.obj = NULL,
          theme_bayesVG(spatial = TRUE)
     if (is.null(color.palette)) {
       p <- p + ggplot2::scale_color_manual(values = palette_cluster)
+    } else {
+      p <- p + ggplot2::scale_color_manual(values = color.palette)
     }
   } else if (plot.type == "basis_spatial") {
     p <- ggplot2::ggplot(phi_df_long, ggplot2::aes(x = y, y = x, color = value)) + 
@@ -106,6 +108,8 @@ plotBasisFunctions <- function(sp.obj = NULL,
                         strip.background = ggplot2::element_rect(linewidth = 2 * theme_bayesVG()$line$linewidth))
     if (is.null(color.palette)) {
       p <- p + ggplot2::scale_color_gradientn(colors = palette_heatmap)
+    } else {
+      p <- p + ggplot2::scale_fill_gradientn(colors = color.palette)
     }
   } else if (plot.type == "basis_abs_spatial") {
     p <- ggplot2::ggplot(phi_df_long, ggplot2::aes(x = y, y = x, color = abs(value))) + 
@@ -122,6 +126,8 @@ plotBasisFunctions <- function(sp.obj = NULL,
                         strip.background = ggplot2::element_rect(linewidth = 2 * theme_bayesVG()$line$linewidth))
     if (is.null(color.palette)) {
       p <- p + ggplot2::scale_color_gradientn(colors = palette_heatmap)
+    } else {
+      p <- p + ggplot2::scale_fill_gradientn(colors = color.palette)
     }
   } else if (plot.type == "basis_orthogonal") {
     p <- as.data.frame(as.table(crossprod(phi))) %>% 
@@ -140,6 +146,8 @@ plotBasisFunctions <- function(sp.obj = NULL,
                                                    hjust = 1))
     if (is.null(color.palette)) {
       p <- p + ggplot2::scale_fill_gradientn(colors = palette_heatmap)
+    } else {
+      p <- p + ggplot2::scale_fill_gradientn(colors = color.palette)
     }
   }
   return(p)

@@ -155,6 +155,10 @@ plotModuleScores <- function(sp.obj = NULL,
       p <- p +
            ggplot2::scale_color_manual(values = palette_cluster) +
            ggplot2::scale_fill_manual(values = palette_cluster)
+    } else {
+      p <- p +
+           ggplot2::scale_color_manual(values = color.palette) +
+           ggplot2::scale_fill_manual(values = color.palette)
     }
   }
   return(p)
