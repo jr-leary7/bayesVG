@@ -71,9 +71,6 @@ plotSpatialExpression <- function(sp.obj = NULL,
     } else {
       colnames(coord_df)[length(colnames(coord_df))] <- "gene_expr"
     }
-    if (scale.expression) {
-      coord_df <- dplyr::mutate(coord_df, gene_expr = as.numeric(coop::scaler(gene_expr)))
-    }
   } else if (inherits(sp.obj, "SpatialExperiment")) {
     if (use.norm) {
       expr_mtx <- SingleCellExperiment::logcounts(sp.obj)[gene.plot, , drop = FALSE]
@@ -94,11 +91,11 @@ plotSpatialExpression <- function(sp.obj = NULL,
     } else {
       colnames(coord_df)[length(colnames(coord_df))] <- "gene_expr"
     }
-    if (scale.expression) {
-      coord_df <- dplyr::mutate(coord_df, gene_expr = as.numeric(coop::scaler(gene_expr)))
-    }
   }
-  # generate (potentially facetted) plot along with labels and colors
+  if (scale.expression) {
+    coord_df <- dplyr::mutate(coord_df, gene_expr = as.numeric(coop::scaler(gene_expr)))
+  }
+  # generate (potentially faceted) plot along with labels and colors
   if (length(gene.plot) > 1) {
     p <- ggplot2::ggplot(coord_df, ggplot2::aes(x = y, y = x, color = gene_expr)) +
          ggplot2::facet_wrap(~gene, scales = "fixed") + 

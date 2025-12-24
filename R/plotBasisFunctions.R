@@ -52,12 +52,25 @@ plotBasisFunctions <- function(sp.obj = NULL,
     kmeans_res <- sp.obj@metadata$kmeans
   }
   if (is.null(phi) || is.null(kmeans_res)) { cli::cli_abort("The k-means results and / or basis function matrix are missing from the unstructured metadata of {.field sp.obj}.") }
+  # determine if subsampling was used & act accordingly
+  if (inherits(sp.obj, "Seurat")) {
+    subsample_IDs <- sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]]@misc$subsample_IDs
+  } else if (inherits(sp.obj, "SpatialExperiment")) {
+    subsample_IDs <- sp.obj@metadata$subsample_IDs
+  }
+  subsample_flag <- !is.null(subsample_IDs)
+  if (subsample_flag) {
+    subsample_idx <- which(colnames(sp.obj) %in% subsample_IDs)
+  }
   # extract & format spatial coordinates 
   if (plot.type %in% c("clustering", "basis_spatial", "basis_abs_spatial", "basis_orthogonal")) {
     if (inherits(sp.obj, "Seurat")) {
       coord_df <- Seurat::GetTissueCoordinates(sp.obj)
     } else if (inherits(sp.obj, "SpatialExperiment")) {
       coord_df <- as.data.frame(SpatialExperiment::spatialCoords(sp.obj))
+    }
+    if (subsample_flag) {
+      coord_df <- coord_df[subsample_idx, ]
     }
     coord_df <- dplyr::select(coord_df, 1:2) %>%
                 as.matrix() %>%
@@ -80,7 +93,12 @@ plotBasisFunctions <- function(sp.obj = NULL,
                  dplyr::mutate(basis_label = factor(basis_label, levels = unique(basis_label)))
   # generate plot 
   if (plot.type == "clustering") {
-    p <- dplyr::mutate(coord_df, kmeans_cluster = as.factor(kmeans_res$cluster)) %>% 
+    if (subsample_flag) {
+      kmeans_IDs <- as.factor(kmeans_res$cluster[subsample_idx])
+    } else {
+      kmeans_IDs <- as.factor(kmeans_res$cluster)
+    }
+    p <- dplyr::mutate(coord_df, kmeans_cluster = kmeans_IDs) %>% 
          ggplot2::ggplot(ggplot2::aes(x = y, y = x, color = kmeans_cluster)) + 
          ggplot2::geom_point(size = pt.size) + 
          ggplot2::scale_y_reverse() + 
