@@ -2,6 +2,8 @@
 
 + Added function `analyzeBasisFunctions()`, which enables users to select the optimal number of basis functions used in `findSpatiallyVariableFeaturesBayes()` via several plots and summary statistics.
 + Expanded mathematical notation throughout the functions' documentation. 
++ Added subsampling logic to `findSpatiallyVariableFeaturesBayes()` and updated documentation / downstream analysis functions accordingly. 
++ Removed some very minor logic bugs in downstream visualization functions. 
 
 # bayesVG v0.0.7
 
