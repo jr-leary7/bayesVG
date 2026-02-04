@@ -181,25 +181,6 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     }
   }
   expr_mtx <- expr_mtx[naive.hvgs, ]
-  # convert expression matrix to long data.frame for modeling & post-processing
-  expr_df <- as.data.frame(expr_mtx) %>%
-             dplyr::mutate(gene = rownames(.), .before = 1) %>%
-             tidyr::pivot_longer(cols = !gene,
-                                 names_to = "spot",
-                                 values_to = "gene_expression") %>%
-             dplyr::relocate(spot, gene) %>%
-             dplyr::mutate(gene = factor(gene, levels = unique(gene)),
-                           spot = factor(spot, levels = unique(spot)))
-  if (likelihood == "gaussian") {
-    expr_df <- dplyr::mutate(expr_df, gene_expression = as.numeric(coop::scaler(gene_expression)))
-  } else if (likelihood == "nb") {
-    expr_df <- dplyr::mutate(expr_df, gene_expression = as.integer(gene_expression))
-  }
-  expr_df <- as.data.frame(expr_df)
-  gene_mapping <- data.frame(gene = as.character(expr_df$gene),
-                             gene_id = as.character(as.integer(expr_df$gene))) %>%
-                  dplyr::distinct()
-  non_tested_genes <- rownames(sp.obj)[!rownames(sp.obj) %in% unique(expr_df$gene)]
   # estimate global length-scale via either k-means or variogram method
   if (verbose) {
     cli::cli_alert_info(paste0("Estimating global length-scale using the ",
@@ -242,25 +223,25 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                      .verbose = FALSE,
                                      .packages = c("sp", "gstat", "stats"), 
                                      .options.snow = snow_opts) %dopar% {
-      gene_expr <- unname(expr_mtx[naive.hvgs[g], ])
-      sp_df <- sp::SpatialPointsDataFrame(spatial_df[, c(1:2)], data = data.frame(z = gene_expr))
-      emp_vario <- gstat::variogram(z ~ 1, data = sp_df)
-      gene_var <- stats::var(gene_expr)
-      init_model <- gstat::vgm(gene_var * 0.8,
-                               model = "Mat",
-                               range = stats::median(emp_vario$dist, na.rm = TRUE),
-                               nugget = gene_var * 0.2,
-                               kappa = kernel.smoothness)
-      vario_fit <- try({
-        gstat::fit.variogram(emp_vario, model = init_model)
-      }, silent = TRUE)
-      if (inherits(vario_fit, "try-error")) {
-        res <- NA_real_
-      } else {
-        res <- as.numeric(vario_fit[vario_fit$model == "Mat", "range"])
-      }
-      res
-    }
+                                       gene_expr <- unname(expr_mtx[naive.hvgs[g], ])
+                                       sp_df <- sp::SpatialPointsDataFrame(spatial_df[, c(1:2)], data = data.frame(z = gene_expr))
+                                       emp_vario <- gstat::variogram(z ~ 1, data = sp_df)
+                                       gene_var <- stats::var(gene_expr)
+                                       init_model <- gstat::vgm(gene_var * 0.8,
+                                                                model = "Mat",
+                                                                range = stats::median(emp_vario$dist, na.rm = TRUE),
+                                                                nugget = gene_var * 0.2,
+                                                                kappa = kernel.smoothness)
+                                       vario_fit <- try({
+                                         gstat::fit.variogram(emp_vario, model = init_model)
+                                       }, silent = TRUE)
+                                       if (inherits(vario_fit, "try-error")) {
+                                         res <- NA_real_
+                                       } else {
+                                         res <- as.numeric(vario_fit[vario_fit$model == "Mat", "range"])
+                                       }
+                                       res
+                                     }
     if (verbose && n.cores > 1L) {
       cat("\n")
     }
@@ -302,11 +283,6 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                         dplyr::select(-spot)
     }
     spatial_mtx <- (as.matrix(spatial_df_sub) - coord_means) / coord_sds
-    expr_df <- dplyr::filter(expr_df, spot %in% sampled_spots) %>%
-               dplyr::mutate(spot = forcats::fct_drop(spot))
-    if (likelihood == "gaussian") {
-      expr_df <- dplyr::mutate(expr_df, gene_expression = as.numeric(coop::scaler(gene_expression)))
-    }
     M <- nrow(spatial_mtx)
     phi <- matrix(0, 
                   nrow = M, 
@@ -352,6 +328,28 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   if (inherits(phi_ortho, "try-error")) {
     phi_ortho <- qr.Q(qr(phi))
   }
+  # convert expression matrix to long data.frame for modeling & post-processing
+  if (subsample) {
+    expr_mtx <- expr_mtx[, sampled_spots]
+  }
+  expr_df <- as.data.frame(expr_mtx) %>%
+             dplyr::mutate(gene = rownames(.), .before = 1) %>%
+             tidyr::pivot_longer(cols = !gene,
+                                 names_to = "spot",
+                                 values_to = "gene_expression") %>%
+             dplyr::relocate(spot, gene) %>%
+             dplyr::mutate(gene = factor(gene, levels = unique(gene)),
+                           spot = factor(spot, levels = unique(spot)))
+  if (likelihood == "gaussian") {
+    expr_df <- dplyr::mutate(expr_df, gene_expression = as.numeric(coop::scaler(gene_expression)))
+  } else if (likelihood == "nb") {
+    expr_df <- dplyr::mutate(expr_df, gene_expression = as.integer(gene_expression))
+  }
+  expr_df <- as.data.frame(expr_df)
+  gene_mapping <- data.frame(gene = as.character(expr_df$gene),
+                             gene_id = as.character(as.integer(expr_df$gene))) %>%
+                  dplyr::distinct()
+  non_tested_genes <- rownames(sp.obj)[!rownames(sp.obj) %in% unique(expr_df$gene)]
   # compute some constants
   N <- nrow(expr_df)
   G <- length(naive.hvgs)
@@ -400,7 +398,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   # remove big objects to save memory
   rm(expr_df, expr_mtx)
   # specify & compile model
-  mod <- cmdstan_model(stan_file, compile = FALSE)
+  mod <- cmdstan_model(stan_file, compile = FALSE)   
   mod$compile(cpp_options = cpp_options,
               stanc_options = list("O1"),
               force_recompile = TRUE,
@@ -411,11 +409,12 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
       if (mle.init) {
         model_init <- mod$optimize(data_list,
                                    seed = random.seed,
-                                   init = 0,
+                                   init = 0.1,
                                    opencl_ids = opencl_IDs,
-                                   jacobian = FALSE,
+                                   jacobian = TRUE,
                                    iter = mle.iter,
                                    algorithm = "lbfgs",
+                                   tol_obj = 1e-12, 
                                    history_size = 25L)
       } else {
         model_init <- 0
