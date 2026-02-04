@@ -45,27 +45,24 @@ plotSpatialAttributes <- function(sp.obj = NULL,
                 as.data.frame() %>%
                 magrittr::set_colnames(c("x", "y")) %>%
                 dplyr::mutate(meta_vec = meta_df[, attribute.plot])
-    p <- ggplot2::ggplot(coord_df, ggplot2::aes(x = y, y = x, color = meta_vec)) +
-         ggplot2::geom_point(size = pt.size, stroke = 0) +
-         ggplot2::scale_y_continuous(transform = "reverse")
   } else if (inherits(sp.obj, "SpatialExperiment")) {
     coord_df <- SpatialExperiment::spatialCoords(sp.obj) %>% 
                 coop::scaler() %>% 
                 as.data.frame() %>% 
                 magrittr::set_colnames(c("x", "y")) %>%
                 dplyr::mutate(meta_vec = meta_df[, attribute.plot])
-    p <- ggplot2::ggplot(coord_df, ggplot2::aes(x = y, y = x, color = meta_vec)) +
-         ggplot2::geom_point(size = pt.size, stroke = 0) +
-         ggplot2::scale_y_continuous(transform = "reverse")
   }
-  p <- p + ggplot2::labs(x = "Spatial 1",
-                         y = "Spatial 2",
-                         color = attribute.plot)
+  p <- ggplot2::ggplot(coord_df, ggplot2::aes(x = y, y = x, color = meta_vec)) +
+       ggplot2::geom_point(size = pt.size, stroke = 0) +
+       ggplot2::scale_y_continuous(transform = "reverse") + 
+       ggplot2::labs(x = "Spatial 1",
+                     y = "Spatial 2",
+                     color = attribute.plot)
   if (is.null(color.palette)) {
-    p <- p +
-         ggplot2::scale_color_manual(values = palette_cluster)
+    p <- p + ggplot2::scale_color_manual(values = palette_cluster)
+  } else {
+    p <- p + ggplot2::scale_color_manual(values = color.palette)
   }
-  p <- p +
-       theme_bayesVG(spatial = TRUE)
+  p <- p + theme_bayesVG(spatial = TRUE)
   return(p)
 }

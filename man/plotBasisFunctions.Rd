@@ -13,7 +13,7 @@ plotBasisFunctions(
 )
 }
 \arguments{
-\item{sp.obj}{An object of class \code{Seurat} or \code{SpatialExperiment} containing spatial data. Defaults to NULL.}
+\item{sp.obj}{An object of class \code{Seurat} or \code{SpatialExperiment} as returned after running \code{\link{findSpatiallyVariableFeaturesBayes}}. Defaults to NULL.}
 
 \item{plot.type}{A character specifying which type of plot should be generated. Must be one of "clustering", "basis_spatial", "basis_abs_spatial", or "basis_orthog". Defaults to "basis_spatial".}
 
@@ -21,7 +21,7 @@ plotBasisFunctions(
 
 \item{pt.size}{A double specifying the size of the points to be plotted when \code{plot.type} is "clustering", "basis_spatial", or "basis_abs_spatial". Defaults to 1.}
 
-\item{color.palette}{A vector containing colors that are passed to \code{\link[ggplot2]{scale_color_gradientn}}, \code{\link[ggplot2]{scale_color_manual}}, \code{\link[ggplot2]{scale_fill_gradientn}}, depending on the value of \code{plot.type}. Defaults to NULL.}
+\item{color.palette}{A vector containing colors that are passed to \code{\link[ggplot2]{scale_color_gradientn}}, \code{\link[ggplot2]{scale_color_manual}}, or \code{\link[ggplot2]{scale_fill_gradientn}}, depending on the value of \code{plot.type}. Defaults to NULL.}
 }
 \value{
 An object of class \code{ggplot2}.

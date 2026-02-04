@@ -106,6 +106,8 @@ plotModuleScores <- function(sp.obj = NULL,
          theme_bayesVG(spatial = TRUE)
     if (is.null(color.palette)) {
       p <- p + ggplot2::scale_color_gradientn(colours = palette_heatmap)
+    } else {
+      p <- p + ggplot2::scale_color_gradientn(colours = color.palette)
     }
   } else if (plot.type == "embedding") {
     if (inherits(sp.obj, "Seurat")) {
@@ -127,6 +129,8 @@ plotModuleScores <- function(sp.obj = NULL,
          theme_bayesVG(umap = TRUE)
     if (is.null(color.palette)) {
       p <- p + ggplot2::scale_color_gradientn(colours = palette_heatmap)
+    } else {
+      p <- p + ggplot2::scale_color_gradientn(colours = color.palette)
     }
   } else if (plot.type == "violin") {
     p <- ggplot2::ggplot(meta_df, ggplot2::aes(x = !!violin_group_sym, y = !!module_name_sym, color = !!violin_group_sym, fill = !!violin_group_sym))
@@ -155,6 +159,10 @@ plotModuleScores <- function(sp.obj = NULL,
       p <- p +
            ggplot2::scale_color_manual(values = palette_cluster) +
            ggplot2::scale_fill_manual(values = palette_cluster)
+    } else {
+      p <- p +
+           ggplot2::scale_color_manual(values = color.palette) +
+           ggplot2::scale_fill_manual(values = color.palette)
     }
   }
   return(p)

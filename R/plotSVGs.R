@@ -81,8 +81,8 @@ plotSVGs <- function(sp.obj = NULL,
   }
   p <- p +
        ggplot2::scale_color_manual(values = c("grey30", "firebrick")) +
-       ggplot2::labs(x = expression(log(hat(mu)[g])),
-                     y = expression(log(hat(tau)[g])),
+       ggplot2::labs(x = expression(log~hat(mu)[g]),
+                     y = expression(log~hat(tau)[g]),
                      color = "Status") +
        theme_bayesVG() +
        ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 4, stroke = 0.5, alpha = 1)))
