@@ -28,7 +28,7 @@
 #' @param save.basis.fns A Boolean specifying whether or not the estimated basis function matrices \eqn{\phi} (non-orthonormal) & \eqn{\tilde{\phi}} (orthonormal) along with the \emph{k}-means results used to create them should be saved to the unstructured metadata of \code{sp.obj}. Defaults to FALSE.
 #' @details
 #' \itemize{
-#' \item Prior to running this function, it is necessary to identify a naive set of highly variable genes (HVGs). The \code{\link{getNaiveHVGs}} function is perfect for this, and works with both \code{Seurat} and \code{SpatialExperiment} objects. 
+#' \item Prior to running this function, it is necessary to identify a naive set of highly variable genes (HVGs). The \code{\link{getNaiveHVGs}} function is perfect for this, and works with both \code{Seurat} and \code{SpatialExperiment} objects.
 #' \item There are two options when choosing a likelihood for gene expression - the Gaussian, which uses scaled, normalized counts, and the Negative-binomial, which uses raw counts. Both options provide comparable results, with the Negative-binomial being perhaps a bit more accurate at the expense of slightly longer runtimes. First-time users should start with the Gaussian, while more experienced users should utilize the Negative-binomial. As always, it is a good idea to run both options and compare results if you're unsure of which is best for your data.
 #' \item This function utilizes an approximate multivariate hierarchical Gaussian process (GP) to model spatial variation in gene expression. The primary parameter of interest is the per-gene amplitude (or marginal standard deviation) \eqn{\tau_g} of the GP, which can be interpreted as a scaling factor for how much spatial location contributes to mean expression.
 #' \item The term "approximate" in reference to the GP means that the the full GP is instead represented as a Hilbert space using basis functions. The basis function computation requires a kernel, here either the exponentiated quadratic (the default), one of the Matern-family kernels, or the periodic. In short, the exponentiated quadratic kernel assumes infinite smoothness, the Matern-family kernels assume varying degrees of roughness depending on the value of the smoothness parameter \eqn{\nu} (higher values of \eqn{\nu} indicate a higher degree of smoothness & vice versa), and the periodic kernel is best for datasets with repeating spatial structures.
@@ -38,7 +38,7 @@
 #' \item The user can specify which VI algorithm to use to fit the model via the argument \code{algorithm}. For further details, see \href{https://www.jmlr.org/papers/volume18/16-107/16-107.pdf}{this paper} comparing the meanfield and fullrank algorithms, and \href{https://doi.org/10.48550/arXiv.2108.03782}{this preprint} that introduced the Pathfinder algorithm. For a primer on automatic differentiation variational inference (ADVI), see \href{https://doi.org/10.48550/arXiv.1506.03431}{this preprint}. Lastly, \href{https://discourse.mc-stan.org/t/issues-with-differences-between-mcmc-and-pathfinder-results-how-to-make-pathfinder-or-something-else-more-accurate/35992}{this Stan forums thread} lays out some practical differences between the algorithms.
 #' \item If using the periodic kernel, the user should ideally provide their own value of \code{kernel.period} based on the resolution of the spatial dataset at hand. Ideal values of \emph{p} should be roughly equivalent to the typical inter-spot distance or perhaps a small multiple of it.
 #' \item If \code{save.model} is set to TRUE, the final model fit will be saved to the appropriate unstructured metadata slot of \code{sp.obj}. This allows the user to inspect the final fit and perform posterior predictive checks, but the model object takes up a lot of space. As such, it is recommended to remove it from \code{sp.obj} by setting the appropriate slot to NULL before saving it to disk.
-#' \item Analogously to the \code{save.model} parameter, the Boolean value of \code{save.basis.fns} specifies whether the basis function matrices and \emph{k}-means results are saved to the unstructured metadata of \code{sp.obj}. Setting this parameter to TRUE is necessary in order to run the downstream visualization function \code{plotBasisFunctions}. 
+#' \item Analogously to the \code{save.model} parameter, the Boolean value of \code{save.basis.fns} specifies whether the basis function matrices and \emph{k}-means results are saved to the unstructured metadata of \code{sp.obj}. Setting this parameter to TRUE is necessary in order to run the downstream visualization function \code{plotBasisFunctions}.
 #' }
 #' @import magrittr
 #' @import cmdstanr
@@ -49,6 +49,7 @@
 #' @importFrom SingleCellExperiment logcounts
 #' @importFrom BiocGenerics counts
 #' @importFrom Matrix rowSums
+#' @importFrom matrixStats colMeans2 colSds
 #' @importFrom SummarizedExperiment rowData
 #' @importFrom dplyr relocate mutate rename rename_with with_groups select inner_join desc filter distinct arrange left_join bind_rows row_number slice_sample pull
 #' @importFrom tidyr pivot_longer
@@ -89,8 +90,8 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                                kernel.smoothness = 1.5,
                                                kernel.period = 100L,
                                                n.basis.fns = 20L,
-                                               subsample = FALSE, 
-                                               subsample.prop = 0.5, 
+                                               subsample = FALSE,
+                                               subsample.prop = 0.5,
                                                algorithm = "meanfield",
                                                mle.init = TRUE,
                                                mle.iter = 1000L,
@@ -101,7 +102,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                                n.cores = 2L,
                                                random.seed = 312,
                                                verbose = TRUE,
-                                               save.model = FALSE, 
+                                               save.model = FALSE,
                                                save.basis.fns = FALSE) {
   # check & parse inputs
   if (is.null(sp.obj)) { cli::cli_abort("Please provide a spatial data object to findSpatiallyVariableFeaturesBayes().") }
@@ -148,10 +149,10 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     startup_message <- paste0("Starting {.pkg bayesVG} modeling of spatial variation using the ",
                               ifelse(likelihood == "gaussian", "Gaussian", "Negative-binomial"),
                               " likelihood, the ",
-                              ifelse(kernel == "exp_quad", "exponentiated quadratic", 
+                              ifelse(kernel == "exp_quad", "exponentiated quadratic",
                                      ifelse(kernel == "matern", "Matern", "periodic")),
                               " kernel, and the ",
-                              ifelse(algorithm == "meanfield", "meanfield", 
+                              ifelse(algorithm == "meanfield", "meanfield",
                                      ifelse(algorithm == "fullrank", "fullrank", "Pathfinder")),
                               " VI algorithm.")
     cli::cli_alert_info(startup_message)
@@ -160,13 +161,17 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   time_start <- Sys.time()
   # extract spatial coordinates & scale them
   if (inherits(sp.obj, "Seurat")) {
-    spatial_df <- Seurat::GetTissueCoordinates(sp.obj) %>% 
+    spatial_df <- Seurat::GetTissueCoordinates(sp.obj) %>%
                   dplyr::rename(spot = cell)
   } else {
    spatial_df <- as.data.frame(SpatialExperiment::spatialCoords(sp.obj))
    spatial_df <- dplyr::mutate(spatial_df, spot = colnames(sp.obj))
   }
-  spatial_mtx <- coop::scaler(as.matrix(spatial_df[, c(1:2)]))
+  spatial_mtx <- as.matrix(spatial_df[, c(1:2)])
+  coord_means <- matrixStats::colMeans2(spatial_mtx)
+  coord_sds <- matrixStats::colSds(coord_mtx)
+  spatial_mtx <- t(t(spatial_mtx) - coord_means)
+  spatial_mtx <- t(t(spatial_mtx) / coord_sds)
   colnames(spatial_mtx) <- c("x", "y")
   # extract matrix of (raw or normalized) gene expression
   if (inherits(sp.obj, "Seurat")) {
@@ -190,16 +195,14 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   set.seed(random.seed)
   kmeans_res <- stats::kmeans(spatial_mtx,
                               centers = n.basis.fns,
-                              iter.max = 100L, 
+                              iter.max = 100L,
                               nstart = 10L)
   kmeans_centers <- kmeans_res$centers
   if (lscale.estimator == "kmeans") {
     dists_centers <- fields::rdist(kmeans_centers, compact = TRUE)
     lscale <- stats::median(dists_centers)
   } else if (lscale.estimator == "variogram") {
-    spatial_df <- dplyr::mutate(spatial_df,
-                                x = as.numeric(coop::scaler(x)),
-                                y = as.numeric(coop::scaler(y)))
+    spatial_df <- as.data.frame(spatial_mtx)
     if (verbose) {
       withr::with_output_sink(tempfile(), {
         pb <- utils::txtProgressBar(0, length(naive.hvgs), style = 3)
@@ -221,7 +224,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                      .maxcombine = ifelse(length(naive.hvgs) > 1, length(naive.hvgs), 2),
                                      .inorder = TRUE,
                                      .verbose = FALSE,
-                                     .packages = c("sp", "gstat", "stats"), 
+                                     .packages = c("sp", "gstat", "stats"),
                                      .options.snow = snow_opts) %dopar% {
                                        gene_expr <- unname(expr_mtx[naive.hvgs[g], ])
                                        sp_df <- sp::SpatialPointsDataFrame(spatial_df[, c(1:2)], data = data.frame(z = gene_expr))
@@ -253,39 +256,31 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   if (verbose) {
     cli::cli_alert_info(paste0("Estimated length-scale: ", round(lscale, 4)))
   }
-  # estimate matrix of basis functions used to approximate GP with desired kernel while optionally subsampling spots / cells 
+  # estimate matrix of basis functions used to approximate GP with desired kernel while optionally subsampling spots / cells
   if (subsample) {
     if (verbose) {
       cli::cli_alert_info("Performing per-cluster subsampling...")
     }
-    sampled_spots <- dplyr::mutate(spatial_df, kmeans_cluster = as.factor(kmeans_res$cluster)) %>% 
+    sampled_spots <- dplyr::mutate(spatial_df, kmeans_cluster = as.factor(kmeans_res$cluster)) %>%
                      dplyr::with_groups(kmeans_cluster,
                                         dplyr::slice_sample,
-                                        prop = subsample.prop) %>% 
+                                        prop = subsample.prop) %>%
                      dplyr::pull(spot)
-    coord_means <- matrix(attr(spatial_mtx, which = "scaled:center"), 
-                          nrow = length(sampled_spots), 
-                          ncol = 2, 
-                          byrow = TRUE)
-    coord_sds <- matrix(attr(spatial_mtx, which = "scaled:scale"), 
-                        nrow = length(sampled_spots), 
-                        ncol = 2, 
-                        byrow = TRUE)
     if (inherits(sp.obj, "Seurat")) {
-      spatial_df_sub <- Seurat::GetTissueCoordinates(sp.obj) %>% 
-                        dplyr::rename(spot = cell) %>% 
-                        dplyr::filter(spot %in% sampled_spots) %>% 
+      spatial_df_sub <- Seurat::GetTissueCoordinates(sp.obj) %>%
+                        dplyr::rename(spot = cell) %>%
+                        dplyr::filter(spot %in% sampled_spots) %>%
                         dplyr::select(-spot)
     } else {
-      spatial_df_sub <- as.data.frame(SpatialExperiment::spatialCoords(sp.obj)) %>% 
-                        dplyr::mutate(spatial_df_sub, spot = colnames(sp.obj)) %>% 
-                        dplyr::filter(spot %in% sampled_spots) %>% 
+      spatial_df_sub <- as.data.frame(SpatialExperiment::spatialCoords(sp.obj)) %>%
+                        dplyr::mutate(spatial_df_sub, spot = colnames(sp.obj)) %>%
+                        dplyr::filter(spot %in% sampled_spots) %>%
                         dplyr::select(-spot)
     }
-    spatial_mtx <- (as.matrix(spatial_df_sub) - coord_means) / coord_sds
+    spatial_mtx <- as.matrix(spatial_df_sub[, c(1:2)])
     M <- nrow(spatial_mtx)
-    phi <- matrix(0, 
-                  nrow = M, 
+    phi <- matrix(0,
+                  nrow = M,
                   ncol = n.basis.fns)
     for (i in seq(n.basis.fns)) {
       dist_vec <- rowSums((spatial_mtx - matrix(kmeans_centers[i, ], nrow = M, ncol = 2, byrow = TRUE))^2)
@@ -303,8 +298,8 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     }
   } else {
     M <- nrow(spatial_mtx)
-    phi <- matrix(0, 
-                  nrow = M, 
+    phi <- matrix(0,
+                  nrow = M,
                   ncol = n.basis.fns)
     for (i in seq(n.basis.fns)) {
       dist_vec <- rowSums((spatial_mtx - matrix(kmeans_centers[i, ], nrow = M, ncol = 2, byrow = TRUE))^2)
@@ -398,7 +393,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   # remove big objects to save memory
   rm(expr_df, expr_mtx)
   # specify & compile model
-  mod <- cmdstan_model(stan_file, compile = FALSE)   
+  mod <- cmdstan_model(stan_file, compile = FALSE)
   mod$compile(cpp_options = cpp_options,
               stanc_options = list("O1"),
               force_recompile = TRUE,
@@ -414,7 +409,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                    jacobian = TRUE,
                                    iter = mle.iter,
                                    algorithm = "lbfgs",
-                                   tol_obj = 1e-12, 
+                                   tol_obj = 1e-12,
                                    history_size = 25L)
       } else {
         model_init <- 0
@@ -485,7 +480,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                        dplyr::rename_with(~paste0("amplitude_", .), .cols = -1) %>%
                        dplyr::rename(amplitude_ci_ll = amplitude_q5,
                                      amplitude_ci_ul = amplitude_q95) %>%
-                       dplyr::mutate(gene_id = sub("^.*\\[(.*)\\].*$", "\\1", variable), 
+                       dplyr::mutate(gene_id = sub("^.*\\[(.*)\\].*$", "\\1", variable),
                                      .before = 1) %>%
                        dplyr::inner_join(gene_mapping, by = "gene_id") %>%
                        dplyr::relocate(gene) %>%
@@ -538,7 +533,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
       }
     }
   } else {
-    amplitude_summary_s4 <- as.data.frame(SummarizedExperiment::rowData(sp.obj)) %>% 
+    amplitude_summary_s4 <- as.data.frame(SummarizedExperiment::rowData(sp.obj)) %>%
                             dplyr::mutate(gene = rownames(.), .before = 1) %>%
                             dplyr::left_join(amplitude_summary, by = "gene") %>%
                             S4Vectors::DataFrame()
