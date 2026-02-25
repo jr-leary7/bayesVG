@@ -169,7 +169,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   }
   spatial_mtx <- as.matrix(spatial_df[, c(1:2)])
   coord_means <- matrixStats::colMeans2(spatial_mtx)
-  coord_sds <- matrixStats::colSds(coord_mtx)
+  coord_sds <- matrixStats::colSds(spatial_mtx)
   spatial_mtx <- t(t(spatial_mtx) - coord_means)
   spatial_mtx <- t(t(spatial_mtx) / coord_sds)
   colnames(spatial_mtx) <- c("x", "y")
