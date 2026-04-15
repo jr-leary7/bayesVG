@@ -55,7 +55,6 @@
 #' @importFrom tidyr pivot_longer
 #' @importFrom stats kmeans median var
 #' @importFrom fields rdist
-#' @importFrom coop scaler
 #' @importFrom forcats fct_drop
 #' @importFrom withr with_output_sink
 #' @importFrom utils txtProgressBar setTxtProgressBar
@@ -336,7 +335,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
              dplyr::mutate(gene = factor(gene, levels = unique(gene)),
                            spot = factor(spot, levels = unique(spot)))
   if (likelihood == "gaussian") {
-    expr_df <- dplyr::mutate(expr_df, gene_expression = as.numeric(coop::scaler(gene_expression)))
+    expr_df <- dplyr::mutate(expr_df, gene_expression = as.numeric(scale(gene_expression)))
   } else if (likelihood == "nb") {
     expr_df <- dplyr::mutate(expr_df, gene_expression = as.integer(gene_expression))
   }

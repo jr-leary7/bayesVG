@@ -1,3 +1,7 @@
+# bayesVG v0.0.9
+
++ Fixed a minor slowness issue & removed a dependency. 
+
 # bayesVG v0.0.8
 
 + Added function `analyzeBasisFunctions()`, which enables users to select the optimal number of basis functions used in `findSpatiallyVariableFeaturesBayes()` via several plots and summary statistics.
