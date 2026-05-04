@@ -52,7 +52,7 @@
 #' @importFrom matrixStats colMeans2 colSds
 #' @importFrom SummarizedExperiment rowData
 #' @importFrom dplyr relocate mutate rename rename_with with_groups select inner_join desc filter distinct arrange left_join bind_rows row_number slice_sample pull
-#' @importFrom tidyr pivot_longer
+#' @importFrom data.table as.data.table melt 
 #' @importFrom stats kmeans median var
 #' @importFrom fields rdist
 #' @importFrom forcats fct_drop
@@ -326,18 +326,16 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   if (subsample) {
     expr_mtx <- expr_mtx[, sampled_spots]
   }
-  expr_df <- as.data.frame(expr_mtx) %>%
-             dplyr::mutate(gene = rownames(.), .before = 1) %>%
-             tidyr::pivot_longer(cols = !gene,
-                                 names_to = "spot",
-                                 values_to = "gene_expression") %>%
-             dplyr::relocate(spot, gene) %>%
-             dplyr::mutate(gene = factor(gene, levels = unique(gene)),
-                           spot = factor(spot, levels = unique(spot)))
+  expr_df <- data.table::as.data.table(t(expr_mtx), keep.rownames = "spot") %>% 
+             data.table::melt(id.vars = "spot", 
+                              variable.name = "gene", 
+                              value.name = "gene_expression")
+  expr_df[, spot := factor(spot, levels = unique(spot))]
+  expr_df[, gene := factor(gene, levels = unique(gene))]
   if (likelihood == "gaussian") {
-    expr_df <- dplyr::mutate(expr_df, gene_expression = as.numeric(scale(gene_expression)))
+    expr_df[, gene_expression := as.numeric(scale(gene_expression))]
   } else if (likelihood == "nb") {
-    expr_df <- dplyr::mutate(expr_df, gene_expression = as.integer(gene_expression))
+    expr_df[, gene_expression := as.integer(gene_expression)]
   }
   expr_df <- as.data.frame(expr_df)
   gene_mapping <- data.frame(gene = as.character(expr_df$gene),
