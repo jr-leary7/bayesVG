@@ -1,3 +1,7 @@
+# bayesVG v0.1.0
+
++ Switched internal wide-to-long pivot long to use `data.table::melt()` instead of `tidyr::pivot_longer()` for memory & speed reasons.
+
 # bayesVG v0.0.9
 
 + Fixed a minor slowness issue & removed a dependency. 
