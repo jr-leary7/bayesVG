@@ -1,6 +1,7 @@
 # bayesVG v0.1.0
 
 + Switched internal wide-to-long pivot long to use `data.table::melt()` instead of `tidyr::pivot_longer()` for memory & speed reasons.
++ Removed all instances of slow scaling function `coop::scaler()`, which is only efficient on very sparse data. 
 
 # bayesVG v0.0.9
 

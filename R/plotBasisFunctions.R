@@ -14,7 +14,6 @@
 #' @importFrom dplyr select mutate across bind_cols arrange
 #' @importFrom tidyr pivot_longer 
 #' @importFrom SpatialExperiment spatialCoords
-#' @importFrom coop scaler
 #' @importFrom ggplot2 ggplot aes geom_point scale_y_reverse labs scale_color_gradientn scale_color_manual scale_fill_gradientn facet_wrap theme element_rect label_parsed element_text geom_tile scale_x_discrete scale_y_discrete
 #' @return An object of class \code{ggplot2}.
 #' @seealso \code{\link{plotModuleScores}}
@@ -74,7 +73,7 @@ plotBasisFunctions <- function(sp.obj = NULL,
     }
     coord_df <- dplyr::select(coord_df, 1:2) %>%
                 as.matrix() %>%
-                coop::scaler() %>%
+                scale() %>%
                 as.data.frame() %>%
                 magrittr::set_colnames(c("x", "y"))
   }
@@ -82,7 +81,7 @@ plotBasisFunctions <- function(sp.obj = NULL,
   phi_df <- as.data.frame(phi) %>% 
             magrittr::set_colnames(paste0("Phi_", seq(ncol(.))))
   phi_df_long <- dplyr::bind_cols(coord_df, phi_df) %>% 
-                 dplyr::mutate(dplyr::across(c(x, y), \(z) as.numeric(coop::scaler(z)))) %>% 
+                 dplyr::mutate(dplyr::across(c(x, y), \(z) as.numeric(scale(z)))) %>% 
                  tidyr::pivot_longer(cols = !c(x, y), 
                                      names_to = "basis", 
                                      values_to = "value") %>% 

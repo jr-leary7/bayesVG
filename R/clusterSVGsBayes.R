@@ -31,7 +31,6 @@
 #' @importFrom SingleCellExperiment logcounts
 #' @importFrom Seurat GetAssayData DefaultAssay
 #' @importFrom irlba prcomp_irlba
-#' @importFrom coop scaler
 #' @importFrom withr with_output_sink
 #' @importFrom posterior as_draws_df
 #' @importFrom dplyr select mutate rowwise c_across ungroup
@@ -128,7 +127,7 @@ clusterSVGsBayes <- function(sp.obj = NULL,
     expr_mtx <- SingleCellExperiment::logcounts(sp.obj)
   }
   expr_mtx <- as.matrix(expr_mtx[svgs, ])
-  expr_mtx <- t(coop::scaler(t(expr_mtx)))
+  expr_mtx <- t(scale(t(expr_mtx)))
   attributes(expr_mtx)[3:4] <- NULL
   # run PCA on the normalized, scaled data
   svg_mtx_pca <- irlba::prcomp_irlba(expr_mtx,

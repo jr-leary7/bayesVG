@@ -14,7 +14,6 @@
 #' @importFrom Seurat GetAssayData DefaultAssay GetTissueCoordinates
 #' @importFrom Matrix t
 #' @importFrom tidyr pivot_longer
-#' @importFrom coop scaler
 #' @importFrom dplyr select bind_cols mutate
 #' @importFrom SummarizedExperiment rowData
 #' @importFrom S4Vectors DataFrame
@@ -59,7 +58,7 @@ plotSpatialExpression <- function(sp.obj = NULL,
     coord_df <- Seurat::GetTissueCoordinates(sp.obj) %>%
                 dplyr::select(1:2) %>%
                 as.matrix() %>%
-                coop::scaler() %>%
+                scale() %>%
                 as.data.frame() %>%
                 magrittr::set_colnames(c("x", "y")) %>%
                 dplyr::bind_cols(expr_df)
@@ -79,7 +78,7 @@ plotSpatialExpression <- function(sp.obj = NULL,
     }
     expr_df <- as.data.frame(Matrix::t(expr_mtx))
     coord_df <- SpatialExperiment::spatialCoords(sp.obj) %>% 
-                coop::scaler() %>% 
+                scale() %>% 
                 as.data.frame() %>% 
                 magrittr::set_colnames(c("x", "y")) %>%
                 dplyr::bind_cols(expr_df)
@@ -93,7 +92,7 @@ plotSpatialExpression <- function(sp.obj = NULL,
     }
   }
   if (scale.expression) {
-    coord_df <- dplyr::mutate(coord_df, gene_expr = as.numeric(coop::scaler(gene_expr)))
+    coord_df <- dplyr::mutate(coord_df, gene_expr = as.numeric(scale(gene_expr)))
   }
   # generate (potentially faceted) plot along with labels and colors
   if (length(gene.plot) > 1) {
