@@ -19,7 +19,6 @@
 #' @importFrom SingleCellExperiment reducedDimNames reducedDim altExps
 #' @importFrom SummarizedExperiment assays
 #' @importFrom SpatialExperiment spatialCoords
-#' @importFrom coop scaler
 #' @importFrom ggplot2 ggplot aes geom_point geom_violin scale_y_continuous labs scale_color_gradientn scale_color_manual scale_fill_manual
 #' @importFrom utils packageVersion
 #' @return An object of class \code{ggplot2}.
@@ -91,7 +90,7 @@ plotModuleScores <- function(sp.obj = NULL,
     }
     coord_df <- dplyr::select(coord_df, 1:2) %>%
                 as.matrix() %>%
-                coop::scaler() %>%
+                scale() %>%
                 as.data.frame() %>%
                 magrittr::set_colnames(c("x", "y")) %>%
                 dplyr::mutate(module_score = meta_df[[module_name]])

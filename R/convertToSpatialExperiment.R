@@ -14,7 +14,6 @@
 #' @importFrom SummarizedExperiment assays rowData colData
 #' @importFrom SingleCellExperiment reducedDims altExps
 #' @importFrom dplyr select
-#' @importFrom coop scaler
 #' @return An object of class \code{SpatialExperiment}.
 #' @seealso \code{\link[Seurat]{as.SingleCellExperiment}}
 #' @seealso \code{\link[SpatialExperiment]{SpatialExperiment}}
@@ -39,8 +38,7 @@ convertToSpatialExperiment <- function(seu.obj = NULL,
   # extract spatial coordinates and optionally scale them
   spatial_coords <- as.matrix(dplyr::select(Seurat::GetTissueCoordinates(seu.obj), 1:2))
   if (scale.coords) {
-    spatial_coords <- coop::scaler(spatial_coords)
-    attributes(spatial_coords)[3:4] <- NULL
+    spatial_coords <- scale(spatial_coords)
   }
   # make sure to retain correct dimnames
   colnames(spatial_coords) <- c("x", "y")

@@ -30,10 +30,8 @@
 #' @importFrom dplyr select mutate across bind_cols arrange
 #' @importFrom tidyr pivot_longer 
 #' @importFrom SpatialExperiment spatialCoords
-#' @importFrom coop scaler
 #' @importFrom stats kmeans median var
 #' @importFrom fields rdist
-#' @importFrom coop scaler
 #' @importFrom withr with_output_sink
 #' @importFrom utils txtProgressBar setTxtProgressBar
 #' @importFrom parallel makeCluster stopCluster
@@ -78,8 +76,7 @@ analyzeBasisFunctions <- function(sp.obj = NULL,
                   dplyr::select(1:2)
   }
   colnames(spatial_df) <- c("x", "y")
-  spatial_mtx <- coop::scaler(as.matrix(spatial_df))
-  attributes(spatial_mtx)[2:3] <- NULL
+  spatial_mtx <- scale(as.matrix(spatial_df))
   # estimate global length-scale using desired method (k-means or empirical variogram)
   set.seed(random.seed)
   kmeans_res <- stats::kmeans(spatial_mtx,
@@ -92,8 +89,8 @@ analyzeBasisFunctions <- function(sp.obj = NULL,
     lscale <- stats::median(dists_centers)
   } else if (lscale.estimator == "variogram") {
     spatial_df <- dplyr::mutate(spatial_df,
-                                x = as.numeric(coop::scaler(x)),
-                                y = as.numeric(coop::scaler(y)))
+                                x = as.numeric(scale(x)),
+                                y = as.numeric(scale(y)))
     if (verbose) {
       withr::with_output_sink(tempfile(), {
         pb <- utils::txtProgressBar(0, length(naive.hvgs), style = 3)
@@ -170,7 +167,7 @@ analyzeBasisFunctions <- function(sp.obj = NULL,
   phi_df <- as.data.frame(phi) %>% 
             magrittr::set_colnames(paste0("Phi_", seq(ncol(.))))
   phi_df_long <- bind_cols(spatial_df, phi_df) %>% 
-                 dplyr::mutate(dplyr::across(c(x, y), \(z) as.numeric(coop::scaler(z)))) %>% 
+                 dplyr::mutate(dplyr::across(c(x, y), \(z) as.numeric(scale(z)))) %>% 
                  tidyr::pivot_longer(cols = !c(x, y), 
                                      names_to = "basis", 
                                      values_to = "value") %>% 
