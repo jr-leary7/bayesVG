@@ -1,10 +1,9 @@
-# load scRNA-seq data & subset
-load(system.file("data/seu_pbmc.rda", package = "bayesVG"))
+# load scRNA-seq data & sample gene subset for testing
+data("seu_pbmc", package = "bayesVG")
 set.seed(312)
 genes_test_sc <- sample(rownames(seu_pbmc), size = 100L)
 seu_pbmc <- subset(seu_pbmc, features = genes_test_sc)
 sce_pbmc <- suppressWarnings(Seurat::as.SingleCellExperiment(seu_pbmc))
-
 # fit scRNA-seq model & extract output
 seu_pbmc <- findVariableFeaturesBayes(seu_pbmc,
                                       n.cells.subsample = 500L,
@@ -23,22 +22,20 @@ sce_pbmc <- findVariableFeaturesBayes(sce_pbmc,
             classifyHVGs(n.HVG = 50L)
 hvg_fit_sce <- extractModel(sce_pbmc)
 
-# load spatial data & preprocess + convert to SpatialExperiment
-load(system.file("data/seu_brain.rda", package = "bayesVG"))
+# load spatial RNA data & preprocess + convert to SpatialExperiment
+data("seu_brain", package = "bayesVG")
 seu_brain <- suppressWarnings(Seurat::NormalizeData(seu_brain, verbose = FALSE))
 seu_brain_nb <- seu_brain
-
 # convert seu_brain to SpatialExperiment from Seurat
 spe_brain <- suppressWarnings(
   convertToSpatialExperiment(seu_brain, 
                              sample.id = "anterior1", 
                              scale.coords = TRUE)
 )
-
-# fit each kernel to spatial coordinates matrix
-spatial_mtx <- coop::scaler(as.matrix(dplyr::select(Seurat::GetTissueCoordinates(seu_brain), -cell)))
+# fit each type of kernel to spatial coordinates matrix
+spatial_mtx <- scale(as.matrix(dplyr::select(Seurat::GetTissueCoordinates(seu_brain), -cell)))
 M <- nrow(spatial_mtx)
-k <- 20
+k <- 20L
 kmeans_centers <- stats::kmeans(spatial_mtx, centers = k, iter.max = 100L, nstart = 10L)$centers
 dists_centers <- fields::rdist(kmeans_centers)
 lscale <- stats::median(dists_centers[upper.tri(dists_centers)])
@@ -52,7 +49,6 @@ for (i in seq(k)) {
 phi_exp_quad <- qr.Q(qr(phi_exp_quad, LAPACK = TRUE))
 phi_matern <- qr.Q(qr(phi_matern, LAPACK = TRUE))
 phi_periodic <- qr.Q(qr(phi_periodic, LAPACK = TRUE))
-
 # fit spatial model, extract output, cluster SVGs, & run enrichment on SVG modules
 naive_hvgs_seu <- getNaiveHVGs(seu_brain, n.hvg = 750L)
 naive_hvgs_spe <- getNaiveHVGs(spe_brain, n.hvg = 750L)
@@ -119,10 +115,8 @@ seu_brain <- scoreSpatialModules(seu_brain,
                                  svg.clusters = svg_clusters,
                                  n.cores = 1L)
 enrich_res <- enrichSpatialModules(svg_clusters, species = "mmusculus")
-
-# compute naive gene statistics
+# compute naive gene expression statistics
 gene_stats_naive <- computeNaiveGeneStatistics(seu_pbmc, use.norm = TRUE)
-
 # run downstream plotting utilities
 p1 <- plotSpatialExpression(seu_brain, gene.plot = "Nrgn")
 p2 <- plotSpatialExpression(spe_brain, gene.plot = "Nrgn")
@@ -140,7 +134,7 @@ p7 <- plotModuleScores(seu_brain,
                        plot.type = "violin",
                        violin.group = "seurat_clusters")
 
-# run HVG tests
+# run HVG detection tests
 test_that("HVG model", {
   expect_s4_class(seu_pbmc, "Seurat")
   expect_s3_class(hvg_metadata, "data.frame")
@@ -151,8 +145,7 @@ test_that("HVG model", {
   expect_s3_class(hvg_fit_sce, "brmsfit")
   expect_s3_class(hvg_plot, "ggplot")
 })
-
-# run kernel tests
+# run spatial kernel estimation tests
 test_that("kernels", {
   expect_type(phi_exp_quad, "double")
   expect_equal(ncol(phi_exp_quad), 20)
@@ -164,8 +157,7 @@ test_that("kernels", {
   expect_equal(ncol(phi_periodic), 20)
   expect_equal(nrow(phi_periodic), ncol(seu_brain))
 })
-
-# run SVG tests
+# run SVG detection tests
 test_that("SVG model", {
   expect_s4_class(seu_brain, "Seurat")
   expect_s4_class(seu_brain_nb, "Seurat")
@@ -199,7 +191,6 @@ test_that("SVG model", {
   expect_s3_class(p6, "ggplot")
   expect_s3_class(p7, "ggplot")
 })
-
 # run naive gene statistics tests
 test_that("naive gene statistics", {
   expect_s3_class(gene_stats_naive, "data.frame")
@@ -210,7 +201,6 @@ test_that("naive gene statistics", {
   expect_type(naive_hvgs_spe, "character")
   expect_length(naive_hvgs_spe, 750)
 })
-
 # run spatialexperiment conversion tests
 test_that("SpatialExperiment conversion", {
   expect_s4_class(spe_brain, "SpatialExperiment")
