@@ -1,7 +1,12 @@
+# bayesVG v0.1.1
+
++ Fixed internal package dataset loading errors in `testthat` tests that caused `R CMD check` to fail.
++ Updated CITATION file. 
+
 # bayesVG v0.1.0
 
-+ Switched internal wide-to-long pivot long to use `data.table::melt()` instead of `tidyr::pivot_longer()` for memory & speed reasons.
-+ Removed all instances of slow scaling function `coop::scaler()`, which is only efficient on very sparse data. 
++ Switched all internal wide-to-long pivot operations to use `data.table::melt()` instead of `tidyr::pivot_longer()` for memory & speed reasons.
++ Removed all instances of slow scaling function `coop::scaler()`, which is only more efficient on *very* sparse data. 
 
 # bayesVG v0.0.9
 
@@ -23,7 +28,7 @@
 + Updated the README. 
 + Added naive HVG fetching function. 
 + Made most of the Examples faster by decreasing the number of HVGs / SVGs. 
-+ Removed a NOTE from R CMD check by declaring global variables used throughout the package.
++ Removed a NOTE from `R CMD check` by declaring global variables used throughout the package.
 + Fixed some other minor bugs. 
 + Updated more tests. 
 + Added non-centered priors to all NB models. 
