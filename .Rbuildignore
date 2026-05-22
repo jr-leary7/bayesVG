@@ -9,3 +9,5 @@ inst/approxGP4$
 inst/clusterSVGs$
 ^CODE_OF_CONDUCT\.md$
 ^data-raw$
+^\.positai$
+^\.claude$

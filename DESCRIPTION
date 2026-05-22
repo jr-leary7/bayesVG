@@ -7,8 +7,8 @@ Authors@R: c(person(given = c("Jack", "R."), family = "Leary", email = "j.leary@
 Description: Our method implements efficient highly and spatially variable gene identification in scRNA-seq and spatially-resolved transcriptomics data using approximate Bayesian hierarchical models.
 License: MIT + file LICENSE
 Encoding: UTF-8
-RoxygenNote: 7.3.3
 LazyData: true
+LazyDataCompression: xz
 Depends: 
   cmdstanr, 
   magrittr, 
@@ -62,3 +62,4 @@ SystemRequirements: CmdStan (https://mc-stan.org/users/interfaces/cmdstan)
 URL: https://github.com/jr-leary7/bayesVG
 BugReports: https://github.com/jr-leary7/bayesVG/issues
 Config/testthat/edition: 3
+Config/roxygen2/version: 8.0.0

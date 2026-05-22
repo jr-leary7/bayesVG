@@ -26,7 +26,8 @@
 #' @import magrittr
 #' @importFrom cli cli_abort
 #' @importFrom parallelly availableCores
-#' @importFrom Seurat DefaultAssay GetTissueCoordinates
+#' @importFrom Seurat GetAssayData DefaultAssay GetTissueCoordinates
+#' @importFrom SingleCellExperiment logcounts
 #' @importFrom dplyr select mutate across bind_cols arrange
 #' @importFrom tidyr pivot_longer 
 #' @importFrom SpatialExperiment spatialCoords
@@ -88,6 +89,14 @@ analyzeBasisFunctions <- function(sp.obj = NULL,
     dists_centers <- fields::rdist(kmeans_centers, compact = TRUE)
     lscale <- stats::median(dists_centers)
   } else if (lscale.estimator == "variogram") {
+    if (inherits(sp.obj, "Seurat")) {
+      expr_mtx <- Seurat::GetAssayData(sp.obj,
+                                       assay = Seurat::DefaultAssay(sp.obj),
+                                       layer = "data")
+    } else {
+      expr_mtx <- SingleCellExperiment::logcounts(sp.obj)
+    }
+    expr_mtx <- expr_mtx[naive.hvgs, ]
     spatial_df <- dplyr::mutate(spatial_df,
                                 x = as.numeric(scale(x)),
                                 y = as.numeric(scale(y)))
@@ -200,7 +209,7 @@ analyzeBasisFunctions <- function(sp.obj = NULL,
   K_hat <- phi %*% W %*% t(phi)
   frob_error <- norm(K - K_hat, type = "F") / norm(K, type = "F")
   # generate basis function plots
-  p0 <- dplyr::mutate(coord_df, kmeans_cluster = as.factor(kmeans_res$cluster)) %>% 
+  p0 <- dplyr::mutate(spatial_df, kmeans_cluster = as.factor(kmeans_res$cluster)) %>% 
         ggplot2::ggplot(ggplot2::aes(x = y, y = x, color = kmeans_cluster)) + 
         ggplot2::geom_point(size = pt.size) + 
         ggplot2::scale_y_reverse() + 
@@ -244,7 +253,7 @@ analyzeBasisFunctions <- function(sp.obj = NULL,
                            color = "sienna", 
                            linewidth = 1) + 
         ggplot2::scale_x_discrete(labels = \(x) parse(text = paste0("italic(j) == ", x))) + 
-        ggplot2::scale_x_discretelabs(x = "Basis Function", y = expression(paste(log~lambda[italic(j)]))) + 
+        ggplot2::labs(x = "Basis Function", y = expression(paste(log~lambda[italic(j)]))) + 
         theme_bayesVG() + 
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, 
                                                            vjust = 1,
