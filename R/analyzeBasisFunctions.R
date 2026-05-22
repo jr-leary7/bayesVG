@@ -13,6 +13,7 @@
 #' @param facet.ncol An integer specifying the number of columns in faceted plots generated with \code{\link[ggplot2]{facet_wrap}}. Defaults to NULL.
 #' @param pt.size A double specifying the size of the points in scatterplots generated with \code{\link[ggplot2]{geom_point}}. Defaults to 1.
 #' @param n.cores An integer specifying the number of threads used when estimating the length-scale via the variogram method. Defaults to 2.
+#' @param verbose A Boolean specifying whether or not verbose model output should be printed to the console. Defaults to TRUE.
 #' @param random.seed A double specifying the random seed to be set prior to running \emph{k}-means. Defaults to 312.
 #' @details
 #' \itemize{
@@ -60,6 +61,7 @@ analyzeBasisFunctions <- function(sp.obj = NULL,
                                   facet.ncol = NULL, 
                                   pt.size = 1, 
                                   n.cores = 2L, 
+                                  verbose = TRUE, 
                                   random.seed = 312) {
   # check inputs
   if (is.null(sp.obj)) { cli::cli_abort("Please provide a spatial data object to analyzeBasisFunctions().") }

@@ -61,5 +61,7 @@ utils::globalVariables(c(
   "fill", 
   "eigenvalue", 
   "index", 
-  ":="
+  ":=", 
+  "palette_heatmap", 
+  "palette_cluster"
 ))
