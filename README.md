@@ -64,6 +64,9 @@ library(Seurat)
 library(bayesVG)
 ```
 
+>[!NOTE]
+>While in this short overview we use the `Seurat` framework, `bayesVG` is equally capable of taking `SingleCellExperiment` (HVG detection) and `SpatialExperiment` (SVG detection) objects as input to all functions. 
+
 ## HVG detection
 
 ### Data
@@ -80,8 +83,7 @@ data("seu_pbmc")
 Now we’re able to model gene expression using the meanfield variational
 inference (VI) algorithm, summarize the approximate posterior
 distribution of variance for each gene, and classify the top 3,000
-most-variable genes as HVGs. The `findVariableFeaturesBayes()` function
-can take as input either a `Seurat` or a `SingleCellExperiment` object.
+most-variable genes as HVGs.
 
 ``` r
 seu_pbmc <- findVariableFeaturesBayes(seu_pbmc, 
@@ -133,9 +135,7 @@ naive_hvgs <- getNaiveHVGs(seu_brain, n.hvg = 3000L)
 Now we can model gene expression with an approximate multivariate
 hierarchical Gaussian process (GP) via the meanfield VI algorithm,
 summarize the spatial component of variance for each gene, and classify
-the top 1,000 most spatially variable genes as SVGs. The
-`findSpatiallyVariableFeaturesBayes()` function can take as input either
-a `Seurat` or a `SpatialExperiment` object.
+the top 1,000 most spatially variable genes as SVGs.
 
 ``` r
 seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain, 
@@ -205,8 +205,8 @@ enrich_res <- enrichSpatialModules(svg_clusters, species = "mmusculus")
 
 This package is developed & maintained by Jack R. Leary. Feel free to
 reach out by [opening an
-issue](https://github.com/jr-leary7/bayesVG/issues) or by email
-(<j.leary@ufl.edu>) if more detailed assistance is needed.
+issue](https://github.com/jr-leary7/bayesVG/issues), or [via
+email](mailto:j.leary@ufl.edu) if more detailed assistance is needed.
 
 # References
 

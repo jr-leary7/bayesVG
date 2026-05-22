@@ -15,6 +15,7 @@ analyzeBasisFunctions(
   facet.ncol = NULL,
   pt.size = 1,
   n.cores = 2L,
+  verbose = TRUE,
   random.seed = 312
 )
 }
@@ -38,6 +39,8 @@ analyzeBasisFunctions(
 \item{pt.size}{A double specifying the size of the points in scatterplots generated with \code{\link[ggplot2]{geom_point}}. Defaults to 1.}
 
 \item{n.cores}{An integer specifying the number of threads used when estimating the length-scale via the variogram method. Defaults to 2.}
+
+\item{verbose}{A Boolean specifying whether or not verbose model output should be printed to the console. Defaults to TRUE.}
 
 \item{random.seed}{A double specifying the random seed to be set prior to running \emph{k}-means. Defaults to 312.}
 }
