@@ -64,10 +64,8 @@ library(Seurat)
 library(bayesVG)
 ```
 
-> \[!NOTE\] While in this short overview we use the `Seurat` framework,
-> `bayesVG` is equally capable of taking `SingleCellExperiment` (HVG
-> detection) and `SpatialExperiment` (SVG detection) objects as input to
-> all functions.
+>[!NOTE]
+>While in this short overview we use the `Seurat` framework, `bayesVG` is equally capable of taking `SingleCellExperiment` (HVG detection) and `SpatialExperiment` (SVG detection) objects as input to all functions. 
 
 ## HVG detection
 
