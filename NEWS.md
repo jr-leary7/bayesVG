@@ -2,6 +2,7 @@
 
 + Fixed internal package dataset loading errors in `testthat` tests that caused `R CMD check` to fail.
 + Updated CITATION file. 
++ Fixed some minor bugs, both logical and CI/CD-related. 
 
 # bayesVG v0.1.0
 

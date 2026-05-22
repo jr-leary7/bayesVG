@@ -7,5 +7,5 @@ bibentry(
   year = "2026",
   note = "R package version 0.1.1",
   url = "https://github.com/jr-leary7/bayesVG", 
-  doi = "https://doi.org/10.5281/zenodo.20277385"
+  doi = "https://doi.org/10.5281/zenodo.20277384"
 )

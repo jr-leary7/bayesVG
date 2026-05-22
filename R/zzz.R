@@ -58,5 +58,8 @@ utils::globalVariables(c(
   "Var1", 
   "Var2", 
   "Freq", 
-  "fill"
+  "fill", 
+  "eigenvalue", 
+  "index", 
+  ":="
 ))

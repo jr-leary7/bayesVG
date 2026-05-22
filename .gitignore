@@ -58,3 +58,4 @@ inst/clusterSVGs
 
 # macOS bullshit 
 .DS_Store
+.positai
