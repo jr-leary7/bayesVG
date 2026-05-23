@@ -25,7 +25,7 @@ naive_hvgs <- getNaiveHVGs(seu_brain)
 \seealso{
 \code{\link[Seurat]{FindVariableFeatures}}
 
-\code{\link[scran]{modelGeneVar}}
+\code{\link[scrapper]{chooseRnaHvgs.se}}
 }
 \author{
 Jack R. Leary

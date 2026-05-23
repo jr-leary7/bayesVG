@@ -3,6 +3,12 @@
 + Fixed internal package dataset loading errors in `testthat` tests that caused `R CMD check` to fail.
 + Updated CITATION file. 
 + Fixed some minor bugs, both logical and CI/CD-related. 
++ Changed scaling logic to be more efficient when setting `subsample = TRUE` within `findSpatiallyVariableFeaturesBayes()`.
++ Removed dependence on some deprecated `scran` functions. 
++ Ensured that the wide-to-long pivot in `findSpatiallyVariableFeaturesBayes()` succeeds even with huge datasets. 
++ Slimmed down a couple longer functions.
++ Updated & corrected some very minor inconsistencies in function documentation. 
++ Tweaked README. 
 
 # bayesVG v0.1.0
 
