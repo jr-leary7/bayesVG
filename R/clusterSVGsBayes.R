@@ -147,50 +147,29 @@ clusterSVGsBayes <- function(sp.obj = NULL,
               force_recompile = TRUE,
               threads = n.cores)
   # fit model with desired algorithm
-  if (verbose) {
-    if (algorithm %in% c("meanfield", "fullrank")) {
-      fit_vi <- mod$variational(data_list,
-                                seed = random.seed,
-                                init = 0,
-                                algorithm = algorithm,
-                                iter =  n.iter,
-                                draws = n.draws,
-                                opencl_ids = opencl_IDs,
-                                elbo_samples = elbo.samples)
-    } else {
-      fit_vi <- mod$pathfinder(data_list,
-                               seed = random.seed,
-                               init = 0.01,
-                               num_threads = n.cores,
-                               draws = n.draws,
-                               opencl_ids = opencl_IDs,
-                               num_elbo_draws = elbo.samples,
-                               max_lbfgs_iters = 500L,
-                               history_size = 100L)
-    }
+  if (algorithm %in% c("meanfield", "fullrank")) {
+    fit_vi <- mod$variational(data_list,
+                              seed = random.seed,
+                              init = 0,
+                              algorithm = algorithm,
+                              iter =  n.iter,
+                              draws = n.draws,
+                              opencl_ids = opencl_IDs,
+                              elbo_samples = elbo.samples, 
+                              show_messages = verbose, 
+                              show_exceptions = verbose)
   } else {
-    withr::with_output_sink(tempfile(), {
-      if (algorithm %in% c("meanfield", "fullrank")) {
-        fit_vi <- mod$variational(data_list,
-                                  seed = random.seed,
-                                  init = 0,
-                                  algorithm = algorithm,
-                                  iter =  n.iter,
-                                  draws = n.draws,
-                                  opencl_ids = opencl_IDs,
-                                  elbo_samples = elbo.samples)
-      } else {
-        fit_vi <- mod$pathfinder(data_list,
-                                 seed = random.seed,
-                                 init = 0.01,
-                                 num_threads = n.cores,
-                                 draws = n.draws,
-                                 opencl_ids = opencl_IDs,
-                                 num_elbo_draws = elbo.samples,
-                                 max_lbfgs_iters = 500L,
-                                 history_size = 100L)
-      }
-    })
+    fit_vi <- mod$pathfinder(data_list,
+                             seed = random.seed,
+                             init = 0.01,
+                             num_threads = n.cores,
+                             draws = n.draws,
+                             opencl_ids = opencl_IDs,
+                             num_elbo_draws = elbo.samples,
+                             max_lbfgs_iters = 500L,
+                             history_size = 100L, 
+                             show_messages = verbose, 
+                             show_exceptions = verbose)
   }
   # optionally run diagnostics
   if (verbose) {

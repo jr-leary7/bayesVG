@@ -2,7 +2,7 @@
 #'
 #' @name findSpatiallyVariableFeaturesBayes
 #' @author Jack R. Leary
-#' @description This function implements SVG estimation using Bayesian variational inference to approximate the posterior distribution of each gene's expression while accounting for spatial trends.
+#' @description This function implements SVG estimation by using Bayesian variational inference (VI) to approximate the posterior distribution of each gene's expression, while accounting for spatial trends and pooling information across genes.
 #' @param sp.obj An object of class \code{Seurat} or \code{SpatialExperiment} containing spatial data. Defaults to NULL.
 #' @param naive.hvgs A vector containing genes that have been classified as naive HVGs from which SVGs will be detected. Defaults to NULL.
 #' @param likelihood A string specifying the likelihood to be used when fitting the model. Must be one of "gaussian" or "nb" (for Negative-binomial). Defaults to "gaussian".
@@ -14,7 +14,7 @@
 #' @param n.basis.fns An integer specifying the number of basis functions to be used when approximating the GP as a Hilbert space. Defaults to 20.
 #' @param subsample A Boolean specifying whether stratified subsampling by \emph{k}-means cluster ID should be performed prior to basis function generation & model fitting. Useful for very large datasets e.g., 10X Visium HD or Xenium. If set to TRUE, a vector of the IDs of the subsampled observations will be saved to the unstructured metadata of \code{sp.obj}. Defaults to FALSE.
 #' @param subsample.prop A double between 0 and 1 specifying the proportion of spots / cells to subsample within each \emph{k}-means cluster. Defaults to 0.5.
-#' @param algorithm A string specifying the variational inference (VI) approximation algorithm to be used. Must be one of "meanfield", "fullrank", or "pathfinder". Defaults to "meanfield".
+#' @param algorithm A string specifying the VI posterior approximation algorithm to be used. Must be one of "meanfield", "fullrank", or "pathfinder". Defaults to "meanfield".
 #' @param mle.init A Boolean specifying whether the the VI algorithm should be initialized using the regularized MLE for each parameter. In general, this isn't strictly necessary but can help if the VI algorithm struggles to converge when provided with the default initialization (zero). Cannot be used when the Pathfinder algorithm is specified. Defaults to TRUE.
 #' @param mle.iter An integer specifying the maximum number of optimization iterations used when \code{mle.init = TRUE}. Defaults to 1000.
 #' @param gene.depth.adjust A Boolean specifying whether the model should include a fixed effect term for total gene expression. Defaults to FALSE.
@@ -49,7 +49,6 @@
 #' @importFrom SingleCellExperiment logcounts
 #' @importFrom BiocGenerics counts
 #' @importFrom Matrix rowSums
-#' @importFrom matrixStats colMeans2 colSds
 #' @importFrom SummarizedExperiment rowData
 #' @importFrom dplyr relocate mutate rename rename_with with_groups select inner_join desc filter distinct arrange left_join bind_rows row_number slice_sample pull
 #' @importFrom data.table as.data.table melt 
@@ -163,14 +162,10 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     spatial_df <- Seurat::GetTissueCoordinates(sp.obj) %>%
                   dplyr::rename(spot = cell)
   } else {
-   spatial_df <- as.data.frame(SpatialExperiment::spatialCoords(sp.obj))
-   spatial_df <- dplyr::mutate(spatial_df, spot = colnames(sp.obj))
+   spatial_df <- as.data.frame(SpatialExperiment::spatialCoords(sp.obj)) %>% 
+                 dplyr::mutate(spot = colnames(sp.obj))
   }
-  spatial_mtx <- as.matrix(spatial_df[, c(1:2)])
-  coord_means <- matrixStats::colMeans2(spatial_mtx)
-  coord_sds <- matrixStats::colSds(spatial_mtx)
-  spatial_mtx <- t(t(spatial_mtx) - coord_means)
-  spatial_mtx <- t(t(spatial_mtx) / coord_sds)
+  spatial_mtx <- scale(as.matrix(spatial_df[, c(1:2)]))
   colnames(spatial_mtx) <- c("x", "y")
   # extract matrix of (raw or normalized) gene expression
   if (inherits(sp.obj, "Seurat")) {
@@ -265,18 +260,8 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                         dplyr::slice_sample,
                                         prop = subsample.prop) %>%
                      dplyr::pull(spot)
-    if (inherits(sp.obj, "Seurat")) {
-      spatial_df_sub <- Seurat::GetTissueCoordinates(sp.obj) %>%
-                        dplyr::rename(spot = cell) %>%
-                        dplyr::filter(spot %in% sampled_spots) %>%
-                        dplyr::select(-spot)
-    } else {
-      spatial_df_sub <- as.data.frame(SpatialExperiment::spatialCoords(sp.obj)) %>%
-                        dplyr::mutate(spatial_df_sub, spot = colnames(sp.obj)) %>%
-                        dplyr::filter(spot %in% sampled_spots) %>%
-                        dplyr::select(-spot)
-    }
-    spatial_mtx <- as.matrix(spatial_df_sub[, c(1:2)])
+    spatial_df_sub <- as.data.frame(spatial_mtx[sampled_spots, ])
+    spatial_mtx <- as.matrix(spatial_df_sub)
     M <- nrow(spatial_mtx)
     phi <- matrix(0,
                   nrow = M,
@@ -294,6 +279,9 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                    length.scale = lscale,
                                    period = kernel.period)
       }
+    }
+    if (verbose) {
+      cli::cli_alert_info(paste0("Subsampled ", M, " unique spots stratified by ", n.basis.fns, " spatial clusters, then estimated ", n.basis.fns, " basis functions."))
     }
   } else {
     M <- nrow(spatial_mtx)
@@ -314,15 +302,18 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                    period = kernel.period)
       }
     }
+    if (verbose) {
+      cli::cli_alert_info(paste0("Estimated ", n.basis.fns, " basis functions."))
+    }
   }
-  # ensure basis functions are orthonormal i.e., mutually orthogonal with unit norms using the QR decomposition
+  # ensure basis functions are orthonormal (mutually orthogonal with unit norms) using the QR decomposition
   phi_ortho <- try({
     qr.Q(qr(phi, LAPACK = TRUE))
   }, silent = TRUE)
   if (inherits(phi_ortho, "try-error")) {
     phi_ortho <- qr.Q(qr(phi))
   }
-  # convert expression matrix to long data.table for modeling & post-processing, then data.frame 
+  # convert expression matrix to long-format data.table for modeling & post-processing
   if (subsample) {
     expr_mtx <- expr_mtx[, sampled_spots]
   }
@@ -331,22 +322,24 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   expr_df <- data.table::melt(expr_df, 
                               id.vars = "spot", 
                               variable.name = "gene", 
+                              variable.factor = TRUE, 
                               value.name = "gene_expression")
-  expr_df[, gene := factor(gene, levels = unique(gene))]
   if (likelihood == "gaussian") {
     expr_df[, gene_expression := as.numeric(scale(gene_expression))]
   } else if (likelihood == "nb") {
     expr_df[, gene_expression := as.integer(gene_expression)]
   }
-  expr_df <- as.data.frame(expr_df)
-  gene_mapping <- data.frame(gene = as.character(expr_df$gene),
-                             gene_id = as.character(as.integer(expr_df$gene))) %>%
-                  dplyr::distinct()
+  # expr_df <- as.data.frame(expr_df)
+  gene_mapping <- data.frame(gene = levels(expr_df$gene),
+                             gene_id = as.character(seq_along(levels(expr_df$gene))))
   non_tested_genes <- rownames(sp.obj)[!rownames(sp.obj) %in% unique(expr_df$gene)]
   # compute some constants
   N <- nrow(expr_df)
   G <- length(naive.hvgs)
   # prepare data to be passed to cmdstan
+  if (verbose) {
+    cli::cli_alert_info("Passing data to Stan...")
+  }
   if (gene.depth.adjust) {
     if (inherits(sp.obj, "Seurat")) {
       expr_tmp <- Seurat::GetAssayData(sp.obj,
@@ -397,77 +390,45 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
               force_recompile = TRUE,
               threads = n.cores)
   # fit model with desired algorithm
-  if (verbose) {
-    if (algorithm %in% c("meanfield", "fullrank")) {
-      if (mle.init) {
-        model_init <- mod$optimize(data_list,
-                                   seed = random.seed,
-                                   init = 0.1,
-                                   opencl_ids = opencl_IDs,
-                                   jacobian = TRUE,
-                                   iter = mle.iter,
-                                   algorithm = "lbfgs",
-                                   tol_obj = 1e-12,
-                                   history_size = 25L)
-      } else {
-        model_init <- 0
-      }
-      fit_vi <- mod$variational(data_list,
-                                seed = random.seed,
-                                init = model_init,
-                                algorithm = algorithm,
-                                iter =  n.iter,
-                                draws = n.draws,
-                                opencl_ids = opencl_IDs,
-                                elbo_samples = elbo.samples)
-    } else {
-      fit_vi <- mod$pathfinder(data_list,
-                               seed = random.seed,
-                               init = 0.01,
-                               num_threads = n.cores,
-                               draws = n.draws,
-                               opencl_ids = opencl_IDs,
-                               num_paths = n.cores,
-                               max_lbfgs_iters = 200L,
-                               num_elbo_draws = elbo.samples,
-                               history_size = 25L)
-    }
-  } else {
-    withr::with_output_sink(tempfile(), {
-      if (algorithm %in% c("meanfield", "fullrank")) {
-        if (mle.init) {
-          model_init <- mod$optimize(data_list,
-                                     seed = random.seed,
-                                     init = 0,
-                                     opencl_ids = opencl_IDs,
-                                     jacobian = FALSE,
-                                     iter = mle.iter,
-                                     algorithm = "lbfgs",
-                                     history_size = 25L)
-        } else {
-          model_init <- 0
-        }
-        fit_vi <- mod$variational(data_list,
-                                  seed = random.seed,
-                                  init = model_init,
-                                  algorithm = algorithm,
-                                  iter =  n.iter,
-                                  draws = n.draws,
-                                  opencl_ids = opencl_IDs,
-                                  elbo_samples = elbo.samples)
-      } else {
-        fit_vi <- mod$pathfinder(data_list,
+  if (algorithm %in% c("meanfield", "fullrank")) {
+    if (mle.init) {
+      model_init <- mod$optimize(data_list,
                                  seed = random.seed,
-                                 init = 0.01,
-                                 num_threads = n.cores,
-                                 draws = n.draws,
+                                 init = 0.1,
                                  opencl_ids = opencl_IDs,
-                                 num_paths = n.cores,
-                                 max_lbfgs_iters = 200L,
-                                 num_elbo_draws = elbo.samples,
-                                 history_size = 25L)
-      }
-    })
+                                 jacobian = FALSE,
+                                 iter = mle.iter,
+                                 algorithm = "lbfgs",
+                                 tol_obj = 1e-12,
+                                 history_size = 25L, 
+                                 show_messages = verbose, 
+                                 show_exceptions = verbose)
+    } else {
+      model_init <- 0
+    }
+    fit_vi <- mod$variational(data_list,
+                              seed = random.seed,
+                              init = model_init,
+                              algorithm = algorithm,
+                              iter =  n.iter,
+                              draws = n.draws,
+                              opencl_ids = opencl_IDs,
+                              elbo_samples = elbo.samples, 
+                              show_messages = verbose, 
+                              show_exceptions = verbose)
+  } else {
+    fit_vi <- mod$pathfinder(data_list,
+                             seed = random.seed,
+                             init = 0.01,
+                             num_threads = n.cores,
+                             draws = n.draws,
+                             opencl_ids = opencl_IDs,
+                             num_paths = n.cores,
+                             max_lbfgs_iters = 200L,
+                             num_elbo_draws = elbo.samples,
+                             history_size = 25L, 
+                             show_messages = verbose, 
+                             show_exceptions = verbose)
   }
   # optionally run diagnostics
   if (verbose) {
@@ -537,7 +498,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                             S4Vectors::DataFrame()
     SummarizedExperiment::rowData(sp.obj) <- amplitude_summary_s4
   }
-  # optionally save model fit, basis functions, & k-means results, subsampling parameters to object's unstructured metadata
+  # optionally save model fit, basis functions, k-means results, & subsampling parameters to object's unstructured metadata
   if (subsample) {
     if (inherits(sp.obj, "Seurat")) {
       sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]]@misc$subsample_IDs <- sampled_spots
