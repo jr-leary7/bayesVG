@@ -160,13 +160,14 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   # extract spatial coordinates & scale them
   if (inherits(sp.obj, "Seurat")) {
     spatial_df <- Seurat::GetTissueCoordinates(sp.obj) %>%
-                  dplyr::rename(spot = cell)
+                  dplyr::rename(spot = cell) %>% 
+                  magrittr::set_rownames(colnames(sp.obj))
   } else {
    spatial_df <- as.data.frame(SpatialExperiment::spatialCoords(sp.obj)) %>% 
-                 dplyr::mutate(spot = colnames(sp.obj))
+                 dplyr::mutate(spot = colnames(sp.obj)) %>% 
+                 magrittr::set_rownames(colnames(sp.obj))
   }
   spatial_mtx <- scale(as.matrix(spatial_df[, c(1:2)]))
-  colnames(spatial_mtx) <- c("x", "y")
   # extract matrix of (raw or normalized) gene expression
   if (inherits(sp.obj, "Seurat")) {
     expr_mtx <- Seurat::GetAssayData(sp.obj,
@@ -191,6 +192,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                               centers = n.basis.fns,
                               iter.max = 100L,
                               nstart = 10L)
+  if (kmeans_res$ifault ==0)
   kmeans_centers <- kmeans_res$centers
   if (lscale.estimator == "kmeans") {
     dists_centers <- fields::rdist(kmeans_centers, compact = TRUE)
