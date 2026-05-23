@@ -322,15 +322,16 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   if (inherits(phi_ortho, "try-error")) {
     phi_ortho <- qr.Q(qr(phi))
   }
-  # convert expression matrix to long data.frame for modeling & post-processing
+  # convert expression matrix to long data.table for modeling & post-processing, then data.frame 
   if (subsample) {
     expr_mtx <- expr_mtx[, sampled_spots]
   }
-  expr_df <- data.table::as.data.table(t(expr_mtx), keep.rownames = "spot") %>% 
-             data.table::melt(id.vars = "spot", 
+  expr_df <- data.table::as.data.table(t(expr_mtx), keep.rownames = "spot")
+  expr_df[, spot := factor(spot, levels = unique(spot))]
+  expr_df <- data.table::melt(expr_df, 
+                              id.vars = "spot", 
                               variable.name = "gene", 
                               value.name = "gene_expression")
-  expr_df[, spot := factor(spot, levels = unique(spot))]
   expr_df[, gene := factor(gene, levels = unique(gene))]
   if (likelihood == "gaussian") {
     expr_df[, gene_expression := as.numeric(scale(gene_expression))]
