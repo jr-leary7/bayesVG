@@ -7,12 +7,12 @@
 #' @param n.hvg An integer specifying the number of naive HVGs to be returned. Defaults to 3000. 
 #' @importFrom cli cli_abort
 #' @importFrom Seurat FindVariableFeatures VariableFeatures
-#' @importFrom scrapper chooseRnaHvgs.se
+#' @importFrom scran modelGeneVar getTopHVGs
 #' @importFrom SummarizedExperiment rowData
 #' @importFrom dplyr arrange desc filter 
 #' @return A character vector of length \code{n.hvg} specifying the set of naive HVGs. 
 #' @seealso \code{\link[Seurat]{FindVariableFeatures}}
-#' @seealso \code{\link[scrapper]{chooseRnaHvgs.se}}
+#' @seealso \code{\link[scran]{modelGeneVar}}
 #' @export 
 #' @examples 
 #' data(seu_brain)
@@ -30,12 +30,7 @@ getNaiveHVGs <- function(sp.obj = NULL, n.hvg = 3000L) {
                                            verbose = FALSE)
     naive_hvgs <- Seurat::VariableFeatures(sp.obj)
   } else if (inherits(sp.obj, "SpatialExperiment")) {
-    sp.obj <- scrapper::chooseRnaHvgs.se(sp.obj, top = n.hvg)
-    naive_hvgs <- SummarizedExperiment::rowData(sp.obj) %>% 
-                  as.data.frame() %>% 
-                  dplyr::arrange(dplyr::desc(residuals)) %>% 
-                  dplyr::filter(hvg == TRUE) %>% 
-                  rownames(.)
+    naive_hvgs <- scran::getTopHVGs(scran::modelGeneVar(sp.obj), n = n.hvg)
   }
   return(naive_hvgs)
 }
