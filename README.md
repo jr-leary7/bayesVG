@@ -48,11 +48,11 @@ the appropriate optimizations:
 ``` r
 install.packages("cmdstanr", repos = c("https://stan-dev.r-universe.dev", getOption("repos")))
 library(cmdstanr)
+check_cmdstan_toolchain()
 install_cmdstan(cores = 4L,
                 overwrite = TRUE,
                 cpp_options = list("CXXFLAGS += -O3 -march=native -mtune=native -ffast-math"), 
                 check_toolchain = FALSE)
-check_cmdstan_toolchain()
 ```
 
 # Usage
@@ -142,7 +142,7 @@ seu_brain <- findSpatiallyVariableFeaturesBayes(seu_brain,
                                                 naive.hvgs = naive_hvgs, 
                                                 likelihood = "gaussian", 
                                                 kernel = "matern", 
-                                                kernel.smoothness = 2.5, 
+                                                kernel.smoothness = 1.5, 
                                                 algorithm = "meanfield", 
                                                 n.cores = 4L, 
                                                 save.model = TRUE) %>% 
@@ -171,8 +171,8 @@ mixture model) into spatial modules as shown below. The clustering
 function returns a PCA embedding of the SVGs, a table of the soft
 cluster assignment probabilities, and the log-likelihood and Bayesian
 information criterion (BIC) of the clustering. The clustering code uses
-the fullrank VI algorithm by default due to the multi-modality and high
-correlations of the approximate posterior distribution.
+the fullrank VI algorithm by default due to the strong multi-modality
+and high correlations present in the approximate posterior distribution.
 
 ``` r
 svg_clusters <- clusterSVGsBayes(seu_brain, 
@@ -182,9 +182,9 @@ svg_clusters <- clusterSVGsBayes(seu_brain,
 ```
 
 Next, we can score the SVG clusters using
-[`UCell`](https://github.com/carmonalab/UCell) under the hood. These
-scores can then be visualized using e.g., spatial scatterplots, violin
-plots, or UMAPs.
+[`UCell`](https://github.com/carmonalab/UCell) under the hood. The
+module scores can then be visualized using e.g., spatial scatterplots,
+violin plots, or UMAPs.
 
 ``` r
 seu_brain <- scoreSpatialModules(seu_brain, svg.clusters = svg_clusters)

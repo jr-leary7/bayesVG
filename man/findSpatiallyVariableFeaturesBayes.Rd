@@ -53,7 +53,7 @@ findSpatiallyVariableFeaturesBayes(
 
 \item{subsample.prop}{A double between 0 and 1 specifying the proportion of spots / cells to subsample within each \emph{k}-means cluster. Defaults to 0.5.}
 
-\item{algorithm}{A string specifying the variational inference (VI) approximation algorithm to be used. Must be one of "meanfield", "fullrank", or "pathfinder". Defaults to "meanfield".}
+\item{algorithm}{A string specifying the VI posterior approximation algorithm to be used. Must be one of "meanfield", "fullrank", or "pathfinder". Defaults to "meanfield".}
 
 \item{mle.init}{A Boolean specifying whether the the VI algorithm should be initialized using the regularized MLE for each parameter. In general, this isn't strictly necessary but can help if the VI algorithm struggles to converge when provided with the default initialization (zero). Cannot be used when the Pathfinder algorithm is specified. Defaults to TRUE.}
 
@@ -81,7 +81,7 @@ findSpatiallyVariableFeaturesBayes(
 Depending on the input, either an object of class \code{Seurat} or \code{SpatialExperiment} with gene-level statistics added to the appropriate metadata slot.
 }
 \description{
-This function implements SVG estimation using Bayesian variational inference to approximate the posterior distribution of each gene's expression while accounting for spatial trends.
+This function implements SVG estimation by using Bayesian variational inference (VI) to approximate the posterior distribution of each gene's expression, while accounting for spatial trends and pooling information across genes.
 }
 \details{
 \itemize{
