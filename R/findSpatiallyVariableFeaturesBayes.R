@@ -52,7 +52,7 @@
 #' @importFrom SummarizedExperiment rowData
 #' @importFrom dplyr relocate mutate rename rename_with with_groups select inner_join desc filter distinct arrange left_join bind_rows row_number slice_sample pull
 #' @importFrom data.table as.data.table melt 
-#' @importFrom stats kmeans median var
+#' @importFrom stats median var
 #' @importFrom fields rdist
 #' @importFrom forcats fct_drop
 #' @importFrom withr with_output_sink
@@ -188,10 +188,10 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                " method..."))
   }
   set.seed(random.seed)
-  kmeans_res <- stats::kmeans(spatial_mtx,
-                              centers = n.basis.fns,
-                              iter.max = 100L,
-                              nstart = 10L)
+  kmeans_res <- spatialKmeans(spatial_mtx, 
+                              n.centers = n.basis.fns, 
+                              iter.max = 100L, 
+                              n.start = 10L)
   kmeans_centers <- kmeans_res$centers
   if (lscale.estimator == "kmeans") {
     dists_centers <- fields::rdist(kmeans_centers, compact = TRUE)
