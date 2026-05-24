@@ -192,7 +192,6 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                               centers = n.basis.fns,
                               iter.max = 100L,
                               nstart = 10L)
-  if (kmeans_res$ifault ==0)
   kmeans_centers <- kmeans_res$centers
   if (lscale.estimator == "kmeans") {
     dists_centers <- fields::rdist(kmeans_centers, compact = TRUE)
@@ -361,6 +360,9 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                       phi = phi_ortho,
                       gene_depths = gene_depths,
                       y = expr_df$gene_expression)
+    temp_json <- tempfile(fileext = ".json")
+    on.exit(unlink(temp_json), add = TRUE)
+    writeTempJSON(data_list, temp.json = temp_json)
     if (likelihood == "gaussian") {
       stan_file <- system.file("approxGP2.stan", package = "bayesVG")
     } else if (likelihood == "nb") {
@@ -377,6 +379,9 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                       gene_id = as.integer(expr_df$gene),
                       phi = phi_ortho,
                       y = expr_df$gene_expression)
+    temp_json <- tempfile(fileext = ".json")
+    on.exit(unlink(temp_json), add = TRUE)
+    writeTempJSON(data_list, temp.json = temp_json)
     if (likelihood == "gaussian") {
       stan_file <- system.file("approxGP.stan", package = "bayesVG")
     } else if (likelihood == "nb") {
@@ -384,7 +389,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     }
   }
   # remove big objects to save memory
-  rm(expr_df, expr_mtx)
+  rm(expr_df, expr_mtx, data_list)
   # specify & compile model
   mod <- cmdstan_model(stan_file, compile = FALSE)
   mod$compile(cpp_options = cpp_options,
@@ -394,7 +399,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   # fit model with desired algorithm
   if (algorithm %in% c("meanfield", "fullrank")) {
     if (mle.init) {
-      model_init <- mod$optimize(data_list,
+      model_init <- mod$optimize(temp_json,
                                  seed = random.seed,
                                  init = 0.1,
                                  opencl_ids = opencl_IDs,
@@ -408,7 +413,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
     } else {
       model_init <- 0
     }
-    fit_vi <- mod$variational(data_list,
+    fit_vi <- mod$variational(temp_json,
                               seed = random.seed,
                               init = model_init,
                               algorithm = algorithm,
@@ -419,7 +424,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                               show_messages = verbose, 
                               show_exceptions = verbose)
   } else {
-    fit_vi <- mod$pathfinder(data_list,
+    fit_vi <- mod$pathfinder(temp_json,
                              seed = random.seed,
                              init = 0.01,
                              num_threads = n.cores,

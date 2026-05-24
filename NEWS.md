@@ -10,6 +10,7 @@
 + Updated & corrected some very minor inconsistencies in function documentation. 
 + Tweaked README. 
 + Rolled back switch to `scrapper` from `scran` (motivated by function deprecations in the latter), as `scrapper` relies on very specific C++ compilation settings and really isn't prod-ready. 
++ Changed how data are passed to `CmdStan` internally so as to allow for the modeling of truly giant spatial datasets e.g., 10X Xenium Prime. 
 
 # bayesVG v0.1.0
 
