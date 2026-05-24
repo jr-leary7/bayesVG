@@ -37,6 +37,7 @@ Imports:
     foreach, 
     scrapper, 
     parallel, 
+    jsonlite, 
     S4Vectors, 
     grDevices, 
     posterior, 
