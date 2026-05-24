@@ -408,7 +408,6 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
                                  algorithm = "lbfgs",
                                  tol_obj = 1e-12,
                                  history_size = 25L, 
-                                 opencl_ids = opencl_IDs,
                                  show_messages = verbose, 
                                  show_exceptions = verbose)
     } else {
