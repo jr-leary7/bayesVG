@@ -9,6 +9,8 @@
 #' @param n.PCs An integer specifying the number of principal components (PCs) to reduce the data to prior to clustering. Defaults to 30.
 #' @param algorithm A string specifying the variational inference (VI) approximation algorithm to be used. Must be one of "meanfield", "fullrank", or "pathfinder". Defaults to "fullrank".
 #' @param n.iter An integer specifying the maximum number of iterations. Defaults to 30000.
+#' @param mle.init A Boolean specifying whether the the VI algorithm should be initialized using the regularized MLE for each parameter. In general, this isn't strictly necessary but can help if the VI algorithm struggles to converge when provided with the default initialization (zero). Cannot be used when the Pathfinder algorithm is specified. Defaults to TRUE.
+#' @param mle.iter An integer specifying the maximum number of optimization iterations used when \code{mle.init = TRUE}. Defaults to 1000.
 #' @param n.draws An integer specifying the number of draws to be generated from the variational posterior. Defaults to 1000.
 #' @param elbo.samples An integer specifying the number of samples to be used to estimate the ELBO at every 100th iteration. Higher values will provide a more accurate estimate at the cost of computational complexity. Defaults to 300 when \code{algorithm} is one of "meanfield" or "fullrank", and 100 when \code{algorithm} is "pathfinder".
 #' @param opencl.params A two-element double vector specifying the platform and device IDs of the OpenCL GPU device. Most users should specify \code{c(0, 0)}. See \code{\link[brms]{opencl}} for more details. Defaults to NULL.
@@ -65,6 +67,8 @@ clusterSVGsBayes <- function(sp.obj = NULL,
                              n.PCs = 30L,
                              algorithm = "fullrank",
                              n.iter = 30000L,
+                             mle.init = TRUE,
+                             mle.iter = 1000L,
                              n.draws = 1000L,
                              elbo.samples = NULL,
                              opencl.params = NULL,
@@ -78,6 +82,7 @@ clusterSVGsBayes <- function(sp.obj = NULL,
   algorithm <- tolower(algorithm)
   if (!algorithm %in% c("meanfield", "fullrank", "pathfinder")) { cli::cli_abort("Please provide a valid variational inference approximation algorithm.") }
   if (algorithm == "meanfield") { cli::cli_alert_warning("The meanfield VI algorithm often does not perform well on clustering problems do to multi-modality and high correlation of the posterior. Use caution and consider utilizing the default fullrank VI algorithm instead.") }
+  if (mle.init && algorithm == "pathfinder") { cli::cli_alert_warning("Initialization at the regularized MLE is not supported when using the Pathfinder algorithm.") }
   if (is.null(elbo.samples)) {
     if (algorithm == "pathfinder") {
       elbo.samples <- 100L
@@ -128,7 +133,6 @@ clusterSVGsBayes <- function(sp.obj = NULL,
   }
   expr_mtx <- as.matrix(expr_mtx[svgs, ])
   expr_mtx <- t(scale(t(expr_mtx)))
-  attributes(expr_mtx)[3:4] <- NULL
   # run PCA on the normalized, scaled data
   svg_mtx_pca <- irlba::prcomp_irlba(expr_mtx,
                                      n = n.PCs,
@@ -148,11 +152,27 @@ clusterSVGsBayes <- function(sp.obj = NULL,
               threads = n.cores)
   # fit model with desired algorithm
   if (algorithm %in% c("meanfield", "fullrank")) {
+    if (mle.init) {
+      model_init <- mod$optimize(data_list,
+                                 seed = random.seed,
+                                 init = 0.1,
+                                 opencl_ids = opencl_IDs,
+                                 jacobian = FALSE,
+                                 iter = mle.iter,
+                                 algorithm = "lbfgs",
+                                 tol_obj = 1e-12,
+                                 history_size = 25L, 
+                                 opencl_ids = opencl_IDs,
+                                 show_messages = verbose, 
+                                 show_exceptions = verbose)
+    } else {
+      model_init <- 0
+    }
     fit_vi <- mod$variational(data_list,
                               seed = random.seed,
-                              init = 0,
+                              init = model_init,
                               algorithm = algorithm,
-                              iter =  n.iter,
+                              iter = n.iter,
                               draws = n.draws,
                               opencl_ids = opencl_IDs,
                               elbo_samples = elbo.samples, 
