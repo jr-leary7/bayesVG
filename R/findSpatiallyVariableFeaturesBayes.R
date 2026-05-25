@@ -190,7 +190,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   set.seed(random.seed)
   kmeans_res <- spatialKmeans(spatial_mtx, 
                               n.centers = n.basis.fns, 
-                              iter.max = 100L, 
+                              iter.max = 300L, 
                               n.start = 10L)
   kmeans_centers <- kmeans_res$centers
   if (lscale.estimator == "kmeans") {
