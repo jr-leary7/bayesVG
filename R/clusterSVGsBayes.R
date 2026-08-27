@@ -277,7 +277,8 @@ clusterSVGsBayes <- function(sp.obj = NULL,
                               gene = svgs,
                               .before = 1) %>%
                 dplyr::rowwise() %>%
-                dplyr::mutate(assigned_cluster = which.max(dplyr::c_across(tidyselect::starts_with("prob_cluster_")))) %>%
+                dplyr::mutate(assigned_cluster = which.max(dplyr::c_across(tidyselect::starts_with("prob_cluster_"))), 
+                              assigned_cluster = as.factor(assigned_cluster)) %>%
                 dplyr::ungroup()
   # estimate log-likelihood from fitted model and summarize
   log_lik_draws <- suppressWarnings(as.data.frame(posterior::as_draws_df(fit_vi$draws(variables = "log_lik")))) %>%
