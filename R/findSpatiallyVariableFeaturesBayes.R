@@ -190,7 +190,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   set.seed(random.seed)
   kmeans_res <- spatialKmeans(spatial_mtx, 
                               n.centers = n.basis.fns, 
-                              iter.max = 100L, 
+                              iter.max = 300L, 
                               n.start = 10L)
   kmeans_centers <- kmeans_res$centers
   if (lscale.estimator == "kmeans") {
@@ -282,7 +282,7 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
       }
     }
     if (verbose) {
-      cli::cli_alert_info(paste0("Subsampled ", M, " unique spots stratified by ", n.basis.fns, " spatial clusters, then estimated ", n.basis.fns, " basis functions."))
+      cli::cli_alert_info(paste0("Subsampled ", M, " unique spots after stratifying by ", n.basis.fns, " spatial clusters, then estimated ", n.basis.fns, " basis functions."))
     }
   } else {
     M <- nrow(spatial_mtx)
@@ -516,8 +516,10 @@ findSpatiallyVariableFeaturesBayes <- function(sp.obj = NULL,
   if (save.model) {
     if (inherits(sp.obj, "Seurat")) {
       sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]]@misc$model_fit <- fit_vi
+      sp.obj@assays[[Seurat::DefaultAssay(sp.obj)]]@misc$gene_mapping <- gene_mapping
     } else {
       sp.obj@metadata$model_fit <- fit_vi
+      sp.obj@metadata$gene_mapping <- gene_mapping
     }
   }
   if (save.basis.fns) {

@@ -11,17 +11,6 @@ always_allow_html: true
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(warning = FALSE, 
-                      collapse = TRUE,
-                      comment = "#>",
-                      fig.path = "man/figures/README-",
-                      out.width = "100%", 
-                      fig.retina = TRUE,
-                      fig.width = 6,
-                      fig.height = 4)
-```
-
 # `bayesVG`
 
 <!-- badges: start -->

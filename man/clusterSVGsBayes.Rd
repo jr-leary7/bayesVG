@@ -11,6 +11,8 @@ clusterSVGsBayes(
   n.PCs = 30L,
   algorithm = "fullrank",
   n.iter = 30000L,
+  mle.init = TRUE,
+  mle.iter = 1000L,
   n.draws = 1000L,
   elbo.samples = NULL,
   opencl.params = NULL,
@@ -31,6 +33,10 @@ clusterSVGsBayes(
 \item{algorithm}{A string specifying the variational inference (VI) approximation algorithm to be used. Must be one of "meanfield", "fullrank", or "pathfinder". Defaults to "fullrank".}
 
 \item{n.iter}{An integer specifying the maximum number of iterations. Defaults to 30000.}
+
+\item{mle.init}{A Boolean specifying whether the the VI algorithm should be initialized using the regularized MLE for each parameter. In general, this isn't strictly necessary but can help if the VI algorithm struggles to converge when provided with the default initialization (zero). Cannot be used when the Pathfinder algorithm is specified. Defaults to TRUE.}
+
+\item{mle.iter}{An integer specifying the maximum number of optimization iterations used when \code{mle.init = TRUE}. Defaults to 1000.}
 
 \item{n.draws}{An integer specifying the number of draws to be generated from the variational posterior. Defaults to 1000.}
 

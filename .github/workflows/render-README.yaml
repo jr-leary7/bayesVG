@@ -1,0 +1,40 @@
+# Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
+# Additional help taken from https://fromthebottomoftheheap.net/2020/04/30/rendering-your-readme-with-github-actions/
+
+on:
+  push:
+    branches: main
+    paths:
+      - README.Rmd
+      - .github/workflows/render-README.yaml
+
+name: render-README
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+      - uses: r-lib/actions/setup-pandoc@v2
+      - name: Install rmarkdown
+        run: Rscript -e 'install.packages("rmarkdown")'
+      - name: render README
+        run: Rscript -e 'rmarkdown::render("README.Rmd", output_format = "github_document", output_file = "README.md")'
+      - name: commit rendered README
+        run: |
+          git config --local user.name "jr-leary7"
+          git config --local user.email "j.leary@ufl.edu"
+          git add README.md
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "Recompiled README.Rmd"
+            git push origin main
+          else
+            echo "No changes to commit"
+          fi
